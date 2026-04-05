@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -36,8 +37,26 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatCOP } from '@/data/packages';
-import { Plus, Search, Pencil, Trash2, Star, Building2 } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  Star,
+  Building2,
+  Upload,
+  X,
+  ChevronDown,
+  ChevronUp,
+  ImagePlus,
+  BedDouble,
+  Users,
+  DollarSign,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+// ─── Types ───────────────────────────────────────────────────────
 
 interface HotelRoom {
   id: string;
@@ -71,6 +90,43 @@ interface Hotel {
   active: boolean;
 }
 
+// ─── Default Room Template ───────────────────────────────────────
+
+const DEFAULT_ROOM: HotelRoom = {
+  id: 'room-default',
+  name: 'Habitación Estándar',
+  maxGuests: 2,
+  beds: '1 cama doble',
+  price: 0,
+  originalPrice: 0,
+  includes: ['Wi-Fi', 'Aire acondicionado'],
+  available: 1,
+  roomImage: '',
+};
+
+function createDefaultRoom(index: number): HotelRoom {
+  return {
+    ...DEFAULT_ROOM,
+    id: `room-new-${Date.now()}-${index}`,
+  };
+}
+
+function sanitizeRoom(room: Partial<HotelRoom>): HotelRoom {
+  return {
+    id: room.id || `room-${Date.now()}`,
+    name: room.name || 'Habitación Estándar',
+    maxGuests: Number(room.maxGuests) || 2,
+    beds: room.beds || '1 cama doble',
+    price: Number(room.price) || 0,
+    originalPrice: Number(room.originalPrice) || 0,
+    includes: Array.isArray(room.includes) ? room.includes : ['Wi-Fi'],
+    available: Number(room.available) || 1,
+    roomImage: room.roomImage || '',
+  };
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────
+
 const emptyHotel: Omit<Hotel, 'id'> = {
   name: '',
   slug: '',
@@ -99,18 +155,436 @@ function generateSlug(name: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
+function generateId(): string {
+  return `room-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function StarRating({ count }: { count: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`w-3.5 h-3.5 ${i < count ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}
+          className={cn(
+            'w-3.5 h-3.5',
+            i < count ? 'fill-amber-400 text-amber-400' : 'text-gray-200'
+          )}
         />
       ))}
     </div>
   );
 }
+
+// ─── Tag Input Component ────────────────────────────────────────
+
+function TagInput({
+  tags,
+  onChange,
+  placeholder = 'Agregar servicio...',
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  placeholder?: string;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const addTag = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+      setInputValue('');
+    }
+  };
+
+  const removeTag = (index: number) => {
+    onChange(tags.filter((_, i) => i !== index));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+    if (e.key === 'Backspace' && inputValue === '' && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addTag}
+          disabled={!inputValue.trim()}
+          className="shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Agregar
+        </Button>
+      </div>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag, idx) => (
+            <Badge
+              key={idx}
+              variant="secondary"
+              className="pl-2 pr-1 py-1 gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(idx)}
+                className="ml-0.5 rounded-full hover:bg-amber-200 p-0.5 transition-colors"
+                aria-label={`Eliminar ${tag}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+      {tags.length === 0 && (
+        <p className="text-xs text-gray-400">
+          Presiona Enter para agregar un servicio
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Image Upload Component ──────────────────────────────────────
+
+function ImageUpload({
+  value,
+  onChange,
+  label = 'Imagen de la habitación',
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  label?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar los 5 MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'rooms');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      const data = await res.json();
+      onChange(data.url);
+      toast.success('Imagen subida correctamente');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir';
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleUpload(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => setDragOver(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {value ? (
+        <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+          <img
+            src={value}
+            alt="Vista previa"
+            className="w-full h-36 object-cover"
+          />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4 mr-1" />
+              Cambiar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={() => onChange('')}
+            >
+              <X className="w-4 h-4 mr-1" />
+              Eliminar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={() => inputRef.current?.click()}
+          className={cn(
+            'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+            dragOver
+              ? 'border-amber-400 bg-amber-50'
+              : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+            uploading && 'pointer-events-none opacity-60'
+          )}
+        >
+          {uploading ? (
+            <div className="space-y-2">
+              <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+              <p className="text-sm text-gray-500">Subiendo imagen...</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
+              <p className="text-sm text-gray-500">
+                Arrastra una imagen o{' '}
+                <span className="text-amber-600 font-medium">
+                  haz clic para seleccionar
+                </span>
+              </p>
+              <p className="text-xs text-gray-400">
+                PNG, JPG, WebP, GIF (máx. 5 MB)
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </div>
+  );
+}
+
+// ─── Room Editor Card Component ──────────────────────────────────
+
+function RoomEditorCard({
+  room,
+  index,
+  onUpdate,
+  onRemove,
+  canRemove,
+}: {
+  room: HotelRoom;
+  index: number;
+  onUpdate: (updated: HotelRoom) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const updateField = <K extends keyof HotelRoom>(key: K, value: HotelRoom[K]) => {
+    onUpdate({ ...room, [key]: value });
+  };
+
+  return (
+    <Card className="border border-gray-200 shadow-sm overflow-hidden">
+      <CardHeader className="p-4 pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <BedDouble className="w-4 h-4 text-amber-600" />
+            Habitación {index + 1}
+            {room.name !== 'Habitación Estándar' && (
+              <span className="text-xs text-gray-400 font-normal">
+                — {room.name}
+              </span>
+            )}
+          </CardTitle>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? (
+                <ChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              )}
+            </Button>
+            {canRemove && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-gray-400 hover:text-red-600"
+                onClick={onRemove}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+
+      {expanded && (
+        <CardContent className="p-4 pt-0 space-y-4">
+          {/* Room Image */}
+          <ImageUpload
+            value={room.roomImage}
+            onChange={(url) => updateField('roomImage', url)}
+            label="Imagen de la habitación"
+          />
+
+          <Separator />
+
+          {/* Room Name & Beds */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Nombre de la habitación</Label>
+              <Input
+                value={room.name}
+                onChange={(e) => updateField('name', e.target.value)}
+                placeholder="Habitación Doble Deluxe"
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Camas</Label>
+              <Input
+                value={room.beds}
+                onChange={(e) => updateField('beds', e.target.value)}
+                placeholder="1 cama king"
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Max Guests & Available */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500 flex items-center gap-1">
+                <Users className="w-3 h-3" /> Max. Huéspedes
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                value={room.maxGuests}
+                onChange={(e) => updateField('maxGuests', Number(e.target.value))}
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Disponibles</Label>
+              <Input
+                type="number"
+                min="0"
+                value={room.available}
+                onChange={(e) => updateField('available', Number(e.target.value))}
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Prices */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500 flex items-center gap-1">
+                <DollarSign className="w-3 h-3" /> Precio (COP)
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                value={room.price}
+                onChange={(e) => updateField('price', Number(e.target.value))}
+                placeholder="720000"
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Precio Original (COP)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={room.originalPrice || ''}
+                onChange={(e) =>
+                  updateField(
+                    'originalPrice',
+                    e.target.value ? Number(e.target.value) : undefined
+                  )
+                }
+                placeholder="850000 (opcional)"
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Includes (Tags) */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Servicios incluidos</Label>
+            <TagInput
+              tags={room.includes}
+              onChange={(includes) => updateField('includes', includes)}
+              placeholder="Ej: Desayuno, Wi-Fi, Minibar..."
+            />
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
+// ─── Main Component ─────────────────────────────────────────────
 
 export default function AdminHotels() {
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -142,18 +616,24 @@ export default function AdminHotels() {
     fetchHotels();
   }, [fetchHotels]);
 
-  const filtered = hotels.filter(
-    (h) => h.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = hotels.filter((h) =>
+    h.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  // ── Ensure rooms are always sanitized on open ──
   const handleOpenCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyHotel });
+    setForm({ ...emptyHotel, rooms: [createDefaultRoom(0)] });
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (hotel: Hotel) => {
     setEditingId(hotel.id);
+    // Sanitize rooms: ensure each room has all required fields
+    const safeRooms =
+      Array.isArray(hotel.rooms) && hotel.rooms.length > 0
+        ? hotel.rooms.map((r) => sanitizeRoom(r))
+        : [createDefaultRoom(0)];
     setForm({
       name: hotel.name,
       slug: hotel.slug,
@@ -164,7 +644,7 @@ export default function AdminHotels() {
       description: hotel.description,
       images: hotel.images,
       amenities: hotel.amenities,
-      rooms: hotel.rooms,
+      rooms: safeRooms,
       rating: hotel.rating,
       reviewCount: hotel.reviewCount,
       priceFrom: hotel.priceFrom,
@@ -199,7 +679,9 @@ export default function AdminHotels() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Error al guardar');
       }
-      toast.success(isEditing ? 'Hotel actualizado correctamente' : 'Hotel creado correctamente');
+      toast.success(
+        isEditing ? 'Hotel actualizado correctamente' : 'Hotel creado correctamente'
+      );
       setDialogOpen(false);
       fetchHotels();
     } catch (err: unknown) {
@@ -213,7 +695,9 @@ export default function AdminHotels() {
   const handleDelete = async () => {
     if (!deletingId) return;
     try {
-      const res = await fetch(`/api/admin/hotels/${deletingId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/hotels/${deletingId}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Error al eliminar');
@@ -228,7 +712,10 @@ export default function AdminHotels() {
     }
   };
 
-  const updateField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => {
+  const updateField = <K extends keyof typeof form>(
+    key: K,
+    value: typeof form[K]
+  ) => {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === 'name') {
@@ -236,6 +723,39 @@ export default function AdminHotels() {
       }
       return next;
     });
+  };
+
+  // ── Room management helpers ──
+  const addRoom = () => {
+    const newRoom = createDefaultRoom(form.rooms.length);
+    setForm((prev) => ({ ...prev, rooms: [...prev.rooms, newRoom] }));
+  };
+
+  const updateRoom = (index: number, updated: HotelRoom) => {
+    setForm((prev) => {
+      const rooms = [...prev.rooms];
+      rooms[index] = updated;
+      return { ...prev, rooms };
+    });
+  };
+
+  const removeRoom = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      rooms: prev.rooms.filter((_, i) => i !== index),
+    }));
+  };
+
+  const duplicateRoom = (index: number) => {
+    const source = form.rooms[index];
+    const copy: HotelRoom = {
+      ...sanitizeRoom(source),
+      id: generateId(),
+      name: `${source.name} (copia)`,
+    };
+    const rooms = [...form.rooms];
+    rooms.splice(index + 1, 0, copy);
+    setForm((prev) => ({ ...prev, rooms }));
   };
 
   return (
@@ -302,19 +822,30 @@ export default function AdminHotels() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-400">
-                        {search ? 'No se encontraron resultados' : 'No hay hoteles registrados'}
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-gray-400"
+                      >
+                        {search
+                          ? 'No se encontraron resultados'
+                          : 'No hay hoteles registrados'}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((hotel) => (
                       <TableRow key={hotel.id}>
-                        <TableCell className="font-medium text-sm">{hotel.name}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{hotel.cityName}</TableCell>
+                        <TableCell className="font-medium text-sm">
+                          {hotel.name}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {hotel.cityName}
+                        </TableCell>
                         <TableCell>
                           <StarRating count={hotel.stars} />
                         </TableCell>
-                        <TableCell className="text-sm font-semibold">{formatCOP(hotel.priceFrom)}</TableCell>
+                        <TableCell className="text-sm font-semibold">
+                          {formatCOP(hotel.priceFrom)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -324,12 +855,18 @@ export default function AdminHotels() {
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {hotel.tags.slice(0, 2).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {tag}
                               </Badge>
                             ))}
                             {hotel.tags.length > 2 && (
-                              <span className="text-xs text-gray-400">+{hotel.tags.length - 2}</span>
+                              <span className="text-xs text-gray-400">
+                                +{hotel.tags.length - 2}
+                              </span>
                             )}
                           </div>
                         </TableCell>
@@ -377,23 +914,35 @@ export default function AdminHotels() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Hotel' : 'Nuevo Hotel'}
             </DialogTitle>
             <DialogDescription>
-              {editingId ? 'Modifica los datos del hotel' : 'Completa los datos para registrar un nuevo hotel'}
+              {editingId
+                ? 'Modifica los datos del hotel'
+                : 'Completa los datos para registrar un nuevo hotel'}
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="basic" className="pt-2">
             <TabsList className="w-full">
-              <TabsTrigger value="basic" className="flex-1">Info Básica</TabsTrigger>
-              <TabsTrigger value="media" className="flex-1">Imágenes</TabsTrigger>
-              <TabsTrigger value="amenities" className="flex-1">Servicios</TabsTrigger>
-              <TabsTrigger value="rooms" className="flex-1">Habitaciones</TabsTrigger>
-              <TabsTrigger value="extra" className="flex-1">Extra</TabsTrigger>
+              <TabsTrigger value="basic" className="flex-1">
+                Info Básica
+              </TabsTrigger>
+              <TabsTrigger value="media" className="flex-1">
+                Imágenes
+              </TabsTrigger>
+              <TabsTrigger value="amenities" className="flex-1">
+                Servicios
+              </TabsTrigger>
+              <TabsTrigger value="rooms" className="flex-1">
+                Habitaciones
+              </TabsTrigger>
+              <TabsTrigger value="extra" className="flex-1">
+                Extra
+              </TabsTrigger>
             </TabsList>
 
             {/* Basic Info Tab */}
@@ -470,7 +1019,9 @@ export default function AdminHotels() {
                     id="hotel-reviews"
                     type="number"
                     value={form.reviewCount}
-                    onChange={(e) => updateField('reviewCount', Number(e.target.value))}
+                    onChange={(e) =>
+                      updateField('reviewCount', Number(e.target.value))
+                    }
                   />
                 </div>
               </div>
@@ -491,7 +1042,9 @@ export default function AdminHotels() {
                   id="hotel-price"
                   type="number"
                   value={form.priceFrom}
-                  onChange={(e) => updateField('priceFrom', Number(e.target.value))}
+                  onChange={(e) =>
+                    updateField('priceFrom', Number(e.target.value))
+                  }
                   placeholder="720000"
                 />
               </div>
@@ -538,20 +1091,26 @@ export default function AdminHotels() {
             {/* Amenities Tab */}
             <TabsContent value="amenities" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="hotel-amenities">Servicios / Amenidades (separados por coma)</Label>
+                <Label htmlFor="hotel-amenities">
+                  Servicios / Amenidades (separados por coma)
+                </Label>
                 <Input
                   id="hotel-amenities"
                   value={form.amenities.join(', ')}
                   onChange={(e) =>
                     updateField(
                       'amenities',
-                      e.target.value.split(',').map((a) => a.trim()).filter(Boolean)
+                      e.target.value
+                        .split(',')
+                        .map((a) => a.trim())
+                        .filter(Boolean)
                     )
                   }
                   placeholder="wifi, pool, restaurant, spa, gym, parking"
                 />
                 <p className="text-xs text-gray-400">
-                  IDs de amenidades: wifi, pool, restaurant, parking, gym, spa, ac, breakfast, bar, reception, transfer, sea-view
+                  IDs de amenidades: wifi, pool, restaurant, parking, gym, spa,
+                  ac, breakfast, bar, reception, transfer, sea-view
                 </p>
               </div>
 
@@ -563,7 +1122,10 @@ export default function AdminHotels() {
                   onChange={(e) =>
                     updateField(
                       'tags',
-                      e.target.value.split(',').map((t) => t.trim()).filter(Boolean)
+                      e.target.value
+                        .split(',')
+                        .map((t) => t.trim())
+                        .filter(Boolean)
                     )
                   }
                   placeholder="Lujo, Popular, Nuevo, Descuento"
@@ -574,7 +1136,9 @@ export default function AdminHotels() {
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={form.featured}
-                    onCheckedChange={(checked) => updateField('featured', checked)}
+                    onCheckedChange={(checked) =>
+                      updateField('featured', checked)
+                    }
                   />
                   <Label>Destacado</Label>
                 </div>
@@ -588,41 +1152,60 @@ export default function AdminHotels() {
               </div>
             </TabsContent>
 
-            {/* Rooms Tab */}
+            {/* ─── ROOMS TAB (Dynamic Form) ─── */}
             <TabsContent value="rooms" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="hotel-rooms">Habitaciones (JSON array)</Label>
-                <Textarea
-                  id="hotel-rooms"
-                  value={JSON.stringify(form.rooms, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      if (Array.isArray(parsed)) {
-                        updateField('rooms', parsed);
-                      }
-                    } catch {
-                      // Allow raw text editing while user types
-                    }
-                  }}
-                  rows={10}
-                  className="font-mono text-xs"
-                />
-                <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
-                  <p className="font-semibold mb-1">Formato de cada habitación:</p>
-                  <pre className="whitespace-pre-wrap">{`{
-  "id": "room-1",
-  "name": "Habitación Doble Deluxe",
-  "maxGuests": 2,
-  "beds": "1 cama king",
-  "price": 720000,
-  "originalPrice": 850000,
-  "includes": ["Desayuno", "Wi-Fi"],
-  "available": 5,
-  "roomImage": "/images/room.png"
-}`}</pre>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Habitaciones del hotel
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {form.rooms.length} habitación
+                    {form.rooms.length !== 1 ? 'es' : ''} configurada
+                    {form.rooms.length !== 1 ? 's' : ''}
+                  </p>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addRoom}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Agregar habitación
+                </Button>
               </div>
+
+              <div className="space-y-4">
+                {form.rooms.map((room, idx) => (
+                  <RoomEditorCard
+                    key={room.id}
+                    room={room}
+                    index={idx}
+                    onUpdate={(updated) => updateRoom(idx, updated)}
+                    onRemove={() => removeRoom(idx)}
+                    canRemove={form.rooms.length > 1}
+                  />
+                ))}
+              </div>
+
+              {form.rooms.length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No hay habitaciones configuradas</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addRoom}
+                    className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-50"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Agregar primera habitación
+                  </Button>
+                </div>
+              )}
             </TabsContent>
 
             {/* Extra Tab */}
@@ -631,7 +1214,9 @@ export default function AdminHotels() {
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={form.featured}
-                    onCheckedChange={(checked) => updateField('featured', checked)}
+                    onCheckedChange={(checked) =>
+                      updateField('featured', checked)
+                    }
                   />
                   <Label>Destacado</Label>
                 </div>
@@ -667,7 +1252,8 @@ export default function AdminHotels() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar hotel?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El hotel será eliminado permanentemente.
+              Esta acción no se puede deshacer. El hotel será eliminado
+              permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

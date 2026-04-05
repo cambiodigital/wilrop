@@ -46,3 +46,30 @@ Stage Summary:
 - Countdown timer with days/hours/minutes/seconds display, auto-hides when expired
 - Three position options: center (with backdrop), bottom-right, bottom-left
 - Configurable delay before showing (default 3 seconds)
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Refactor AdminHotels rooms tab from raw JSON textarea to dynamic form
+
+Work Log:
+- Created file upload API endpoint (POST /api/admin/upload) with validation (image types only, 5MB limit)
+- Created public/uploads/rooms directory for storing room images
+- Completely rewrote the "Habitaciones" (Rooms) tab in AdminHotels.tsx
+- Built 3 new sub-components: TagInput, ImageUpload, RoomEditorCard
+- Replaced raw JSON textarea with individual form fields per room property
+- Implemented tag-style system for room `includes` array (add/remove badges)
+- Replaced roomImage text input with drag-and-drop file upload + preview
+- Added default room data (Habitación Estándar) when hotel has no rooms or missing fields
+- Added "Agregar habitación" button and per-room delete button
+- Rooms are sanitized on edit to ensure no missing fields break the form
+- All lint checks pass (0 errors, 0 warnings)
+- Dev server compiles successfully
+
+Stage Summary:
+- Rooms tab now shows dynamic form cards instead of raw JSON
+- Each room card has: name, beds, maxGuests, available, price, originalPrice inputs
+- Includes field uses interactive tag system with keyboard support (Enter to add, Backspace to remove last)
+- Room image uses file upload with drag-and-drop, preview, and change/delete overlay buttons
+- Default room template prevents empty/broken forms
+- File upload API saves to /public/uploads/rooms/ with unique UUID filenames
