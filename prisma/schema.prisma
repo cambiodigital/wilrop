@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Admin User ──────────────────────────────────────────────────
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Destinations ────────────────────────────────────────────────
+model Destination {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  region      String
+  description String
+  image       String
+  highlights  String   // JSON array stored as string
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  priceFrom   Int      @default(0)
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Hotels ──────────────────────────────────────────────────────
+model Hotel {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  cityId      String
+  cityName    String
+  stars       Int      @default(3)
+  address     String   @default("")
+  description String   @default("")
+  images      String   @default("[]") // JSON array
+  amenities   String   @default("[]") // JSON array of amenity IDs
+  rooms       String   @default("[]") // JSON array of HotelRoom objects
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  priceFrom   Int      @default(0)
+  tags        String   @default("[]") // JSON array
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Marketing Modal ─────────────────────────────────────────────
+model MarketingModal {
+  id          String   @id @default(cuid())
+  active      Boolean  @default(true)
+  title       String   @default("")
+  subtitle    String   @default("")
+  description String   @default("")
+  imageUrl    String   @default("")
+  ctaText     String   @default("Ver Oferta")
+  ctaLink     String   @default("")
+  ctaType     String   @default("link") // "link" | "navigate" — link opens URL, navigate uses SPA view
+  timerEnabled Boolean @default(false)
+  timerLabel  String   @default("Oferta termina en")
+  timerEnd    DateTime?
+  position    String   @default("center") // "center" | "bottom-right" | "bottom-left"
+  delayMs     Int      @default(3000) // delay before showing modal (ms)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Travel Packages ─────────────────────────────────────────────
+model TravelPackage {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  destinationId   String
+  destinationName String
+  title           String
+  description     String
+  duration        String
+  price           Int
+  originalPrice   Int?
+  includes        String   @default("[]") // JSON array
+  image           String   @default("")
+  difficulty      String   @default("Fácil")
+  groupSize       String   @default("")
+  departureDates  String   @default("[]") // JSON array
+  rating          Float    @default(0)
+  soldOut         Boolean  @default(false)
+  category        String   @default("Cultural")
+  commission      Int      @default(10)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
