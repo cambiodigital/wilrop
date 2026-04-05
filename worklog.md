@@ -73,3 +73,33 @@ Stage Summary:
 - Room image uses file upload with drag-and-drop, preview, and change/delete overlay buttons
 - Default room template prevents empty/broken forms
 - File upload API saves to /public/uploads/rooms/ with unique UUID filenames
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Refactor AdminHotels Images tab from JSON textarea to visual gallery with file upload
+
+Work Log:
+- Created /public/uploads/hotels directory for hotel image uploads
+- Added GripVertical and Link2 icons to imports
+- Added 6 new state variables for image management (uploading, drag, reorder, URL input)
+- Created uploadImages() async function for multi-file upload with progress tracking
+- Created handleImagesDrop() for drag-and-drop file upload
+- Created handleImagesFileChange() for file input change
+- Created removeImage() to delete individual images from the gallery
+- Created handleImageDragStart/Drop() for drag-and-drop reordering of existing images
+- Created addImageByUrl() with URL validation
+- Replaced JSON textarea with: drop zone, image grid gallery, and URL input field
+- Each gallery image shows: preview thumbnail, numbered badge with grip icon, delete button on hover
+- Drag-and-drop reordering between gallery images
+- Upload zone supports multiple file selection at once
+- Lint: 0 errors, 0 warnings
+
+Stage Summary:
+- Images tab now shows a visual gallery grid instead of raw JSON
+- Users can upload images via drag-and-drop or file picker (multiple at once)
+- Images can be reordered via drag-and-drop between grid items
+- Each image has a numbered badge and hover-reveal delete button
+- Optional "Add by URL" input at the bottom with validation
+- Upload errors are handled gracefully with toast notifications
+- Existing image URLs from the database render correctly as thumbnails

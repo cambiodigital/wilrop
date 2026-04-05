@@ -52,6 +52,8 @@ import {
   BedDouble,
   Users,
   DollarSign,
+  GripVertical,
+  Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -597,6 +599,14 @@ export default function AdminHotels() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyHotel);
 
+  // ── Images state ──
+  const [imagesUploading, setImagesUploading] = useState(false);
+  const [imagesDragOver, setImagesDragOver] = useState(false);
+  const [draggedImageIdx, setDraggedImageIdx] = useState<number | null>(null);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [pendingUploads, setPendingUploads] = useState(0);
+  const imagesInputRef = useRef<HTMLInputElement>(null);
+
   const fetchHotels = useCallback(async () => {
     setLoading(true);
     try {
@@ -709,6 +719,101 @@ export default function AdminHotels() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error';
       toast.error(msg);
+    }
+  };
+
+  // ── Image management helpers ──
+  const uploadImages = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    setImagesUploading(true);
+    setPendingUploads(fileArray.length);
+    const newUrls: string[] = [];
+
+    for (const file of fileArray) {
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} supera el límite de 5 MB`);
+        continue;
+      }
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'hotels');
+        const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Error al subir');
+        }
+        const data = await res.json();
+        newUrls.push(data.url);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Error al subir';
+        toast.error(`${file.name}: ${msg}`);
+      }
+    }
+
+    if (newUrls.length > 0) {
+      setForm((prev) => ({ ...prev, images: [...prev.images, ...newUrls] }));
+      toast.success(`${newUrls.length} imagen(es) subida(s) correctamente`);
+    }
+    setImagesUploading(false);
+    setPendingUploads(0);
+  };
+
+  const handleImagesDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setImagesDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      uploadImages(e.dataTransfer.files);
+    }
+  };
+
+  const handleImagesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) uploadImages(files);
+    if (imagesInputRef.current) imagesInputRef.current.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleImageDragStart = (e: React.DragEvent, idx: number) => {
+    setDraggedImageIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleImageDrop = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedImageIdx === null || draggedImageIdx === targetIdx) {
+      setDraggedImageIdx(null);
+      return;
+    }
+    setForm((prev) => {
+      const imgs = [...prev.images];
+      const [moved] = imgs.splice(draggedImageIdx, 1);
+      imgs.splice(targetIdx, 0, moved);
+      return { ...prev, images: imgs };
+    });
+    setDraggedImageIdx(null);
+  };
+
+  const addImageByUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+    try {
+      new URL(url);
+      setForm((prev) => ({ ...prev, images: [...prev.images, url] }));
+      setImageUrlInput('');
+      toast.success('Imagen agregada correctamente');
+    } catch {
+      toast.error('URL inválida. Ingresa una URL completa (https://...)');
     }
   };
 
@@ -1063,28 +1168,150 @@ export default function AdminHotels() {
 
             {/* Images Tab */}
             <TabsContent value="media" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Galería de imágenes del hotel
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {form.images.length} imagen{form.images.length !== 1 ? 'es' : ''}
+                    {form.images.length > 0 && ' · Arrastra para reordenar'}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => imagesInputRef.current?.click()}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  <Upload className="w-4 h-4 mr-1.5" />
+                  Subir imagen
+                </Button>
+              </div>
+
+              {/* Upload drop zone */}
+              <div
+                onDrop={handleImagesDrop}
+                onDragOver={(e) => { e.preventDefault(); setImagesDragOver(true); }}
+                onDragLeave={() => setImagesDragOver(false)}
+                onClick={() => imagesInputRef.current?.click()}
+                className={cn(
+                  'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+                  imagesDragOver
+                    ? 'border-amber-400 bg-amber-50'
+                    : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                  imagesUploading && 'pointer-events-none opacity-60'
+                )}
+              >
+                {imagesUploading ? (
+                  <div className="space-y-2">
+                    <div className="animate-spin w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+                    <p className="text-sm text-gray-500">Subiendo imagen{pendingUploads > 1 ? 'es' : ''}...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <ImagePlus className="w-10 h-10 text-gray-400 mx-auto" />
+                    <p className="text-sm text-gray-500">
+                      Arrastra imágenes aquí o{' '}
+                      <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      PNG, JPG, WebP, GIF · Máx. 5 MB por imagen · Puedes seleccionar varias
+                    </p>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={imagesInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImagesFileChange}
+                className="hidden"
+              />
+
+              {/* Image gallery grid */}
+              {form.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {form.images.map((img, idx) => (
+                    <div
+                      key={`${img}-${idx}`}
+                      draggable
+                      onDragStart={(e) => handleImageDragStart(e, idx)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => handleImageDrop(e, idx)}
+                      className={cn(
+                        'relative group rounded-lg overflow-hidden border border-gray-200 transition-all',
+                        'hover:shadow-md hover:border-amber-300',
+                        draggedImageIdx === idx && 'opacity-50 ring-2 ring-amber-400'
+                      )}
+                    >
+                      <img
+                        src={img}
+                        alt={`Imagen ${idx + 1}`}
+                        className="w-full h-32 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '';
+                          (e.target as HTMLImageElement).alt = 'Imagen no disponible';
+                          (e.target as HTMLImageElement).className = 'w-full h-32 bg-gray-100 flex items-center justify-center';
+                        }}
+                      />
+                      {/* Index badge */}
+                      <div className="absolute top-1.5 left-1.5 bg-black/50 text-white text-xs font-medium rounded-md px-1.5 py-0.5 flex items-center gap-1">
+                        <GripVertical className="w-3 h-3" />
+                        {idx + 1}
+                      </div>
+                      {/* Remove button */}
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1.5 right-1.5 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage(idx);
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add by URL */}
+              <Separator />
               <div className="space-y-2">
-                <Label htmlFor="hotel-images">Imágenes (JSON array)</Label>
-                <Textarea
-                  id="hotel-images"
-                  value={JSON.stringify(form.images, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      if (Array.isArray(parsed)) {
-                        updateField('images', parsed);
+                <Label className="text-xs text-gray-500 flex items-center gap-1">
+                  <Link2 className="w-3 h-3" />
+                  Agregar imagen por URL
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addImageByUrl();
                       }
-                    } catch {
-                      // Allow raw text editing while user types
-                    }
-                  }}
-                  placeholder='["/images/cartagena.png", "/images/cartagena2.png"]'
-                  rows={4}
-                  className="font-mono text-sm"
-                />
-                <p className="text-xs text-gray-400">
-                  Ingresa un array JSON con las URLs de las imágenes
-                </p>
+                    }}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    className="flex-1 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addImageByUrl}
+                    disabled={!imageUrlInput.trim()}
+                    className="shrink-0"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Agregar
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
