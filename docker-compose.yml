@@ -1,0 +1,55 @@
+services:
+
+  # ─── Aplicación Next.js ────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wilrop-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Prisma construye la URL internamente a partir de estas variables
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NODE_ENV: production
+      # next-auth — obligatorio en producción
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+    depends_on:
+      db:
+        condition: service_healthy   # espera hasta que Postgres esté listo
+    networks:
+      - wilrop-net
+
+  # ─── Base de datos PostgreSQL ─────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: wilrop-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - wilrop-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wilrop-net
+    # Expone el puerto solo en desarrollo local; comentar en producción
+    ports:
+      - "5432:5432"
+
+# ─── Volúmenes ──────────────────────────────────────────────────────────────
+volumes:
+  wilrop-db-data:
+    driver: local
+
+# ─── Redes ──────────────────────────────────────────────────────────────────
+networks:
+  wilrop-net:
+    driver: bridge

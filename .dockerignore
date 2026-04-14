@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .dockerignore — Excluye archivos innecesarios del contexto de build Docker
+# Mantiene la imagen lo más pequeña y rápida posible.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Dependencias (se reinstalan dentro del build)
+node_modules/
+
+# Outputs de build
+.next/
+out/
+
+# Variables de entorno (nunca en la imagen)
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# Dev tools
+.vscode/
+.idea/
+*.md
+!README.md
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests y fixtures
+__tests__/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Coolify / Docker
+docker-compose*.yml
+Caddyfile
+keepalive.sh
+page_check.html
+worklog.md
+download/
+examples/
+mini-services/
