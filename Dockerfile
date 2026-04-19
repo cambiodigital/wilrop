@@ -13,7 +13,7 @@ RUN bun install --frozen-lockfile
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — builder: genera el cliente Prisma y compila Next.js
 # ─────────────────────────────────────────────────────────────────────────────
-FROM oven/bun:1-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -23,11 +23,13 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Genera el cliente Prisma para la plataforma linux-musl (Alpine)
-RUN bunx prisma generate
+RUN node /app/node_modules/prisma/build/index.js generate
 
 # Compila Next.js en modo standalone;
 # el script de build también copia static/ y public/ dentro de .next/standalone/
-RUN bun run build
+RUN node /app/node_modules/next/dist/bin/next build \
+ && cp -r .next/static .next/standalone/.next/ \
+ && cp -r public .next/standalone/
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 3 — runner: imagen de producción mínima
