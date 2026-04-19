@@ -56,12 +56,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 
 # ── Prisma runtime ────────────────────────────────────────────────────────────
-# Cliente generado + binario del query engine (linux-musl)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma         ./node_modules/.prisma
-# Copia todo el scope @prisma para incluir client + engines requeridos por el CLI
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma         ./node_modules/@prisma
-# CLI de Prisma (incluye el migration engine para `migrate deploy`)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma          ./node_modules/prisma
+# Copia node_modules completo para asegurar dependencias transitivas del CLI
+# (por ejemplo `effect`, requerido por @prisma/config en Prisma 6.x)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./node_modules
 # Schema + migraciones (necesarios en runtime para migrate deploy)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
 
