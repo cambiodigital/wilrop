@@ -346,7 +346,7 @@ export default function WhiteLabelPreview() {
           >
             {selectedPackages.map((pkg, index) => {
               const dest = destinations.find((d) => d.id === pkg.destinationId);
-              const discount = Math.round(((pkg.originalPrice - pkg.price) / pkg.originalPrice) * 100);
+              const discount = pkg.originalPrice ? Math.round(((pkg.originalPrice - pkg.price) / pkg.originalPrice) * 100) : 0;
               return (
                 <motion.div
                   key={pkg.id}
@@ -417,7 +417,7 @@ export default function WhiteLabelPreview() {
                     <div className="flex items-end justify-between pt-3 border-t border-border">
                       <div>
                         <div className="text-xs text-muted-foreground line-through">
-                          {formatPrice(pkg.originalPrice)}
+                          {pkg.originalPrice && formatPrice(pkg.originalPrice)}
                         </div>
                         <div className="text-xl font-bold" style={{ color: config.primaryColor }}>
                           {formatPrice(pkg.price)}

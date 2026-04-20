@@ -38,25 +38,66 @@ model Destination {
 
 // ─── Hotels ──────────────────────────────────────────────────────
 model Hotel {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String       @id @default(cuid())
+  slug        String       @unique
   name        String
   cityId      String
   cityName    String
-  stars       Int      @default(3)
-  address     String   @default("")
-  description String   @default("")
-  images      String   @default("[]") // JSON array
-  amenities   String   @default("[]") // JSON array of amenity IDs
-  rooms       String   @default("[]") // JSON array of HotelRoom objects
-  rating      Float    @default(0)
-  reviewCount Int      @default(0)
-  priceFrom   Int      @default(0)
-  tags        String   @default("[]") // JSON array
-  featured    Boolean  @default(false)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  stars       Int          @default(3)
+  address     String       @default("")
+  description String       @default("")
+  images      String       @default("[]") // JSON array
+  amenities   String       @default("[]") // JSON array of amenity IDs
+  rooms       String       @default("[]") // JSON array of HotelRoom objects
+  rating      Float        @default(0)
+  reviewCount Int          @default(0)
+  priceFrom   Int          @default(0)
+  tags        String       @default("[]") // JSON array
+  featured    Boolean      @default(false)
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  roomTypes   RoomType[]
+  allotments  Allotment[]
+}
+
+// ─── Room Types ──────────────────────────────────────────────────
+model RoomType {
+  id            String      @id @default(cuid())
+  hotelId       String
+  name          String
+  maxGuests     Int         @default(2)
+  beds          String      @default("1 cama doble")
+  basePrice     Int         @default(0)
+  originalPrice Int         @default(0)
+  includes      String      @default("[]") // JSON array
+  roomImage     String      @default("")
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  hotel         Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  allotments    Allotment[]
+}
+
+// ─── Allotments ──────────────────────────────────────────────────
+model Allotment {
+  id           String   @id @default(cuid())
+  hotelId      String
+  roomTypeId   String
+  dateFrom     DateTime
+  dateTo       DateTime
+  totalRooms   Int      @default(0)
+  bookedRooms  Int      @default(0)
+  releaseDays  Int      @default(3)
+  netPrice     Int      @default(0)
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  hotel        Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomType     RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
 }
 
 // ─── Marketing Modal ─────────────────────────────────────────────
@@ -102,4 +143,136 @@ model TravelPackage {
   active          Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// ─── Excursions ───────────────────────────────────────────────────
+model Excursion {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  destinationId   String
+  destinationName String
+  cityName        String
+  description     String
+  shortDesc       String   @default("")
+  images          String   @default("[]") // JSON array
+  duration        String   @default("")
+  difficulty      String   @default("Fácil")
+  groupSize       String   @default("")
+  basePrice       Int      @default(0)
+  childPrice      Int      @default(0)
+  includes        String   @default("[]") // JSON array
+  excludes        String   @default("[]") // JSON array
+  requirements    String   @default("[]") // JSON array
+  category        String   @default("")
+  rating          Float    @default(0)
+  featured        Boolean  @default(false)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── Subagents ────────────────────────────────────────────────────
+model Subagent {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  email       String    @unique
+  password    String
+  agencyName  String    @default("")
+  contactName String    @default("")
+  country     String    @default("")
+  phone       String    @default("")
+  commission  Int       @default(0)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  bookings    Booking[]
+}
+
+// ─── Bookings ─────────────────────────────────────────────────────
+model Booking {
+  id           String         @id @default(cuid())
+  code         String         @unique
+  guestName    String         @default("")
+  guestEmail   String         @default("")
+  guestPhone   String         @default("")
+  guestCountry String         @default("")
+  adults       Int            @default(1)
+  children     Int            @default(0)
+  childrenAges String         @default("[]") // JSON array
+  notes        String         @default("")
+  status       String         @default("pending")
+  totalPrice   Int            @default(0)
+  netPrice     Int            @default(0)
+  commissionAmt Int           @default(0)
+  checkIn      DateTime?
+  checkOut     DateTime?
+  bookedBy     String         @default("b2c") // "b2c" | "b2b"
+  subagentId   String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  
+  items        BookingItem[]
+  subagent     Subagent?      @relation(fields: [subagentId], references: [id], onDelete: SetNull)
+}
+
+// ─── Booking Items ────────────────────────────────────────────────
+model BookingItem {
+  id        String   @id @default(cuid())
+  bookingId String
+  itemType  String   @default("")  // "hotel", "excursion", "transport", etc.
+  serviceId String   @default("")
+  serviceName String @default("")
+  roomTypeId String  @default("")
+  roomName  String   @default("")
+  dateFrom  String   @default("")
+  dateTo    String   @default("")
+  quantity  Int      @default(1)
+  unitPrice Int      @default(0)
+  totalPrice Int     @default(0)
+  addons    String   @default("[]") // JSON array
+  status    String   @default("confirmed")
+  createdAt DateTime @default(now())
+  
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+// ─── Transport Providers ───────────────────────────────────────────
+model TransportProvider {
+  id          String             @id @default(cuid())
+  name        String
+  legalName   String             @default("")
+  nit         String             @default("")
+  phone       String             @default("")
+  email       String             @default("")
+  vehicleType String             @default("")
+  capacity    Int                @default(0)
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  services    TransportService[]
+}
+
+// ─── Transport Services ────────────────────────────────────────────
+model TransportService {
+  id         String            @id @default(cuid())
+  providerId String
+  name       String
+  routeType  String            @default("")
+  origin     String            @default("")
+  destination String           @default("")
+  cityId     String            @default("")
+  cityName   String            @default("")
+  durationMins Int             @default(0)
+  basePrice  Int               @default(0)
+  pricePerExtra Int            @default(0)
+  includes   String            @default("[]") // JSON array
+  notes      String            @default("")
+  active     Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  
+  provider   TransportProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }

@@ -18,7 +18,7 @@ export default function HotelDetailPage({ hotel }: HotelDetailPageProps) {
       totalGuests={1}
       checkIn=""
       checkOut=""
-      onBack={() => goBack('/hoteles')}
+      onBack={() => goBack()}
       onSelectRoom={(room) =>
         navigateHotelBooking({
           hotelId: hotel.id,
