@@ -211,7 +211,7 @@ export default function MarketingModalPopup() {
           initial={modalData.position === 'center' ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={modalData.position === 'center' ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: 0.35 }}
           className={positionClass}
         >
           {/* Backdrop overlay for center position */}
@@ -230,7 +230,7 @@ export default function MarketingModalPopup() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ delay: 0.1, duration: 0.3, ease: 'easeOut' }}
+            transition={{ delay: 0.1, duration: 0.3 }}
             className={`relative bg-white rounded-2xl shadow-2xl overflow-hidden ${
               modalData.position === 'center'
                 ? 'max-w-md w-[calc(100%-2rem)] mx-4'

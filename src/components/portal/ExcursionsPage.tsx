@@ -89,7 +89,7 @@ const categoryConfig: Record<string, { color: string; bg: string }> = {
 const fadeInUp = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: 'easeOut' },
+  transition: { duration: 0.3 },
 }
 
 const staggerContainer = {
@@ -98,7 +98,7 @@ const staggerContainer = {
 
 const staggerItem = {
   initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 }
 
 // ─── Main Component ─────────────────────────────────────────
@@ -315,7 +315,7 @@ export default function ExcursionsPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <motion.div {...fadeInUp} className="mb-6">
           <button
-            onClick={goBack}
+            onClick={() => goBack()}
             className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-amber-600"
           >
             ← Volver al inicio

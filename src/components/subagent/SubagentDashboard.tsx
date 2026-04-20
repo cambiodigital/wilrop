@@ -91,7 +91,7 @@ const itemTypeConfig: Record<string, { icon: React.ReactNode; color: string; bg:
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: 'easeOut' },
+  transition: { duration: 0.3 },
 }
 
 // ─── Main Component ─────────────────────────────────────────

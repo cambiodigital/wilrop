@@ -62,7 +62,7 @@ export default function SubagentLogin() {
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.6 }}
         className="w-full max-w-md relative z-10"
       >
         <Card className="shadow-xl border-amber-200/50 backdrop-blur-sm bg-white/90">

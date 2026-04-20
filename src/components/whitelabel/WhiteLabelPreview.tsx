@@ -612,7 +612,7 @@ export default function WhiteLabelPreview() {
   );
 }
 
-function Eye({ className }: { className?: string }) {
+function EyeIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

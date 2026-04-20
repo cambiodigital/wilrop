@@ -225,7 +225,7 @@ export default function HotelBookingFlow({
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Button variant="ghost" onClick={goBack} className="mb-4 text-neutral-500 hover:text-neutral-700">
+          <Button variant="ghost" onClick={() => goBack()} className="mb-4 text-neutral-500 hover:text-neutral-700">
             <ArrowLeft className="mr-2 size-4" /> Volver al Hotel
           </Button>
           <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Reservar Hotel</h1>
