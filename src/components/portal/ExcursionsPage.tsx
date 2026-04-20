@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -34,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { formatCOP } from '@/data/packages'
 import { toast } from 'sonner'
 
@@ -102,7 +103,7 @@ const staggerItem = {
 
 // ─── Main Component ─────────────────────────────────────────
 export default function ExcursionsPage() {
-  const { goBack } = useNavigationStore()
+  const { goBack } = usePortalNavigation()
 
   const [activeCategory, setActiveCategory] = useState('')
   const [activeDestination, setActiveDestination] = useState('')
@@ -719,13 +720,20 @@ function ExcursionCard({ excursion, onBook }: { excursion: Excursion; onBook: (e
           </div>
           <p className="text-[11px] text-neutral-400">COP / por persona</p>
         </div>
-        <Button
-          onClick={() => onBook(excursion)}
-          className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 shadow-sm transition-all"
-        >
-          Reservar
-          <ArrowRight className="ml-1.5 size-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" className="rounded-xl px-3 py-2 text-sm font-semibold">
+            <Link href={`/excursiones/${excursion.slug}`}>
+              Ver detalle
+            </Link>
+          </Button>
+          <Button
+            onClick={() => onBook(excursion)}
+            className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 shadow-sm transition-all"
+          >
+            Reservar
+            <ArrowRight className="ml-1.5 size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

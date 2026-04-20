@@ -7,11 +7,6 @@ import {
   DollarSign,
   ShoppingCart,
   Clock,
-  CheckCircle2,
-  XCircle,
-  Users,
-  Calendar,
-  ArrowRight,
   FileText,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +22,13 @@ import {
 } from '@/components/ui/select'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { formatCOP } from '@/data/packages'
+
+interface SubagentDashboardSession {
+  id: string
+  name: string
+  code: string
+  commission: number
+}
 
 // ─── Types ──────────────────────────────────────────────────
 interface BookingItem {
@@ -93,8 +95,14 @@ const fadeIn = {
 }
 
 // ─── Main Component ─────────────────────────────────────────
-export default function SubagentDashboard() {
+export default function SubagentDashboard({ session }: { session?: SubagentDashboardSession }) {
   const { subagentId, subagentName, subagentCode, subagentCommission } = useNavigationStore()
+  const currentSession = {
+    id: session?.id || subagentId,
+    name: session?.name || subagentName,
+    code: session?.code || subagentCode,
+    commission: session?.commission || subagentCommission,
+  }
 
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -102,15 +110,13 @@ export default function SubagentDashboard() {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!subagentId) return
+      if (!currentSession.id) return
       setLoading(true)
       try {
-        const res = await fetch('/api/admin/bookings')
+        const res = await fetch('/api/subagent/bookings')
         const json = await res.json()
         if (json.success) {
-          // Filter by subagentId client-side
-          const myBookings = json.data.filter((b: Booking) => b.subagentId === subagentId)
-          setBookings(myBookings)
+          setBookings(json.data)
         }
       } catch (err) {
         console.error('Error fetching bookings:', err)
@@ -119,7 +125,7 @@ export default function SubagentDashboard() {
       }
     }
     fetchBookings()
-  }, [subagentId])
+  }, [currentSession.id])
 
   // Stats
   const stats = useMemo(() => {
@@ -145,7 +151,7 @@ export default function SubagentDashboard() {
           Dashboard
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          Bienvenido, <span className="font-medium text-amber-600">{subagentName}</span> · Código: <span className="font-mono text-amber-600">{subagentCode}</span> · Comisión: <span className="font-medium">{subagentCommission}%</span>
+          Bienvenido, <span className="font-medium text-amber-600">{currentSession.name}</span> · Código: <span className="font-mono text-amber-600">{currentSession.code}</span> · Comisión: <span className="font-medium">{currentSession.commission}%</span>
         </p>
       </motion.div>
 

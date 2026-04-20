@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { formatCOP } from '@/data/packages'
 import { toast } from 'sonner'
 
@@ -150,7 +150,7 @@ const stepVariants = {
 
 // ─── Main Component ─────────────────────────────────────────
 export default function DynamicPackager() {
-  const { goBack } = useNavigationStore()
+  const { goBack } = usePortalNavigation()
 
   const [currentStep, setCurrentStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
@@ -496,7 +496,7 @@ export default function DynamicPackager() {
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Back link */}
         <button
-          onClick={goBack}
+          onClick={() => goBack('/')}
           className="mb-6 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-amber-600"
         >
           ← Volver al inicio

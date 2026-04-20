@@ -1,8 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const sessionValue = request.cookies.get(getPanelSessionCookieName('admin'))?.value;
+    const session = verifyPanelSessionToken(sessionValue, 'admin');
+
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const [totalDestinations, totalHotels, totalPackages, featuredHotels, soldOutPackages] =
       await Promise.all([
         db.destination.count({ where: { active: true } }),

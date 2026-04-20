@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const features = [
   'Paquetes personalizados',
@@ -26,7 +26,7 @@ const itemVariants = {
 }
 
 export default function StartTravelSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
 
   return (
     <section id="start-travel" className="relative bg-amber-50/50">

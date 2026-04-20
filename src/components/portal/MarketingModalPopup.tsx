@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useNavigationStore } from '@/store/useNavigationStore';
+import { usePathname } from 'next/navigation';
+import { usePortalNavigation } from '@/hooks/use-portal-navigation';
 
 const STORAGE_KEY = 'wilrop_marketing_modal_dismissed';
 
@@ -97,10 +98,11 @@ function TimerDisplay({ endTime, label }: { endTime: string; label: string }) {
 }
 
 export default function MarketingModalPopup() {
+  const pathname = usePathname();
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigationStore((s) => s.navigate);
+  const { navigate } = usePortalNavigation();
 
   // Check if modal was recently dismissed (within 24h)
   const wasRecentlyDismissed = useCallback(() => {
@@ -115,9 +117,8 @@ export default function MarketingModalPopup() {
   }, []);
 
   useEffect(() => {
-    // Don't show in admin views
-    const currentView = useNavigationStore.getState().currentView;
-    if (currentView.startsWith('admin-') || currentView === 'admin-login') {
+    // Don't show in protected role-based panels
+    if (pathname.startsWith('/admin') || pathname.startsWith('/reseller') || pathname.startsWith('/subagent')) {
       setLoading(false);
       return;
     }
@@ -158,7 +159,7 @@ export default function MarketingModalPopup() {
     };
 
     fetchModal();
-  }, [wasRecentlyDismissed]);
+  }, [pathname, wasRecentlyDismissed]);
 
   const handleClose = useCallback(() => {
     setVisible(false);

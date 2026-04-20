@@ -43,13 +43,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -62,9 +55,8 @@ import {
   hotelAmenities,
   formatCOP,
   type Hotel,
-  type HotelRoom,
 } from '@/data/hotels'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 // ─── Icon map ────────────────────────────────────────────────
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -90,7 +82,7 @@ const staggerItem = {
 
 // ─── Main Component ─────────────────────────────────────────
 export default function HotelsPage() {
-  const { goBack, navigateHotelBooking } = useNavigationStore()
+  const { goBack, openHotelDetail } = usePortalNavigation()
 
   // Search state
   const [selectedCity, setSelectedCity] = useState<string>('')
@@ -106,9 +98,6 @@ export default function HotelsPage() {
   const [amenityFilters, setAmenityFilters] = useState<string[]>([])
   const [minRating, setMinRating] = useState(0)
   const [sortBy, setSortBy] = useState<string>('recommended')
-
-  // Detail dialog
-  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null)
 
   // Mobile filter sheet
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
@@ -206,22 +195,6 @@ export default function HotelsPage() {
   const handleSearch = useCallback(() => {
     setHasSearched(true)
   }, [])
-
-  const handleBookRoom = useCallback(
-    (hotel: Hotel, room: HotelRoom) => {
-      setSelectedHotel(null)
-      navigateHotelBooking({
-        hotelId: hotel.id,
-        roomId: room.id,
-        checkIn,
-        checkOut,
-        adults,
-        children,
-        childrenAges: [],
-      })
-    },
-    [checkIn, checkOut, adults, children, navigateHotelBooking],
-  )
 
   const cityName = selectedCity
     ? hotelCities.find((c) => c.id === selectedCity)?.name ?? 'Colombia'
@@ -589,7 +562,7 @@ export default function HotelsPage() {
                       key={hotel.id}
                       hotel={hotel}
                       nights={nights}
-                      onClick={() => setSelectedHotel(hotel)}
+                      onClick={() => openHotelDetail(hotel.id)}
                     />
                   ))}
                 </motion.div>
@@ -599,22 +572,6 @@ export default function HotelsPage() {
         </div>
       </div>
 
-      {/* ─── Hotel Detail Dialog ──────────────────────────── */}
-      <Dialog open={!!selectedHotel} onOpenChange={(open) => !open && setSelectedHotel(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
-          <DialogTitle className="sr-only">{selectedHotel?.name ?? 'Detalle del hotel'}</DialogTitle>
-          {selectedHotel && (
-            <HotelDetailDialog
-              hotel={selectedHotel}
-              nights={nights}
-              totalGuests={totalGuests}
-              checkIn={checkIn}
-              checkOut={checkOut}
-              onSelectRoom={(room) => handleBookRoom(selectedHotel, room)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
@@ -784,232 +741,3 @@ function HotelListingCard({
   )
 }
 
-// ─── Hotel Detail Dialog ─────────────────────────────────────
-function HotelDetailDialog({
-  hotel,
-  nights,
-  totalGuests,
-  checkIn,
-  checkOut,
-  onSelectRoom,
-}: {
-  hotel: Hotel
-  nights: number
-  totalGuests: number
-  checkIn: string
-  checkOut: string
-  onSelectRoom: (room: HotelRoom) => void
-}) {
-  const ratingColor =
-    hotel.rating >= 9
-      ? 'bg-emerald-500 text-white'
-      : hotel.rating >= 8
-        ? 'bg-emerald-500 text-white'
-        : 'bg-amber-500 text-white'
-
-  const ratingLabel =
-    hotel.rating >= 9
-      ? 'Excepcional'
-      : hotel.rating >= 8
-        ? 'Excelente'
-        : hotel.rating >= 7
-          ? 'Muy bueno'
-          : 'Bueno'
-
-  return (
-    <div>
-      {/* Hero Image */}
-      <div className="relative h-56 sm:h-72 overflow-hidden rounded-t-2xl">
-        <img
-          src={hotel.images[0]}
-          alt={hotel.name}
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute bottom-4 left-5 right-5">
-          <div className="flex items-center gap-2 mb-1">
-            <div className={`flex items-center justify-center rounded-lg px-2.5 py-1 text-sm font-bold ${ratingColor}`}>
-              {hotel.rating.toFixed(1)}
-            </div>
-            <span className="text-sm font-medium text-white">{ratingLabel} ({hotel.reviewCount} reseñas)</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-5 sm:p-6 space-y-6">
-        {/* Name + Stars + City */}
-        <div>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">{hotel.name}</h2>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: hotel.stars }).map((_, i) => (
-                    <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <span className="text-sm text-neutral-500">·</span>
-                <div className="flex items-center gap-1 text-sm text-neutral-500">
-                  <MapPin className="size-3.5 text-amber-500" />
-                  {hotel.cityName}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-shrink-0 flex-wrap gap-1.5 justify-end">
-              {hotel.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="rounded-full text-xs bg-neutral-100 text-neutral-600 border-transparent"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <p className="mt-1 text-sm text-neutral-500 flex items-center gap-1">
-            <MapPin className="size-3" />
-            {hotel.address}
-          </p>
-        </div>
-
-        {/* Description */}
-        <div>
-          <h3 className="text-sm font-semibold text-neutral-900 mb-2">Sobre el hotel</h3>
-          <p className="text-sm text-neutral-600 leading-relaxed">{hotel.description}</p>
-        </div>
-
-        {/* Amenities */}
-        <div>
-          <h3 className="text-sm font-semibold text-neutral-900 mb-3">Servicios y comodidades</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {hotel.amenities.map((amenityId) => {
-              const amenity = hotelAmenities.find((a) => a.id === amenityId)
-              if (!amenity) return null
-              const Icon = iconMap[amenity.icon]
-              return (
-                <div
-                  key={amenityId}
-                  className="flex items-center gap-2.5 rounded-lg bg-neutral-50 px-3 py-2.5"
-                >
-                  {Icon ? (
-                    <div className="flex size-7 items-center justify-center rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
-                      <Icon className="size-3.5" />
-                    </div>
-                  ) : null}
-                  <span className="text-sm text-neutral-700">{amenity.name}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Rooms */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-neutral-900">Habitaciones disponibles</h3>
-            {checkIn && checkOut && (
-              <span className="text-xs text-neutral-500">
-                {checkIn} → {checkOut} ({nights} noche{nights !== 1 ? 's' : ''})
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            {hotel.rooms.map((room) => {
-              const discount = room.originalPrice
-                ? Math.round(((room.originalPrice - room.price) / room.originalPrice) * 100)
-                : 0
-
-              return (
-                <div
-                  key={room.id}
-                  className="rounded-xl border border-neutral-200 p-4 transition-all hover:border-amber-300 hover:shadow-sm"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold text-neutral-900">{room.name}</h4>
-                        {discount > 0 && (
-                          <Badge className="rounded-full bg-red-100 text-red-700 text-xs border-transparent">
-                            -{discount}%
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="mt-2 flex items-center gap-4 text-sm text-neutral-500">
-                        <span className="flex items-center gap-1">
-                          <Users className="size-3.5" />
-                          {room.maxGuests} huésped{room.maxGuests !== 1 ? 'es' : ''}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Bed className="size-3.5" />
-                          {room.beds}
-                        </span>
-                      </div>
-
-                      {/* Includes */}
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {room.includes.map((item) => (
-                          <span
-                            key={item}
-                            className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
-                          >
-                            <Check className="size-3" />
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Price + Book */}
-                    <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 sm:text-right mt-2 sm:mt-0">
-                      {room.originalPrice && (
-                        <span className="text-sm text-neutral-400 line-through">
-                          {formatCOP(room.originalPrice)}
-                        </span>
-                      )}
-                      <div>
-                        <span className="text-xl font-bold text-amber-600">{formatCOP(room.price)}</span>
-                        <span className="text-xs text-neutral-400"> / noche</span>
-                      </div>
-                      {nights > 1 && (
-                        <p className="text-xs text-neutral-500">
-                          Total: {formatCOP(room.price * nights)}
-                        </p>
-                      )}
-
-                      {/* Availability */}
-                      <div className="mt-1">
-                        {room.available <= 3 ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600">
-                            <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
-                            Quedan {room.available} hab.
-                          </span>
-                        ) : (
-                          <span className="text-xs text-neutral-400">
-                            {room.available} disponibles
-                          </span>
-                        )}
-                      </div>
-
-                      <Button
-                        className="mt-1 rounded-xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-amber-600"
-                        onClick={() => onSelectRoom(room)}
-                      >
-                        Reservar
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   TrendingUp,
@@ -24,27 +25,32 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { toast } from 'sonner';
 
 interface MenuItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  view: string;
+  href: string;
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, view: 'reseller-dashboard' },
-  { id: 'sales', label: 'Mis Ventas', icon: <TrendingUp className="w-5 h-5" />, view: 'reseller-sales' },
-  { id: 'commissions', label: 'Comisiones', icon: <DollarSign className="w-5 h-5" />, view: 'reseller-commissions' },
-  { id: 'clients', label: 'Mis Clientes', icon: <Users className="w-5 h-5" />, view: 'reseller-clients' },
-  { id: 'whitelabel', label: 'Marca Blanca', icon: <Palette className="w-5 h-5" />, view: 'reseller-whitelabel' },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/reseller' },
+  { id: 'sales', label: 'Mis Ventas', icon: <TrendingUp className="w-5 h-5" />, href: '/reseller/ventas' },
+  { id: 'commissions', label: 'Comisiones', icon: <DollarSign className="w-5 h-5" />, href: '/reseller/comisiones' },
+  { id: 'clients', label: 'Mis Clientes', icon: <Users className="w-5 h-5" />, href: '/reseller/clientes' },
+  { id: 'whitelabel', label: 'Marca Blanca', icon: <Palette className="w-5 h-5" />, href: '/reseller/whitelabel' },
 ];
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-  const { currentView, navigate, resellerName, logoutReseller } = useNavigationStore();
+function SidebarNav({ onNavigate, fallbackResellerName }: { onNavigate?: () => void; fallbackResellerName?: string }) {
+  const { resellerName, logoutReseller } = useNavigationStore();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const handleNavigate = (view: string) => {
-    navigate(view);
+  const currentResellerName = resellerName || fallbackResellerName || 'Socio';
+
+  const handleNavigate = (href: string) => {
+    router.push(href);
     onNavigate?.();
   };
 
@@ -55,6 +61,13 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const isItemActive = (href: string) => {
+    if (href === '/reseller') {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
@@ -75,11 +88,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
           <Avatar className="w-10 h-10 border-2 border-amber-200">
             <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold text-sm">
-              {getInitials(resellerName || 'SR')}
+              {getInitials(currentResellerName || 'SR')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{resellerName || 'Socio'}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{currentResellerName}</p>
             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0">
               Revendedor
             </Badge>
@@ -90,11 +103,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 px-3 space-y-1">
         <p className="px-3 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Menu Principal</p>
         {menuItems.map((item) => {
-          const isActive = currentView === item.view;
+          const isActive = isItemActive(item.href);
           return (
             <button
               key={item.id}
-              onClick={() => handleNavigate(item.view)}
+              onClick={() => handleNavigate(item.href)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
@@ -111,9 +124,16 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-3 pb-4">
         <Separator className="mb-3 w-auto" />
         <button
-          onClick={() => {
-            logoutReseller();
-            onNavigate?.();
+          onClick={async () => {
+            try {
+              await fetch('/api/reseller/auth/logout', { method: 'POST' });
+            } catch {
+              toast.error('No se pudo cerrar la sesión en el servidor');
+            } finally {
+              logoutReseller();
+              router.push('/reseller/login');
+              onNavigate?.();
+            }
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
         >
@@ -125,7 +145,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export default function ResellerSidebar({ children }: { children: React.ReactNode }) {
+export default function ResellerSidebar({ children, resellerName }: { children: React.ReactNode; resellerName?: string }) {
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -150,7 +170,7 @@ export default function ResellerSidebar({ children }: { children: React.ReactNod
                 <SheetHeader className="sr-only">
                   <SheetTitle>Menu de Navegacion</SheetTitle>
                 </SheetHeader>
-                <SidebarNav onNavigate={() => setMobileOpen(false)} />
+                <SidebarNav onNavigate={() => setMobileOpen(false)} fallbackResellerName={resellerName} />
               </SheetContent>
             </Sheet>
           </div>
@@ -163,7 +183,7 @@ export default function ResellerSidebar({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       <aside className="w-64 bg-white border-r border-gray-100 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-        <SidebarNav />
+        <SidebarNav fallbackResellerName={resellerName} />
       </aside>
       <main className="flex-1 min-w-0">{children}</main>
     </div>

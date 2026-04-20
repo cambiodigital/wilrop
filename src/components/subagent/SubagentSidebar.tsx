@@ -3,15 +3,18 @@
 import React, { useState } from 'react'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   ShoppingCart,
+  DollarSign,
   Bus,
   Mountain,
   LogOut,
   Menu,
   Plane,
   Package,
+  Users,
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -24,31 +27,47 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { toast } from 'sonner'
+
+interface SubagentSidebarSession {
+  id: string
+  name: string
+  code: string
+  commission: number
+}
 
 interface MenuItem {
   id: string
   label: string
   icon: React.ReactNode
-  view: string
+  href: string
   isExternal?: boolean
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, view: 'subagent-dashboard' },
-  { id: 'sales', label: 'Mis Ventas', icon: <ShoppingCart className="w-5 h-5" />, view: 'subagent-sales' },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/subagent' },
+  { id: 'sales', label: 'Mis Ventas', icon: <ShoppingCart className="w-5 h-5" />, href: '/subagent/ventas' },
+  { id: 'commissions', label: 'Comisiones', icon: <DollarSign className="w-5 h-5" />, href: '/subagent/comisiones' },
+  { id: 'clients', label: 'Clientes', icon: <Users className="w-5 h-5" />, href: '/subagent/clientes' },
 ]
 
 const catalogItems: MenuItem[] = [
-  { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, view: 'portal-transport', isExternal: true },
-  { id: 'excursions', label: 'Excursiones', icon: <Mountain className="w-5 h-5" />, view: 'portal-excursions', isExternal: true },
-  { id: 'package', label: 'Arma tu Viaje', icon: <Package className="w-5 h-5" />, view: 'portal-dynamic-package', isExternal: true },
+  { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/transportes', isExternal: true },
+  { id: 'excursions', label: 'Excursiones', icon: <Mountain className="w-5 h-5" />, href: '/excursiones', isExternal: true },
+  { id: 'package', label: 'Arma tu Viaje', icon: <Package className="w-5 h-5" />, href: '/destinos', isExternal: true },
 ]
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-  const { currentView, navigate, subagentName, subagentCode, subagentCommission, logoutSubagent } = useNavigationStore()
+function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; fallbackSession?: SubagentSidebarSession }) {
+  const { subagentName, subagentCode, subagentCommission, logoutSubagent } = useNavigationStore()
+  const pathname = usePathname()
+  const router = useRouter()
 
-  const handleNavigate = (view: string) => {
-    navigate(view)
+  const currentName = subagentName || fallbackSession?.name || 'Subagente'
+  const currentCode = subagentCode || fallbackSession?.code || '--'
+  const currentCommission = subagentCommission || fallbackSession?.commission || 0
+
+  const handleNavigate = (href: string) => {
+    router.push(href)
     onNavigate?.()
   }
 
@@ -59,6 +78,13 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const isItemActive = (href: string) => {
+    if (href === '/subagent') {
+      return pathname === href
+    }
+    return pathname === href || pathname.startsWith(`${href}/`)
   }
 
   return (
@@ -79,16 +105,16 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
           <Avatar className="w-10 h-10 border-2 border-amber-200">
             <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold text-sm">
-              {getInitials(subagentName || 'SA')}
+              {getInitials(currentName || 'SA')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{subagentName || 'Subagente'}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{currentName}</p>
             <div className="flex items-center gap-1.5">
               <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0">
-                {subagentCode}
+                {currentCode}
               </Badge>
-              <span className="text-[10px] text-neutral-500">{subagentCommission}% comisión</span>
+              <span className="text-[10px] text-neutral-500">{currentCommission}% comisión</span>
             </div>
           </div>
         </div>
@@ -97,11 +123,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         <p className="px-3 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Panel</p>
         {menuItems.map((item) => {
-          const isActive = currentView === item.view
+          const isActive = isItemActive(item.href)
           return (
             <button
               key={item.id}
-              onClick={() => handleNavigate(item.view)}
+              onClick={() => handleNavigate(item.href)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
@@ -120,14 +146,14 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {catalogItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => handleNavigate(item.view)}
+            onClick={() => handleNavigate(item.href)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              currentView === item.view
+              isItemActive(item.href)
                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
                 : 'text-gray-600 hover:bg-amber-50 hover:text-amber-700'
             }`}
           >
-            <span className={currentView === item.view ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
+            <span className={isItemActive(item.href) ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
             {item.label}
           </button>
         ))}
@@ -136,9 +162,16 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-3 pb-4">
         <Separator className="mb-3 w-auto" />
         <button
-          onClick={() => {
-            logoutSubagent()
-            onNavigate?.()
+          onClick={async () => {
+            try {
+              await fetch('/api/subagent/auth/logout', { method: 'POST' })
+            } catch {
+              toast.error('No se pudo cerrar la sesión en el servidor')
+            } finally {
+              logoutSubagent()
+              router.push('/subagent/login')
+              onNavigate?.()
+            }
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
         >
@@ -150,7 +183,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   )
 }
 
-export default function SubagentSidebar({ children }: { children: React.ReactNode }) {
+export default function SubagentSidebar({ children, session }: { children: React.ReactNode; session?: SubagentSidebarSession }) {
   const isMobile = useIsMobile()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -175,7 +208,7 @@ export default function SubagentSidebar({ children }: { children: React.ReactNod
                 <SheetHeader className="sr-only">
                   <SheetTitle>Menú de Navegación</SheetTitle>
                 </SheetHeader>
-                <SidebarNav onNavigate={() => setMobileOpen(false)} />
+                <SidebarNav onNavigate={() => setMobileOpen(false)} fallbackSession={session} />
               </SheetContent>
             </Sheet>
           </div>
@@ -188,7 +221,7 @@ export default function SubagentSidebar({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       <aside className="w-64 bg-white border-r border-gray-100 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-        <SidebarNav />
+        <SidebarNav fallbackSession={session} />
       </aside>
       <main className="flex-1 min-w-0">{children}</main>
     </div>

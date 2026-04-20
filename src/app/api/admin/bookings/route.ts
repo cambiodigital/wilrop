@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth';
 
 function safeJsonParse<T>(value: string, fallback: T): T {
   try {
@@ -24,8 +25,15 @@ function formatBooking(booking: any) {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const sessionValue = request.cookies.get(getPanelSessionCookieName('admin'))?.value;
+    const session = verifyPanelSessionToken(sessionValue, 'admin');
+
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const bookings = await db.booking.findMany({
       orderBy: { createdAt: 'desc' },
       include: {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,8 @@ import { ArrowLeft, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminLogin() {
-  const { loginAdmin, navigate } = useNavigationStore();
+  const { loginAdmin } = useNavigationStore();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +37,7 @@ export default function AdminLogin() {
       }
       const data = await res.json();
       loginAdmin(data.admin?.name || 'Administrador');
+      router.push('/admin');
       toast.success('Bienvenido al panel de administración');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
@@ -111,7 +114,7 @@ export default function AdminLogin() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs text-amber-700 text-center">
-                  Demo: Use cualquier correo y contraseña para ingresar
+                  Usa las credenciales de administración configuradas en el sistema.
                 </p>
               </div>
 
@@ -134,7 +137,7 @@ export default function AdminLogin() {
 
             <div className="mt-6 pt-4 border-t border-gray-100">
               <button
-                onClick={() => navigate('portal-home')}
+                onClick={() => router.push('/')}
                 className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-amber-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />

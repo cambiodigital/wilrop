@@ -15,7 +15,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const values = [
   {
@@ -80,7 +80,7 @@ const itemVariants = {
 }
 
 export default function AboutSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
 
   return (
     <section className="py-20 bg-white">

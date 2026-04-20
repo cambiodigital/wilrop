@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useNavigationStore } from '@/store/useNavigationStore';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -183,7 +183,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export default function ResellerDashboard() {
-  const { navigate } = useNavigationStore();
+  const router = useRouter();
 
   return (
     <motion.div
@@ -333,7 +333,7 @@ export default function ResellerDashboard() {
               variant="ghost"
               size="sm"
               className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 text-xs"
-              onClick={() => navigate('reseller-sales')}
+              onClick={() => router.push('/reseller/ventas')}
             >
               Ver Todas
               <ArrowRight className="w-4 h-4 ml-1" />
@@ -393,7 +393,7 @@ export default function ResellerDashboard() {
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
-                onClick={() => navigate('reseller-sales')}
+                onClick={() => router.push('/reseller/ventas')}
               >
                 <Link2 className="w-5 h-5 text-amber-600" />
                 <span className="text-sm font-medium text-gray-700">Crear Enlace de Venta</span>
@@ -401,7 +401,7 @@ export default function ResellerDashboard() {
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
-                onClick={() => navigate('reseller-commissions')}
+                onClick={() => router.push('/reseller/comisiones')}
               >
                 <Eye className="w-5 h-5 text-amber-600" />
                 <span className="text-sm font-medium text-gray-700">Ver Comisión</span>
@@ -409,7 +409,7 @@ export default function ResellerDashboard() {
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
-                onClick={() => navigate('reseller-clients')}
+                onClick={() => router.push('/reseller/clientes')}
               >
                 <UserPlus className="w-5 h-5 text-amber-600" />
                 <span className="text-sm font-medium text-gray-700">Invitar Cliente</span>

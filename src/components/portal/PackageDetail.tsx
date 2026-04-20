@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { packages, getPackagesByDestination } from '@/data/packages'
 import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const difficultyConfig: Record<string, { color: string; bg: string; icon: typeof Mountain }> = {
   'Fácil': { color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200', icon: Shield },
@@ -26,12 +27,17 @@ const difficultyConfig: Record<string, { color: string; bg: string; icon: typeof
   'Avanzado': { color: 'text-red-700', bg: 'bg-red-50 border-red-200', icon: Mountain },
 }
 
-export default function PackageDetail() {
-  const { selectedPackageId, navigate } = useNavigationStore()
+interface PackageDetailProps {
+  packageId?: string
+}
+
+export default function PackageDetail({ packageId }: PackageDetailProps) {
+  const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
+  const { navigate } = usePortalNavigation()
 
   const pkg = useMemo(
-    () => packages.find((p) => p.id === selectedPackageId),
-    [selectedPackageId]
+    () => packages.find((p) => p.id === (packageId ?? selectedPackageId)),
+    [packageId, selectedPackageId]
   )
 
   const relatedPackages = useMemo(
@@ -297,7 +303,7 @@ export default function PackageDetail() {
 
                 {/* CTA */}
                 <Button
-                  onClick={() => navigate('portal-booking')}
+                  onClick={() => navigate('portal-booking', pkg.id)}
                   disabled={pkg.soldOut}
                   className="w-full rounded-xl bg-amber-500 py-5 text-base font-semibold text-white hover:bg-amber-600 disabled:bg-neutral-300"
                   size="lg"

@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { destinations } from '@/data/destinations'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const stats = [
   { label: 'Viajeros Felices', value: '500+', icon: Users },
@@ -36,7 +36,7 @@ const itemVariants = {
 }
 
 export default function HeroSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
   const [selectedDest, setSelectedDest] = useState('')
 
   return (

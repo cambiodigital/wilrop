@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { destinations } from '@/data/destinations'
-import { packages, getPackagesByDestination } from '@/data/packages'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { packages } from '@/data/packages'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const categories = ['Todos', 'Playa', 'Aventura', 'Cultural', 'Naturaleza', 'Relax'] as const
 
@@ -30,7 +30,7 @@ interface DestinationsSectionProps {
 }
 
 export default function DestinationsSection({ limit }: DestinationsSectionProps) {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
   const [activeCategory, setActiveCategory] = useState<string>('Todos')
   const isPreview = typeof limit === 'number'
 
@@ -105,12 +105,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
                 layout
               >
                 <Card
-                  onClick={() => {
-                    const destPackages = getPackagesByDestination(destination.id)
-                    if (destPackages.length > 0) {
-                      navigate('portal-package-detail', destPackages[0].id)
-                    }
-                  }}
+                  onClick={() => navigate('portal-destination-detail', destination.id)}
                   className="group cursor-pointer overflow-hidden border-neutral-200 py-0 transition-all hover:shadow-lg hover:-translate-y-1"
                 >
                 {/* Image */}
@@ -155,10 +150,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
                   <div
                     onClick={(e) => {
                       e.stopPropagation()
-                      const destPackages = getPackagesByDestination(destination.id)
-                      if (destPackages.length > 0) {
-                        navigate('portal-package-detail', destPackages[0].id)
-                      }
+                      navigate('portal-destination-detail', destination.id)
                     }}
                   >
                     <Button

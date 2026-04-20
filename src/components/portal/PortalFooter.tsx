@@ -1,15 +1,19 @@
 'use client'
 
+import Link from 'next/link'
 import { Plane, MapPin, Mail, Phone, Instagram, Facebook, Twitter, Shield } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
-import { useNavigationStore } from '@/store/useNavigationStore'
 import { destinations } from '@/data/destinations'
+import { portalPaths } from '@/lib/portal-routes'
 
 const quickLinks = [
-  { label: 'Inicio', view: 'portal-home' },
-  { label: 'Destinos', view: 'portal-destinations' },
-  { label: 'Sobre Nosotros', view: 'portal-about' },
-  { label: 'Contacto', view: 'portal-contact' },
+  { label: 'Inicio', href: portalPaths.home },
+  { label: 'Destinos', href: portalPaths.destinations },
+  { label: 'Hoteles', href: portalPaths.hotels },
+  { label: 'Excursiones', href: portalPaths.excursions },
+  { label: 'Transportes', href: portalPaths.transport },
+  { label: 'Sobre Nosotros', href: portalPaths.about },
+  { label: 'Contacto', href: portalPaths.contact },
 ]
 
 const socialLinks = [
@@ -19,8 +23,6 @@ const socialLinks = [
 ]
 
 export default function PortalFooter() {
-  const { navigate } = useNavigationStore()
-
   return (
     <footer className="bg-neutral-900 text-neutral-300">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -58,16 +60,10 @@ export default function PortalFooter() {
             </h3>
             <ul className="mt-4 space-y-3">
               {quickLinks.map((link) => (
-                <li key={link.view}>
-                  <button
-                    onClick={() => {
-                      navigate(link.view)
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    }}
-                    className="text-sm text-neutral-400 transition-colors hover:text-amber-400"
-                  >
+                <li key={link.href}>
+                  <Link href={link.href} className="text-sm text-neutral-400 transition-colors hover:text-amber-400">
                     {link.label}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -81,13 +77,13 @@ export default function PortalFooter() {
             <ul className="mt-4 space-y-3">
               {destinations.slice(0, 6).map((dest) => (
                 <li key={dest.id}>
-                  <button
-                    onClick={() => navigate('portal-destinations')}
+                  <Link
+                    href={portalPaths.destinationDetail(dest.id)}
                     className="flex items-center gap-1.5 text-sm text-neutral-400 transition-colors hover:text-amber-400"
                   >
                     <MapPin className="size-3" />
                     {dest.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -137,14 +133,14 @@ export default function PortalFooter() {
             <button className="hover:text-amber-400 transition-colors">
               Política de Privacidad
             </button>
-            <button
-              onClick={() => navigate('admin-login')}
+            <Link
+              href={portalPaths.adminLogin}
               className="flex items-center gap-1 hover:text-amber-400 transition-colors"
               aria-label="Acceso Administrativo"
             >
               <Shield className="size-3" />
               Admin
-            </button>
+            </Link>
           </div>
         </div>
       </div>

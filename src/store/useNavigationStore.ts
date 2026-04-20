@@ -10,67 +10,60 @@ export interface HotelBookingData {
   childrenAges: number[];
 }
 
+export interface SubagentSession {
+  id: string;
+  name: string;
+  code: string;
+  commission: number;
+}
+
 interface NavigationState {
-  currentView: string;
-  previousView: string | null;
   selectedPackageId: string | null;
   hotelBookingData: HotelBookingData | null;
   isResellerLoggedIn: boolean;
   resellerName: string;
   isAdminLoggedIn: boolean;
   adminName: string;
-  navigate: (view: string, packageId?: string | null) => void;
-  navigateHotelBooking: (data: HotelBookingData) => void;
-  goBack: () => void;
+  isSubagentLoggedIn: boolean;
+  subagentId: string;
+  subagentName: string;
+  subagentCode: string;
+  subagentCommission: number;
+  setSelectedPackageId: (packageId: string | null) => void;
+  setHotelBookingData: (data: HotelBookingData | null) => void;
   loginReseller: (name: string) => void;
   logoutReseller: () => void;
   loginAdmin: (name: string) => void;
   logoutAdmin: () => void;
+  loginSubagent: (session: SubagentSession) => void;
+  logoutSubagent: () => void;
 }
 
-export const useNavigationStore = create<NavigationState>((set, get) => ({
-  currentView: 'portal-home',
-  previousView: null,
+export const useNavigationStore = create<NavigationState>((set) => ({
   selectedPackageId: null,
   hotelBookingData: null,
   isResellerLoggedIn: false,
   resellerName: '',
   isAdminLoggedIn: false,
   adminName: '',
+  isSubagentLoggedIn: false,
+  subagentId: '',
+  subagentName: '',
+  subagentCode: '',
+  subagentCommission: 0,
 
-  navigate: (view: string, packageId?: string | null) => {
-    const { currentView } = get();
-    set({
-      previousView: currentView,
-      currentView: view,
-      selectedPackageId: packageId ?? null,
-    });
+  setSelectedPackageId: (packageId: string | null) => {
+    set({ selectedPackageId: packageId });
   },
 
-  navigateHotelBooking: (data: HotelBookingData) => {
-    const { currentView } = get();
-    set({
-      previousView: currentView,
-      currentView: 'portal-hotel-booking',
-      hotelBookingData: data,
-    });
-  },
-
-  goBack: () => {
-    const { previousView } = get();
-    if (previousView) {
-      set({ currentView: previousView, previousView: null });
-    } else {
-      set({ currentView: 'portal-home' });
-    }
+  setHotelBookingData: (data: HotelBookingData | null) => {
+    set({ hotelBookingData: data });
   },
 
   loginReseller: (name: string) => {
     set({
       isResellerLoggedIn: true,
       resellerName: name,
-      currentView: 'reseller-dashboard',
-      previousView: 'reseller-login',
     });
   },
 
@@ -78,8 +71,6 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     set({
       isResellerLoggedIn: false,
       resellerName: '',
-      currentView: 'portal-home',
-      previousView: null,
       selectedPackageId: null,
       hotelBookingData: null,
     });
@@ -89,8 +80,6 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     set({
       isAdminLoggedIn: true,
       adminName: name,
-      currentView: 'admin-dashboard',
-      previousView: 'admin-login',
     });
   },
 
@@ -98,8 +87,28 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     set({
       isAdminLoggedIn: false,
       adminName: '',
-      currentView: 'portal-home',
-      previousView: null,
+      selectedPackageId: null,
+      hotelBookingData: null,
+    });
+  },
+
+  loginSubagent: (session: SubagentSession) => {
+    set({
+      isSubagentLoggedIn: true,
+      subagentId: session.id,
+      subagentName: session.name,
+      subagentCode: session.code,
+      subagentCommission: session.commission,
+    });
+  },
+
+  logoutSubagent: () => {
+    set({
+      isSubagentLoggedIn: false,
+      subagentId: '',
+      subagentName: '',
+      subagentCode: '',
+      subagentCommission: 0,
       selectedPackageId: null,
       hotelBookingData: null,
     });

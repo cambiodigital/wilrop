@@ -2,27 +2,53 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { ArrowLeft, Lock, Mail, Plane } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ResellerLogin() {
-  const { loginReseller, navigate } = useNavigationStore();
+  const { loginReseller } = useNavigationStore();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error('Completa correo y contraseña');
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const name = email.split('@')[0];
-    const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
-    loginReseller(formattedName);
-    setIsLoading(false);
+
+    try {
+      const response = await fetch('/api/reseller/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Credenciales inválidas');
+      }
+
+      loginReseller(data.reseller?.name || 'Socio');
+      router.push('/reseller');
+      toast.success(`Bienvenido, ${data.reseller?.name || 'Socio'}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión';
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -91,7 +117,7 @@ export default function ResellerLogin() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs text-amber-700 text-center">
-                  Demo: Use cualquier correo y contrasena para ingresar
+                  En producción usa credenciales configuradas. En desarrollo puede existir una cuenta demo.
                 </p>
               </div>
 
@@ -114,7 +140,7 @@ export default function ResellerLogin() {
 
             <div className="mt-6 pt-4 border-t border-gray-100">
               <button
-                onClick={() => navigate('portal-home')}
+                onClick={() => router.push('/')}
                 className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-amber-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />

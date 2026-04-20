@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Umbrella, Mountain, Landmark, Globe, Briefcase, Clock, Users } from 'lucide-react'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const categories = [
   {
@@ -52,7 +52,7 @@ const itemVariants = {
 }
 
 export default function ExploreSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
 
   return (
     <section id="explore" className="relative overflow-hidden">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +12,8 @@ import { ArrowLeft, Lock, Mail, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function SubagentLogin() {
-  const { loginSubagent, navigate } = useNavigationStore()
+  const { loginSubagent } = useNavigationStore()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -36,6 +38,7 @@ export default function SubagentLogin() {
           id: data.id,
           commission: data.commission,
         })
+        router.push('/subagent')
         toast.success(`Bienvenido, ${data.contactName || data.agencyName}!`)
       } else {
         toast.error(json.error || 'Credenciales inválidas')
@@ -117,7 +120,7 @@ export default function SubagentLogin() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs text-amber-700 text-center">
-                  Si no tienes cuenta, contacta al administrador de WILROP para registrarte como subagente.
+                  Usa tus credenciales de subagente activas. Si no tienes cuenta, contacta al administrador.
                 </p>
               </div>
 
@@ -140,7 +143,7 @@ export default function SubagentLogin() {
 
             <div className="mt-6 pt-4 border-t border-gray-100">
               <button
-                onClick={() => navigate('portal-home')}
+                onClick={() => router.push('/')}
                 className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-amber-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />

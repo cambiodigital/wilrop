@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -28,7 +29,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { formatCOP } from '@/data/packages'
 import { toast } from 'sonner'
 
@@ -103,7 +104,7 @@ const staggerItem = {
 
 // ─── Main Component ─────────────────────────────────────────
 export default function TransportPage() {
-  const { goBack } = useNavigationStore()
+  const { goBack } = usePortalNavigation()
 
   const [activeCity, setActiveCity] = useState('')
   const [services, setServices] = useState<TransportService[]>([])
@@ -597,13 +598,20 @@ function TransportCard({ service, onBook }: { service: TransportService; onBook:
           <p className="text-xl font-bold text-amber-600">{formatCOP(service.basePrice)}</p>
           <p className="text-[11px] text-neutral-400">por viaje</p>
         </div>
-        <Button
-          onClick={() => onBook(service)}
-          className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 shadow-sm transition-all"
-        >
-          Reservar
-          <ArrowRight className="ml-1.5 size-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" className="rounded-xl px-3 py-2 text-sm font-semibold">
+            <Link href={`/transportes/${service.id}`}>
+              Ver detalle
+            </Link>
+          </Button>
+          <Button
+            onClick={() => onBook(service)}
+            className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 shadow-sm transition-all"
+          >
+            Reservar
+            <ArrowRight className="ml-1.5 size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

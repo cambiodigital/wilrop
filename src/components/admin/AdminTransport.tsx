@@ -219,7 +219,11 @@ function TagInput({
 
 // ─── Main Component ──────────────────────────────────────────────
 
-export default function AdminTransport() {
+interface AdminTransportProps {
+  defaultTab?: 'providers' | 'services';
+}
+
+export default function AdminTransport({ defaultTab = 'providers' }: AdminTransportProps) {
   // ── Providers state ──
   const [providers, setProviders] = useState<TransportProvider[]>([]);
   const [providersLoading, setProvidersLoading] = useState(true);
@@ -463,7 +467,7 @@ export default function AdminTransport() {
         </p>
       </div>
 
-      <Tabs defaultValue="providers">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="providers" className="gap-2">
             <Building className="w-4 h-4" />

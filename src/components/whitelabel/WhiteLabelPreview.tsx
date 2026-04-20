@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Globe,
+  Eye,
   MapPin,
   Star,
   Clock,
@@ -25,7 +27,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWhiteLabelStore } from '@/store/useWhiteLabelStore';
-import { useNavigationStore } from '@/store/useNavigationStore';
 import { destinations } from '@/data/destinations';
 import { packages, formatPrice } from '@/data/packages';
 
@@ -45,7 +46,7 @@ const staggerContainer = {
 
 export default function WhiteLabelPreview() {
   const { config } = useWhiteLabelStore();
-  const navigate = useNavigationStore((s) => s.navigate);
+  const router = useRouter();
 
   const selectedDestinations = destinations.filter((d) =>
     config.selectedDestinations.includes(d.id)
@@ -70,7 +71,7 @@ export default function WhiteLabelPreview() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('reseller-whitelabel')}
+              onClick={() => router.push('/reseller/whitelabel')}
               className="flex items-center gap-1.5 text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -92,7 +93,7 @@ export default function WhiteLabelPreview() {
             size="sm"
             className="bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white border-0"
             onClick={() => {
-              navigate('reseller-whitelabel');
+              router.push('/reseller/whitelabel');
             }}
           >
             <Globe className="w-4 h-4 mr-1.5" />

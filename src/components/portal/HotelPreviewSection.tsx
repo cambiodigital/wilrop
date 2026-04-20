@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getFeaturedHotels, formatCOP } from '@/data/hotels'
 import type { Hotel } from '@/data/hotels'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -71,7 +71,7 @@ function StarsDisplay({ stars }: { stars: number }) {
 }
 
 export default function HotelPreviewSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
   const featuredHotels = getFeaturedHotels()
 
   return (
@@ -121,14 +121,14 @@ export default function HotelPreviewSection() {
 }
 
 function HotelCard({ hotel, gradient }: { hotel: Hotel; gradient: string }) {
-  const { navigate } = useNavigationStore()
+  const { openHotelDetail } = usePortalNavigation()
 
   return (
     <motion.div
       variants={itemVariants}
       whileHover={{ y: -4 }}
       className="group cursor-pointer overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-lg"
-      onClick={() => navigate('portal-hotels')}
+      onClick={() => openHotelDetail(hotel.id)}
     >
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
@@ -181,7 +181,7 @@ function HotelCard({ hotel, gradient }: { hotel: Hotel; gradient: string }) {
           className="mt-3 w-full rounded-xl bg-amber-500 py-2 text-xs font-semibold text-white transition-all hover:bg-amber-600"
           onClick={(e) => {
             e.stopPropagation()
-            navigate('portal-hotels')
+            openHotelDetail(hotel.id)
           }}
         >
           Reservar

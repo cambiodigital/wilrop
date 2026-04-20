@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { createPanelSessionToken, getPanelSessionCookie, secureCompare } from '@/lib/panel-auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (subagent.password !== password) {
+    if (!secureCompare(subagent.password, password)) {
       return NextResponse.json(
         { success: false, error: 'Credenciales inválidas' },
         { status: 401 }
@@ -38,7 +39,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const sessionToken = createPanelSessionToken({
+      id: subagent.id,
+      email: subagent.email,
+      name: subagent.contactName || subagent.agencyName,
+      panelRole: 'subagent',
+      appRole: 'subagent',
+      code: subagent.code,
+      commission: subagent.commission,
+    });
+
+    const response = NextResponse.json({
       success: true,
       data: {
         id: subagent.id,
@@ -52,6 +63,9 @@ export async function POST(request: NextRequest) {
         active: subagent.active,
       },
     });
+
+    response.cookies.set(getPanelSessionCookie('subagent', sessionToken));
+    return response;
   } catch (error: any) {
     console.error('Error authenticating subagent:', error);
     return NextResponse.json(

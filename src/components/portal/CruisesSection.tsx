@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Ship, Clock, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const cruisePackages = [
   {
@@ -47,7 +47,7 @@ const itemVariants = {
 }
 
 export default function CruisesSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
 
   return (
     <section id="cruises" className="bg-white">

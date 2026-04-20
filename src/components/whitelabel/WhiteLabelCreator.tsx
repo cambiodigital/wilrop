@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
   Upload,
   Palette,
@@ -39,7 +40,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useWhiteLabelStore, colorPresets, themes } from '@/store/useWhiteLabelStore';
-import { useNavigationStore } from '@/store/useNavigationStore';
 import { destinations } from '@/data/destinations';
 import { packages, formatPrice } from '@/data/packages';
 import { useToast } from '@/hooks/use-toast';
@@ -311,7 +311,7 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
 
 export default function WhiteLabelCreator() {
   const { config, updateConfig, resetConfig, applyTheme } = useWhiteLabelStore();
-  const navigate = useNavigationStore((s) => s.navigate);
+  const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -405,7 +405,7 @@ export default function WhiteLabelCreator() {
             </Button>
             <Button
               size="sm"
-              onClick={() => navigate('reseller-whitelabel-preview')}
+              onClick={() => router.push('/reseller/whitelabel/preview')}
               className="items-center gap-1.5 bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white border-0"
             >
               <Eye className="w-4 h-4" />
@@ -759,7 +759,7 @@ export default function WhiteLabelCreator() {
               <div className="space-y-3">
                 <Button
                   className="w-full h-11 text-sm font-medium bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white border-0"
-                  onClick={() => navigate('reseller-whitelabel-preview')}
+                  onClick={() => router.push('/reseller/whitelabel/preview')}
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   Vista Previa Completa
@@ -837,7 +837,7 @@ export default function WhiteLabelCreator() {
         <div className="fixed bottom-4 left-4 right-4 z-20 lg:hidden">
           <Button
             className="w-full h-12 text-sm font-medium bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white border-0 shadow-lg rounded-full"
-            onClick={() => navigate('reseller-whitelabel-preview')}
+            onClick={() => router.push('/reseller/whitelabel/preview')}
           >
             <Smartphone className="w-4 h-4 mr-2" />
             Ver Vista Previa

@@ -37,6 +37,8 @@ import {
 } from '@/components/ui/select'
 import { hotels, formatCOP } from '@/data/hotels'
 import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { toast } from 'sonner'
 
 // ─── Types ──────────────────────────────────────────────────
 interface HotelBookingPayload {
@@ -84,18 +86,55 @@ const steps = [
   { id: 4, label: 'Confirmación', icon: CheckCircle2 },
 ]
 
-export default function HotelBookingFlow() {
-  const { hotelBookingData, navigate, goBack } = useNavigationStore()
+interface HotelBookingFlowProps {
+  hotelId?: string
+  roomId?: string
+  checkIn?: string
+  checkOut?: string
+  adults?: number
+  children?: number
+  childrenAges?: number[]
+}
+
+export default function HotelBookingFlow({
+  hotelId,
+  roomId,
+  checkIn: initialCheckIn,
+  checkOut: initialCheckOut,
+  adults: initialAdults,
+  children: initialChildren,
+  childrenAges: initialChildrenAges,
+}: HotelBookingFlowProps) {
+  const hotelBookingData = useNavigationStore((state) => state.hotelBookingData)
+  const { navigate, goBack, openOrderDetail } = usePortalNavigation()
   const [currentStep, setCurrentStep] = useState(1)
-  const [completed, setCompleted] = useState(false)
   const [bookingRef] = useState(() => 'WIL-HTL-' + Math.random().toString(36).substring(2, 8).toUpperCase())
-  const [form, setForm] = useState<HotelBookingPayload>({ ...initialForm, adults: hotelBookingData?.adults ?? 1, children: hotelBookingData?.children ?? 0 })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const hotel = hotels.find((h) => h.id === hotelBookingData?.hotelId)
-  const room = hotel?.rooms.find((r) => r.id === hotelBookingData?.roomId)
+  const bookingData = hotelId
+    ? {
+        hotelId,
+        roomId: roomId ?? '',
+        checkIn: initialCheckIn ?? '',
+        checkOut: initialCheckOut ?? '',
+        adults: initialAdults ?? 1,
+        children: initialChildren ?? 0,
+        childrenAges: initialChildrenAges ?? [],
+      }
+    : hotelBookingData
 
-  const checkIn = hotelBookingData?.checkIn ?? ''
-  const checkOut = hotelBookingData?.checkOut ?? ''
+  const [form, setForm] = useState<HotelBookingPayload>({
+    ...initialForm,
+    adults: bookingData?.adults ?? 1,
+    children: bookingData?.children ?? 0,
+    childrenAges: bookingData?.childrenAges ?? [],
+  })
+
+  const hotel = hotels.find((h) => h.id === bookingData?.hotelId)
+  const room = hotel?.rooms.find((r) => r.id === bookingData?.roomId)
+
+  const checkIn = bookingData?.checkIn ?? ''
+  const checkOut = bookingData?.checkOut ?? ''
   const nights = (() => {
     if (!checkIn || !checkOut) return 1
     const diff = (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
@@ -110,9 +149,64 @@ export default function HotelBookingFlow() {
 
   const set = (partial: Partial<HotelBookingPayload>) => setForm((prev) => ({ ...prev, ...partial }))
 
-  const handleConfirm = () => {
-    setCompleted(true)
-    console.log('[Hotel Booking Payload]', { bookingRef, hotelId: hotel?.id, roomId: room?.id, checkIn, checkOut, nights, ...form })
+  const handleConfirm = async () => {
+    if (!hotel || !room) return
+
+    setIsSubmitting(true)
+
+    try {
+      const addons = [
+        form.breakfastAdd ? { type: 'breakfast', price: breakfastPrice * nights } : null,
+        form.lateCheckout ? { type: 'late-checkout', price: lateCheckoutPrice } : null,
+      ].filter(Boolean)
+
+      const response = await fetch('/api/public/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: form.contactName,
+          guestEmail: form.contactEmail,
+          guestPhone: form.contactPhone,
+          guestCountry: form.contactNationality,
+          adults: form.adults,
+          children: form.children,
+          childrenAges: form.childrenAges,
+          notes: form.specialRequests,
+          totalPrice: total,
+          checkIn,
+          checkOut,
+          items: [
+            {
+              itemType: 'hotel',
+              serviceId: hotel.id,
+              serviceName: hotel.name,
+              roomTypeId: room.id,
+              roomName: room.name,
+              dateFrom: checkIn,
+              dateTo: checkOut,
+              quantity: nights,
+              unitPrice: room.price,
+              totalPrice: roomSubtotal,
+              addons,
+            },
+          ],
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'No se pudo crear la reserva del hotel')
+      }
+
+      toast.success(`Reserva ${result.data.code} creada correctamente`)
+      openOrderDetail(result.data.code)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo crear la reserva del hotel'
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!hotel || !room) {
@@ -122,54 +216,6 @@ export default function HotelBookingFlow() {
           <p className="text-lg text-neutral-500">Reserva no encontrada</p>
           <Button onClick={() => navigate('portal-hotels')} variant="outline" className="mt-4 rounded-xl">Volver a Hoteles</Button>
         </div>
-      </div>
-    )
-  }
-
-  if (completed) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-16 pb-20">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-lg text-center">
-          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-emerald-50">
-            <CheckCircle2 className="size-10 text-emerald-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-neutral-900">¡Reserva de Hotel Confirmada!</h1>
-          <p className="mt-3 text-neutral-500">Hemos enviado la confirmación a <span className="font-medium text-neutral-700">{form.contactEmail || 'tu correo'}</span></p>
-
-          <Card className="mt-6 border-neutral-200 text-left">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-500">Referencia</span>
-                <span className="font-mono text-sm font-bold text-amber-600">{bookingRef}</span>
-              </div>
-              <Separator />
-              <div>
-                <h4 className="font-bold text-neutral-900">{hotel.name}</h4>
-                <p className="text-sm text-neutral-500">{hotel.cityName} · {hotel.stars}★</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-neutral-500">Habitación</span><p className="font-medium text-neutral-800">{room.name}</p></div>
-                <div><span className="text-neutral-500">Huéspedes</span><p className="font-medium text-neutral-800">{form.adults} adulto{form.adults !== 1 ? 's' : ''}{form.children > 0 ? `, ${form.children} niño${form.children !== 1 ? 's' : ''}` : ''}</p></div>
-                <div><span className="text-neutral-500">Check-in</span><p className="font-medium text-neutral-800">{checkIn || '—'}</p></div>
-                <div><span className="text-neutral-500">Check-out</span><p className="font-medium text-neutral-800">{checkOut || '—'}</p></div>
-                <div><span className="text-neutral-500">Noches</span><p className="font-medium text-neutral-800">{nights}</p></div>
-                <div><span className="text-neutral-500">Contacto</span><p className="font-medium text-neutral-800">{form.contactName}</p></div>
-              </div>
-              <Separator />
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-neutral-600"><span>Habitación × {nights} noche{nights !== 1 ? 's' : ''}</span><span>${roomSubtotal.toLocaleString('es-CO')}</span></div>
-                {form.breakfastAdd && <div className="flex justify-between text-neutral-600"><span>Desayuno adicional</span><span>${(breakfastPrice * nights).toLocaleString('es-CO')}</span></div>}
-                {form.lateCheckout && <div className="flex justify-between text-neutral-600"><span>Late check-out</span><span>${lateCheckoutPrice.toLocaleString('es-CO')}</span></div>}
-                <Separator />
-                <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button onClick={() => navigate('portal-home')} variant="outline" className="rounded-xl">Volver al Inicio</Button>
-            <Button onClick={() => navigate('portal-hotels')} className="rounded-xl bg-amber-500 text-white hover:bg-amber-600">Ver Más Hoteles</Button>
-          </div>
-        </motion.div>
       </div>
     )
   }
@@ -455,8 +501,8 @@ export default function HotelBookingFlow() {
                   Siguiente <ArrowRight className="ml-2 size-4" />
                 </Button>
               ) : (
-                <Button onClick={handleConfirm} disabled={!form.acceptTerms || !form.acceptPrivacy} className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-neutral-300">
-                  <CheckCircle2 className="mr-2 size-4" /> Confirmar Reserva
+                <Button onClick={handleConfirm} disabled={!form.acceptTerms || !form.acceptPrivacy || isSubmitting} className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-neutral-300">
+                  <CheckCircle2 className="mr-2 size-4" /> {isSubmitting ? 'Creando pedido...' : 'Confirmar Reserva'}
                 </Button>
               )}
             </div>

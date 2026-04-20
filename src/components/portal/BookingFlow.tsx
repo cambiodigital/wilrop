@@ -38,6 +38,8 @@ import {
 } from '@/components/ui/select'
 import { packages } from '@/data/packages'
 import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { toast } from 'sonner'
 
 // ─── Types for API-ready payload ───────────────────────────────
 interface GuestInfo {
@@ -107,14 +109,22 @@ const insurancePrice = 85000
 const transferPrice = 120000
 const photoPrice = 150000
 
-export default function BookingFlow() {
-  const { selectedPackageId, navigate } = useNavigationStore()
+interface BookingFlowProps {
+  packageId?: string
+}
+
+export default function BookingFlow({ packageId }: BookingFlowProps) {
+  const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
+  const { navigate, openOrderDetail } = usePortalNavigation()
   const [currentStep, setCurrentStep] = useState(1)
-  const [completed, setCompleted] = useState(false)
   const [bookingRef] = useState(() => 'WIL-PKG-' + Math.random().toString(36).substring(2, 8).toUpperCase())
   const [form, setForm] = useState<BookingPayload>({ ...initialPayload })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const pkg = useMemo(() => packages.find((p) => p.id === selectedPackageId), [selectedPackageId])
+  const pkg = useMemo(
+    () => packages.find((p) => p.id === (packageId ?? selectedPackageId)),
+    [packageId, selectedPackageId],
+  )
   const totalGuests = form.adults + form.children
 
   const extrasTotal = (form.travelInsurance ? insurancePrice : 0) + (form.airportTransfer ? transferPrice : 0) + (form.photoPackage ? photoPrice : 0)
@@ -147,10 +157,61 @@ export default function BookingFlow() {
     })
   }
 
-  const handleConfirm = () => {
-    setCompleted(true)
-    // In production, send `form` payload + bookingRef to API
-    console.log('[Booking Payload]', { bookingRef, packageId: pkg?.id, ...form })
+  const handleConfirm = async () => {
+    if (!pkg) return
+
+    setIsSubmitting(true)
+
+    try {
+      const addons = [
+        form.travelInsurance ? { type: 'travel-insurance', price: insurancePrice } : null,
+        form.airportTransfer ? { type: 'airport-transfer', price: transferPrice } : null,
+        form.photoPackage ? { type: 'photo-package', price: photoPrice } : null,
+      ].filter(Boolean)
+
+      const response = await fetch('/api/public/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: form.contactName,
+          guestEmail: form.contactEmail,
+          guestPhone: form.contactPhone,
+          guestCountry: form.contactNationality,
+          adults: form.adults,
+          children: form.children,
+          childrenAges: form.childrenAges,
+          notes: form.specialRequests,
+          totalPrice: total,
+          checkIn: form.departureDate,
+          items: [
+            {
+              itemType: 'package',
+              serviceId: pkg.id,
+              serviceName: pkg.title,
+              dateFrom: form.departureDate,
+              quantity: totalGuests,
+              unitPrice: pkg.price,
+              totalPrice: subtotal,
+              addons,
+            },
+          ],
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'No se pudo crear la reserva')
+      }
+
+      toast.success(`Reserva ${result.data.code} creada correctamente`)
+      openOrderDetail(result.data.code)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo crear la reserva'
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!pkg) {
@@ -160,55 +221,6 @@ export default function BookingFlow() {
           <p className="text-lg text-neutral-500">Paquete no encontrado</p>
           <Button onClick={() => navigate('portal-destinations')} variant="outline" className="mt-4 rounded-xl">Volver a Destinos</Button>
         </div>
-      </div>
-    )
-  }
-
-  if (completed) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-16 pb-20">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-lg text-center">
-          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-emerald-50">
-            <CheckCircle2 className="size-10 text-emerald-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-neutral-900">¡Reserva Confirmada!</h1>
-          <p className="mt-3 text-neutral-500">Hemos enviado los detalles a <span className="font-medium text-neutral-700">{form.contactEmail || 'tu correo'}</span></p>
-
-          <Card className="mt-6 border-neutral-200 text-left">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-500">Referencia</span>
-                <span className="font-mono text-sm font-bold text-amber-600">{bookingRef}</span>
-              </div>
-              <Separator />
-              <div>
-                <h4 className="font-bold text-neutral-900">{pkg.title}</h4>
-                <p className="text-sm text-neutral-500">{pkg.destinationName} · {pkg.duration}</p>
-              </div>
-              <Separator />
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-neutral-500">Contacto</span><p className="font-medium text-neutral-800">{form.contactName}</p></div>
-                <div><span className="text-neutral-500">Teléfono</span><p className="font-medium text-neutral-800">{form.contactPhone}</p></div>
-                <div><span className="text-neutral-500">Fecha</span><p className="font-medium text-neutral-800">{form.departureDate || '—'}</p></div>
-                <div><span className="text-neutral-500">Viajeros</span><p className="font-medium text-neutral-800">{form.adults} adulto{form.adults !== 1 ? 's' : ''}{form.children > 0 ? `, ${form.children} niño${form.children !== 1 ? 's' : ''}` : ''}</p></div>
-              </div>
-              <Separator />
-              <div className="space-y-1.5 text-sm">
-                {pkg.price > 0 && <div className="flex justify-between text-neutral-600"><span>Precio × {totalGuests} viajeros</span><span>${subtotal.toLocaleString('es-CO')}</span></div>}
-                {form.travelInsurance && <div className="flex justify-between text-neutral-600"><span>Seguro de viaje</span><span>${insurancePrice.toLocaleString('es-CO')}</span></div>}
-                {form.airportTransfer && <div className="flex justify-between text-neutral-600"><span>Traslado aeropuerto</span><span>${transferPrice.toLocaleString('es-CO')}</span></div>}
-                {form.photoPackage && <div className="flex justify-between text-neutral-600"><span>Paquete fotográfico</span><span>${photoPrice.toLocaleString('es-CO')}</span></div>}
-                <Separator />
-                <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button onClick={() => navigate('portal-home')} variant="outline" className="rounded-xl">Volver al Inicio</Button>
-            <Button onClick={() => navigate('portal-destinations')} className="rounded-xl bg-amber-500 text-white hover:bg-amber-600">Ver Más Paquetes</Button>
-          </div>
-        </motion.div>
       </div>
     )
   }
@@ -558,8 +570,8 @@ export default function BookingFlow() {
                   Siguiente <ArrowRight className="ml-2 size-4" />
                 </Button>
               ) : (
-                <Button onClick={handleConfirm} disabled={!form.acceptTerms || !form.acceptPrivacy} className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-neutral-300">
-                  <CheckCircle2 className="mr-2 size-4" /> Confirmar Reserva
+                <Button onClick={handleConfirm} disabled={!form.acceptTerms || !form.acceptPrivacy || isSubmitting} className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-neutral-300">
+                  <CheckCircle2 className="mr-2 size-4" /> {isSubmitting ? 'Creando pedido...' : 'Confirmar Reserva'}
                 </Button>
               )}
             </div>

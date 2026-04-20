@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Shield, DollarSign, MapPin, Sliders, Phone, Star, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const features = [
   {
@@ -70,7 +70,7 @@ const itemVariants = {
 }
 
 export default function WhyUsSection() {
-  const { navigate } = useNavigationStore()
+  const { navigate } = usePortalNavigation()
 
   return (
     <section id="why-us" className="bg-neutral-50">
