@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { Excursion } from '@prisma/client';
 
 function safeJsonParse<T>(value: string, fallback: T): T {
   try {
@@ -9,13 +10,14 @@ function safeJsonParse<T>(value: string, fallback: T): T {
   }
 }
 
-function formatExcursion(excursion: any) {
+function formatExcursion(excursion: unknown) {
+  const e = excursion as Excursion;
   return {
-    ...excursion,
-    images: safeJsonParse<string[]>(excursion.images, []),
-    includes: safeJsonParse<string[]>(excursion.includes, []),
-    excludes: safeJsonParse<string[]>(excursion.excludes, []),
-    requirements: safeJsonParse<string[]>(excursion.requirements, []),
+    ...e,
+    images: safeJsonParse<string[]>(e.images, []),
+    includes: safeJsonParse<string[]>(e.includes, []),
+    excludes: safeJsonParse<string[]>(e.excludes, []),
+    requirements: safeJsonParse<string[]>(e.requirements, []),
   };
 }
 
