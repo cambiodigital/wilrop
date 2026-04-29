@@ -31,16 +31,34 @@ export function isValidImageType(mimeType: string): boolean {
  * Removes special characters and ensures it's safe for filesystem
  */
 export function sanitizeFilename(filename: string): string {
-  // Remove extension
-  const ext = filename.split(".").pop() || "jpg";
-  const nameWithoutExt = filename.split(".").slice(0, -1).join(".");
+  // Find last dot index
+  const lastDotIndex = filename.lastIndexOf(".");
+
+  let ext = "jpg";
+  let nameWithoutExt = filename;
+
+  // If there's a dot and it's not the first character (hidden file without extension)
+  if (lastDotIndex > 0) {
+    ext = filename.slice(lastDotIndex + 1) || "jpg";
+    nameWithoutExt = filename.slice(0, lastDotIndex);
+  } else if (lastDotIndex === 0) {
+    // If it's a hidden file like .env
+    // We treat the whole thing as the name if there are no other dots
+    ext = "jpg"; // Default extension
+    nameWithoutExt = filename;
+  }
 
   // Remove special characters, keep only alphanumeric, dash, underscore
-  const sanitized = nameWithoutExt
+  let sanitized = nameWithoutExt
     .replace(/[^a-zA-Z0-9_-]/g, "-")
     .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "") // Remove leading/trailing dashes
     .toLowerCase()
     .slice(0, 100);
+
+  if (!sanitized) {
+    sanitized = "file";
+  }
 
   // Add timestamp to avoid collisions
   const timestamp = Date.now();
