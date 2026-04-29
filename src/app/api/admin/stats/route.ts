@@ -20,28 +20,29 @@ export async function GET(request: NextRequest) {
         db.travelPackage.count({ where: { soldOut: true } }),
       ]);
 
-    // Calculate average rating across destinations and hotels
-    const [destRatings, hotelRatings] = await Promise.all([
-      db.destination.findMany({
+    // Calculate average rating across destinations and hotels using aggregate
+    const [destStats, hotelStats] = await Promise.all([
+      db.destination.aggregate({
         where: { active: true },
-        select: { rating: true },
+        _avg: { rating: true },
+        _count: { rating: true }
       }),
-      db.hotel.findMany({
+      db.hotel.aggregate({
         where: { active: true },
-        select: { rating: true },
-      }),
+        _avg: { rating: true },
+        _count: { rating: true }
+      })
     ]);
 
-    const allRatings = [
-      ...destRatings.map((d) => d.rating),
-      ...hotelRatings.map((h) => h.rating),
-    ];
+    const destAvg = destStats._avg.rating || 0;
+    const destCount = destStats._count.rating || 0;
+    const hotelAvg = hotelStats._avg.rating || 0;
+    const hotelCount = hotelStats._count.rating || 0;
 
-    const avgRating =
-      allRatings.length > 0
-        ? Math.round((allRatings.reduce((sum, r) => sum + r, 0) / allRatings.length) * 10) /
-          10
-        : 0;
+    const totalCount = destCount + hotelCount;
+    const avgRating = totalCount > 0
+      ? Math.round(((destAvg * destCount + hotelAvg * hotelCount) / totalCount) * 10) / 10
+      : 0;
 
     // Get recent 5 packages by createdAt desc
     const recentPackages = await db.travelPackage.findMany({
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
         recentPackages,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching stats:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch stats' },
