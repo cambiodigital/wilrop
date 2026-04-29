@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
-export async function GET() {
-  try {
-    // Get the single marketing modal config (first one, or create default)
+const getCachedModal = unstable_cache(
+  async () => {
     let modal = await db.marketingModal.findFirst();
 
     if (!modal) {
@@ -24,6 +24,17 @@ export async function GET() {
         },
       });
     }
+
+    return modal;
+  },
+  ['marketing-modal-cache'],
+  { tags: ['marketing-modal'] }
+);
+
+export async function GET() {
+  try {
+    // Get the single marketing modal config (first one, or create default)
+    const modal = await getCachedModal();
 
     return NextResponse.json({ success: true, data: modal });
   } catch (error: unknown) {
@@ -83,6 +94,9 @@ export async function PUT(request: NextRequest) {
         data: updates,
       });
     }
+
+    // @ts-expect-error - Next.js 16 types mismatch for revalidateTag
+    revalidateTag('marketing-modal');
 
     return NextResponse.json({ success: true, data: modal });
   } catch (error: unknown) {
