@@ -67,7 +67,7 @@ export async function POST(
       { success: true, data: formatRoom(room) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create room' },
@@ -85,13 +85,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await db.roomType.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'Room not found' },
-        { status: 404 }
-      );
-    }
 
     const updates: any = {};
 
@@ -115,7 +108,13 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatRoom(room) });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return NextResponse.json(
+        { success: false, error: 'Room not found' },
+        { status: 404 }
+      );
+    }
     console.error('Error updating room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update room' },
@@ -132,18 +131,17 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const existing = await db.roomType.findUnique({ where: { id } });
-    if (!existing) {
+    await db.roomType.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { success: false, error: 'Room not found' },
         { status: 404 }
       );
     }
 
-    await db.roomType.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
     console.error('Error deleting room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete room' },
