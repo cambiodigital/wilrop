@@ -32,19 +32,25 @@ export function isValidImageType(mimeType: string): boolean {
  */
 export function sanitizeFilename(filename: string): string {
   // Remove extension
-  const ext = filename.split(".").pop() || "jpg";
-  const nameWithoutExt = filename.split(".").slice(0, -1).join(".");
+  const parts = filename.split(".");
+  const ext = parts.length > 1 ? parts.pop() : "jpg";
+  const nameWithoutExt = parts.length > 0 ? parts.join(".") : filename;
 
   // Remove special characters, keep only alphanumeric, dash, underscore
   const sanitized = nameWithoutExt
     .replace(/[^a-zA-Z0-9_-]/g, "-")
     .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .toLowerCase()
     .slice(0, 100);
 
   // Add timestamp to avoid collisions
   const timestamp = Date.now();
-  return `${sanitized}-${timestamp}.${ext}`;
+
+  // If sanitized is empty after removing special chars
+  const baseName = sanitized || "file";
+
+  return `${baseName}-${timestamp}.${ext}`;
 }
 
 /**
