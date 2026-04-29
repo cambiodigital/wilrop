@@ -30,7 +30,7 @@ export async function GET() {
     const parsed = services.map(formatTransportService);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching transport services:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch transport services' },
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatTransportService(service) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating transport service:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create transport service' },

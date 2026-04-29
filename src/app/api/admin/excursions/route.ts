@@ -37,7 +37,7 @@ export async function GET() {
     const parsed = excursions.map(formatExcursion);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching excursions:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch excursions' },
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatExcursion(excursion) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating excursion:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create excursion' },

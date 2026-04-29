@@ -13,7 +13,7 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, data: providers });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching transport providers:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch transport providers' },
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: provider },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating transport provider:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create transport provider' },

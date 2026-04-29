@@ -33,7 +33,7 @@ export async function GET() {
     const parsed = packages.map(formatPackage);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching packages:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch packages' },
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatPackage(pkg) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating package:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create package' },

@@ -35,7 +35,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: formatDestination(destination) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching destination:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch destination' },
@@ -80,7 +80,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatDestination(destination) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating destination:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update destination' },
@@ -107,7 +107,7 @@ export async function DELETE(
     await db.destination.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting destination:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete destination' },

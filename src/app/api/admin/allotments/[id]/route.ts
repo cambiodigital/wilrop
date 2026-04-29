@@ -70,7 +70,7 @@ export async function POST(
       { success: true, data: allotment },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating allotment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create allotment' },
@@ -122,7 +122,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: allotment });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating allotment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update allotment' },
@@ -150,7 +150,7 @@ export async function DELETE(
     await db.allotment.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting allotment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete allotment' },

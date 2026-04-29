@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatBooking(booking) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating booking:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create booking' },

@@ -38,7 +38,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: formatHotel(hotel) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching hotel:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch hotel' },
@@ -88,7 +88,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatHotel(hotel) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating hotel:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update hotel' },
@@ -115,7 +115,7 @@ export async function DELETE(
     await db.hotel.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting hotel:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete hotel' },

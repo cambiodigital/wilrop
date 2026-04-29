@@ -34,7 +34,7 @@ export async function GET() {
     const parsed = destinations.map(formatDestination);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching destinations:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch destinations' },
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatDestination(destination) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating destination:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create destination' },

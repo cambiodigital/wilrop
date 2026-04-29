@@ -67,7 +67,7 @@ export async function POST(
       { success: true, data: formatRoom(room) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create room' },
@@ -115,7 +115,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatRoom(room) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update room' },
@@ -143,7 +143,7 @@ export async function DELETE(
     await db.roomType.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting room:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete room' },
