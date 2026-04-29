@@ -22,8 +22,8 @@ export interface UploadResponse {
 /**
  * Validates file type
  */
-export function isValidImageType(mimeType: string): boolean {
-  return ALLOWED_IMAGE_TYPES.includes(mimeType as any);
+export function isValidImageType(mimeType: string): mimeType is typeof ALLOWED_IMAGE_TYPES[number] {
+  return (ALLOWED_IMAGE_TYPES as readonly string[]).includes(mimeType);
 }
 
 /**
