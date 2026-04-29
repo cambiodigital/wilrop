@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const parsed = rooms.map(formatRoom);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching rooms:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch rooms' },

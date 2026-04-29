@@ -58,7 +58,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: formatBooking(booking) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching booking:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch booking' },
@@ -121,7 +121,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatBooking(booking) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating booking:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update booking' },
@@ -148,7 +148,7 @@ export async function DELETE(
     await db.booking.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting booking:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete booking' },

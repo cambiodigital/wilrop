@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(getAdminSessionCookie(sessionValue));
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Admin auth error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

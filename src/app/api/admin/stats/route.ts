@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         recentPackages,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching stats:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch stats' },

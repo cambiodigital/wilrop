@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const parsed = bookings.map(formatBooking);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching bookings:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch bookings' },

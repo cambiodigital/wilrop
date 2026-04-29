@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(getPanelSessionCookie('subagent', sessionToken));
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error authenticating subagent:', error);
     return NextResponse.json(
       { success: false, error: 'Authentication failed' },

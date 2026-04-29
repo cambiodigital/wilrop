@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: allotments });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching allotments:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch allotments' },

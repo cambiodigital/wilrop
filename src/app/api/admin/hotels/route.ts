@@ -35,7 +35,7 @@ export async function GET() {
     const parsed = hotels.map(formatHotel);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching hotels:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch hotels' },
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: formatHotel(hotel) },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating hotel:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create hotel' },

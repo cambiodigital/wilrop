@@ -28,7 +28,7 @@ export async function GET(
     const { password: _pwd, ...sanitized } = subagent;
 
     return NextResponse.json({ success: true, data: sanitized });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching subagent:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch subagent' },
@@ -100,7 +100,7 @@ export async function PUT(
     const { password: _pwd, ...sanitized } = subagent;
 
     return NextResponse.json({ success: true, data: sanitized });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating subagent:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update subagent' },
@@ -127,7 +127,7 @@ export async function DELETE(
     await db.subagent.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting subagent:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete subagent' },

@@ -40,7 +40,7 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: formatTransportService(service) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching transport service:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch transport service' },
@@ -92,7 +92,7 @@ export async function PUT(
     });
 
     return NextResponse.json({ success: true, data: formatTransportService(service) });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating transport service:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update transport service' },
@@ -119,7 +119,7 @@ export async function DELETE(
     await db.transportService.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting transport service:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete transport service' },

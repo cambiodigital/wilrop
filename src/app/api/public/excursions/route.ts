@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const parsed = excursions.map(formatExcursion);
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching public excursions:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch excursions' },

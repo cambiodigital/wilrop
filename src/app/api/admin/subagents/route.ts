@@ -16,7 +16,7 @@ export async function GET() {
     const sanitized = subagents.map(({ password: _pwd, ...rest }) => rest);
 
     return NextResponse.json({ success: true, data: sanitized });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching subagents:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch subagents' },
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       { success: true, data: sanitized },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating subagent:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create subagent' },
