@@ -9,26 +9,24 @@ interface BrandWordmarkProps {
 }
 
 export function BrandWordmark({ inverted = false, compact = false, className }: BrandWordmarkProps) {
+  const src = compact
+    ? inverted
+      ? brand.assets.iconDark
+      : brand.assets.iconLight
+    : inverted
+      ? brand.assets.logoDark
+      : brand.assets.logoLight
+
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <Image
-        src={brand.iconPath}
-        alt=""
-        width={32}
-        height={32}
-        className={cn('size-8', inverted && 'invert')}
+        src={src}
+        alt={brand.name}
+        width={compact ? 562 : 1064}
+        height={compact ? 516 : 272}
+        className={cn(compact ? 'size-8 object-contain' : 'h-9 w-auto object-contain')}
         priority
       />
-      <div>
-        <span className={cn('block font-bold leading-none tracking-tight', compact ? 'text-sm' : 'text-lg', inverted ? 'text-white' : 'text-neutral-900')}>
-          {brand.shortName}
-        </span>
-        {!compact && (
-          <span className={cn('mt-0.5 block text-xs leading-none', inverted ? 'text-white/75' : 'text-neutral-500')}>
-            Group Travel
-          </span>
-        )}
-      </div>
     </div>
   )
 }

@@ -5,7 +5,14 @@ export const brand = {
   tagline: 'Tour operador receptivo para paquetes terrestres en Colombia',
   description:
     'Paquetes terrestres en Colombia con hotel, transporte y excursiones integrados para viajeros y agencias aliadas.',
-  iconPath: '/logo.svg',
+  assets: {
+    logoLight: '/brand/logo-light.webp',
+    logoDark: '/brand/logo-dark.webp',
+    iconLight: '/brand/icon-light.webp',
+    iconDark: '/brand/icon-dark.webp',
+  },
+  iconPath: '/brand/icon-light.webp',
+  logoPath: '/brand/logo-light.webp',
   primaryColor: '#0f6fb3',
   supportEmail: 'info@willrogrouptravel.com',
   phone: '+57 310 555 0123',

@@ -12,12 +12,12 @@ import {
   Bus,
   LogOut,
   Menu,
-  ShieldCheck,
   Megaphone,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { BrandWordmark } from '@/components/brand/BrandWordmark';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -75,11 +75,9 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="w-9 h-9 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20">
-          <ShieldCheck className="w-5 h-5 text-white" />
-        </div>
+        <BrandWordmark compact />
         <div>
-          <h2 className="font-bold text-gray-900 text-sm leading-none">WILROP</h2>
+          <h2 className="font-bold text-gray-900 text-sm leading-none">Willro</h2>
           <p className="text-xs text-gray-500">Admin Panel</p>
         </div>
       </div>
@@ -157,10 +155,8 @@ export default function AdminSidebar({ children, adminName }: { children: React.
         <div className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-gray-900 text-sm">WILROP Admin</span>
+              <BrandWordmark compact />
+              <span className="font-bold text-gray-900 text-sm">Willro Admin</span>
             </div>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>

@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigationStore } from '@/store/useNavigationStore';
-import { ArrowLeft, Lock, Mail, Plane } from 'lucide-react';
+import { BrandWordmark } from '@/components/brand/BrandWordmark';
+import { ArrowLeft, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ResellerLogin() {
@@ -67,16 +68,8 @@ export default function ResellerLogin() {
       >
         <Card className="shadow-xl border-amber-200/50 backdrop-blur-sm bg-white/90">
           <CardHeader className="text-center pb-2">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-amber-500/25"
-            >
-              <Plane className="w-8 h-8 text-white" />
-            </motion.div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              WILROP Colombia
+            <CardTitle className="flex justify-center">
+              <BrandWordmark className="justify-center" />
             </CardTitle>
             <CardDescription className="text-amber-700 font-semibold text-sm">
               Panel de Socios / Revendedores
