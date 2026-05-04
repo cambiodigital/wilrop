@@ -79,8 +79,11 @@ elif [ "$repair_status" -ne 0 ]; then
   exit "$repair_status"
 fi
 
-echo "[1/2] Applying Prisma migrations..."
+echo "[1/3] Applying Prisma migrations..."
 node /app/node_modules/prisma/build/index.js migrate deploy
 
-echo "[2/2] Starting Next.js server on port ${PORT:-3000}..."
+echo "[2/3] Ensuring admin bootstrap account..."
+node /app/scripts/ensure-admin.mjs
+
+echo "[3/3] Starting Next.js server on port ${PORT:-3000}..."
 exec node /app/server.js

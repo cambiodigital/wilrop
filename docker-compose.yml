@@ -16,6 +16,11 @@ services:
       # next-auth — obligatorio en producción
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
+      # Admin bootstrap opcional. Define password para crear el admin inicial.
+      WILROP_ADMIN_EMAIL: ${WILROP_ADMIN_EMAIL:-admin@wilrop.com}
+      WILROP_ADMIN_PASSWORD: ${WILROP_ADMIN_PASSWORD:-}
+      WILROP_ADMIN_NAME: ${WILROP_ADMIN_NAME:-Administrador WILROP}
+      WILROP_ADMIN_RESET_PASSWORD: ${WILROP_ADMIN_RESET_PASSWORD:-false}
     depends_on:
       db:
         condition: service_healthy   # espera hasta que Postgres esté listo

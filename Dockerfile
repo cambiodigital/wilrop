@@ -61,6 +61,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./node_modules
 # Schema + migraciones (necesarios en runtime para migrate deploy)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
+# Scripts operativos usados por el entrypoint
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/ensure-admin.mjs      ./scripts/ensure-admin.mjs
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
