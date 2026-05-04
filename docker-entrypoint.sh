@@ -35,9 +35,9 @@ async function main() {
   }
 
   const tableRows = await prisma.$queryRawUnsafe(
-    "SELECT to_regclass('public.\"Subagent\"') AS table_name",
+    "SELECT to_regclass('public.\"Subagent\"') IS NOT NULL AS table_exists",
   )
-  const subagentTableExists = tableRows.some((row) => row.table_name !== null)
+  const subagentTableExists = tableRows.some((row) => row.table_exists === true)
 
   if (!subagentTableExists) {
     console.log('Subagent table does not exist; rolling back the failed reseller migration so Prisma can replay migrations.')
