@@ -75,7 +75,7 @@ export async function PUT(
     if (body.images !== undefined) updates.images = JSON.stringify(body.images);
     if (body.duration !== undefined) updates.duration = body.duration;
     if (body.difficulty !== undefined) updates.difficulty = body.difficulty;
-    if (body.groupSize !== undefined) updates.groupSize = body.groupSize;
+    if (body.groupSize !== undefined) updates.groupSize = String(body.groupSize);
     if (body.basePrice !== undefined) updates.basePrice = body.basePrice;
     if (body.childPrice !== undefined) updates.childPrice = body.childPrice;
     if (body.includes !== undefined) updates.includes = JSON.stringify(body.includes);

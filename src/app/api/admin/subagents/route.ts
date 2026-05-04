@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { normalizeResellerLevel } from '@/lib/reseller-access';
 
 export async function GET() {
   try {
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
       country,
       phone,
       commission,
+      sellerLevel,
+      whiteLabelEnabled,
       active,
     } = body;
 
@@ -75,6 +78,8 @@ export async function POST(request: NextRequest) {
         country: country ?? '',
         phone: phone ?? '',
         commission: commission ?? 15,
+        sellerLevel: normalizeResellerLevel(sellerLevel),
+        whiteLabelEnabled: Boolean(whiteLabelEnabled),
         active: active ?? true,
       },
     });

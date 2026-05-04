@@ -183,6 +183,8 @@ model Subagent {
   country     String    @default("")
   phone       String    @default("")
   commission  Int       @default(0)
+  sellerLevel String    @default("standard")
+  whiteLabelEnabled Boolean @default(false)
   active      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

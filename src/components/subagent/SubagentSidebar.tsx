@@ -12,7 +12,6 @@ import {
   Mountain,
   LogOut,
   Menu,
-  Plane,
   Package,
   Users,
 } from 'lucide-react'
@@ -20,6 +19,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import {
   Sheet,
   SheetContent,
@@ -54,7 +54,7 @@ const menuItems: MenuItem[] = [
 const catalogItems: MenuItem[] = [
   { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/transportes', isExternal: true },
   { id: 'excursions', label: 'Excursiones', icon: <Mountain className="w-5 h-5" />, href: '/excursiones', isExternal: true },
-  { id: 'package', label: 'Arma tu Viaje', icon: <Package className="w-5 h-5" />, href: '/destinos', isExternal: true },
+  { id: 'package', label: 'Arma tu Viaje', icon: <Package className="w-5 h-5" />, href: '/paquetes/armar', isExternal: true },
 ]
 
 function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; fallbackSession?: SubagentSidebarSession }) {
@@ -90,28 +90,22 @@ function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="w-9 h-9 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20">
-          <Plane className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h2 className="font-bold text-gray-900 text-sm leading-none">WILROP</h2>
-          <p className="text-xs text-gray-500">Colombia Travel</p>
-        </div>
+        <BrandWordmark />
       </div>
 
       <Separator className="mx-4 w-auto" />
 
       <div className="px-4 py-4">
-        <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
-          <Avatar className="w-10 h-10 border-2 border-amber-200">
-            <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white font-semibold text-sm">
+        <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-xl">
+          <Avatar className="w-10 h-10 border-2 border-primary/20">
+            <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
               {getInitials(currentName || 'SA')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{currentName}</p>
             <div className="flex items-center gap-1.5">
-              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0">
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-[10px] px-1.5 py-0">
                 {currentCode}
               </Badge>
               <span className="text-[10px] text-neutral-500">{currentCommission}% comisión</span>
@@ -130,8 +124,8 @@ function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; 
               onClick={() => handleNavigate(item.href)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
-                  : 'text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                  : 'text-gray-600 hover:bg-primary/10 hover:text-primary'
               }`}
             >
               <span className={isActive ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
@@ -149,8 +143,8 @@ function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; 
             onClick={() => handleNavigate(item.href)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
               isItemActive(item.href)
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25'
-                : 'text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                : 'text-gray-600 hover:bg-primary/10 hover:text-primary'
             }`}
           >
             <span className={isItemActive(item.href) ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
@@ -193,10 +187,7 @@ export default function SubagentSidebar({ children, session }: { children: React
         <div className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <Plane className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-gray-900 text-sm">WILROP</span>
+              <BrandWordmark compact />
             </div>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>

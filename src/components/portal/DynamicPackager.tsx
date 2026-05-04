@@ -84,11 +84,12 @@ interface RoomType {
 interface Excursion {
   id: string
   name: string
+  destinationId: string
   cityName: string
   destinationName: string
   duration: string
   difficulty: string
-  groupSize: number
+  groupSize: string
   basePrice: number
   childPrice: number
   includes: string[]
@@ -209,9 +210,9 @@ export default function DynamicPackager() {
   const fetchHotels = useCallback(async () => {
     setLoadingHotels(true)
     try {
-      // Use static data since there's no public hotel list endpoint
-      const { hotels: allHotels } = await import('@/data/hotels')
-      setHotels(allHotels)
+      const res = await fetch('/api/public/hotels')
+      const json = await res.json()
+      if (json.success) setHotels(json.data)
     } catch { /* ignore */ } finally { setLoadingHotels(false) }
   }, [])
 
@@ -266,6 +267,17 @@ export default function DynamicPackager() {
   const selectedExcursionData = useMemo(() => {
     return excursions.find((e) => e.id === eServiceId) || null
   }, [eServiceId, excursions])
+
+  const filteredExcursions = useMemo(() => {
+    const cityId = selectedHotel?.hotel.cityId || hCity || tCity
+    if (!cityId) return excursions
+
+    return excursions.filter(
+      (excursion) =>
+        excursion.destinationId === cityId ||
+        excursion.cityName.toLowerCase() === cityId.toLowerCase(),
+    )
+  }, [excursions, hCity, selectedHotel, tCity])
 
   // Navigate steps
   const goNext = () => {
@@ -737,7 +749,7 @@ export default function DynamicPackager() {
                     <Select value={eServiceId} onValueChange={setEServiceId}>
                       <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecciona una excursión" /></SelectTrigger>
                       <SelectContent>
-                        {excursions.map((e) => (
+                        {filteredExcursions.map((e) => (
                           <SelectItem key={e.id} value={e.id}>
                             {e.name} — {e.cityName || e.destinationName} ({formatCOP(e.basePrice)})
                           </SelectItem>

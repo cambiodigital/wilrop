@@ -3,6 +3,7 @@ import ResellerSidebar from '@/components/reseller/ResellerSidebar'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth'
+import { getResellerCapabilities } from '@/lib/reseller-access'
 
 export default async function ResellerPanelLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies()
@@ -13,5 +14,14 @@ export default async function ResellerPanelLayout({ children }: { children: Reac
     redirect('/reseller/login')
   }
 
-  return <ResellerSidebar resellerName={session.name}>{children}</ResellerSidebar>
+  const capabilities = getResellerCapabilities({
+    sellerLevel: session.appRole,
+    whiteLabelEnabled: session.whiteLabelEnabled,
+  })
+
+  return (
+    <ResellerSidebar resellerName={session.name} canUseWhiteLabel={capabilities.canUseWhiteLabel}>
+      {children}
+    </ResellerSidebar>
+  )
 }

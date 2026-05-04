@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const destinationId = searchParams.get('destinationId');
     const cityId = searchParams.get('cityId');
+    const category = searchParams.get('category');
 
     const where: any = { active: true };
 
@@ -33,6 +34,10 @@ export async function GET(request: NextRequest) {
 
     if (cityId) {
       where.cityName = cityId;
+    }
+
+    if (category) {
+      where.category = category;
     }
 
     const excursions = await db.excursion.findMany({

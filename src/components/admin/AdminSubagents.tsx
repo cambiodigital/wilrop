@@ -9,6 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,8 +50,10 @@ import {
   Phone,
   Globe,
   Building,
+  Palette,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getResellerLevelLabel, normalizeResellerLevel, type ResellerLevel } from '@/lib/reseller-access';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -57,6 +66,8 @@ interface Subagent {
   country: string;
   phone: string;
   commission: number;
+  sellerLevel: string;
+  whiteLabelEnabled: boolean;
   active: boolean;
   _count?: { bookings: number };
 }
@@ -72,6 +83,8 @@ const emptySubagent = {
   country: '',
   phone: '',
   commission: 15,
+  sellerLevel: 'standard',
+  whiteLabelEnabled: false,
   active: true,
 };
 
@@ -131,6 +144,8 @@ export default function AdminSubagents() {
       country: sub.country,
       phone: sub.phone,
       commission: sub.commission,
+      sellerLevel: normalizeResellerLevel(sub.sellerLevel),
+      whiteLabelEnabled: sub.whiteLabelEnabled,
       active: sub.active,
     });
     setDialogOpen(true);
@@ -320,6 +335,8 @@ export default function AdminSubagents() {
                     <TableHead>Email</TableHead>
                     <TableHead>Teléfono</TableHead>
                     <TableHead>Comisión</TableHead>
+                    <TableHead>Nivel</TableHead>
+                    <TableHead>Marca Blanca</TableHead>
                     <TableHead>Reservas</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -328,7 +345,7 @@ export default function AdminSubagents() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={12} className="text-center py-8 text-gray-400">
                         {search
                           ? 'No se encontraron resultados'
                           : 'No hay subagentes registrados'}
@@ -359,6 +376,22 @@ export default function AdminSubagents() {
                           <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs font-semibold">
                             {sub.commission}%
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-xs">
+                            {getResellerLevelLabel(normalizeResellerLevel(sub.sellerLevel))}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {sub.whiteLabelEnabled || normalizeResellerLevel(sub.sellerLevel) === 'free_light' ? (
+                            <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-xs">
+                              Habilitada
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                              No
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-center">
                           {sub._count?.bookings || 0}
@@ -543,6 +576,41 @@ export default function AdminSubagents() {
               <p className="text-xs text-gray-400">
                 Porcentaje de comisión sobre las ventas del subagente
               </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nivel de revendedor</Label>
+                <Select
+                  value={form.sellerLevel}
+                  onValueChange={(value) =>
+                    setForm((f) => ({ ...f, sellerLevel: normalizeResellerLevel(value) }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona nivel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['starter', 'standard', 'free_light'] as ResellerLevel[]).map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {getResellerLevelLabel(level)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-3">
+                <Palette className="h-5 w-5 text-purple-600" />
+                <div className="flex-1">
+                  <Label>Marca blanca</Label>
+                  <p className="text-xs text-gray-400">Free Light la incluye; este switch la habilita manualmente.</p>
+                </div>
+                <Switch
+                  checked={form.whiteLabelEnabled}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, whiteLabelEnabled: v }))}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">

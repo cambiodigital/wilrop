@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { createPanelSessionToken, getPanelSessionCookie, secureCompare } from '@/lib/panel-auth';
+import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,14 +40,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sellerLevel = normalizeResellerLevel(subagent.sellerLevel);
+    const capabilities = getResellerCapabilities({
+      sellerLevel,
+      whiteLabelEnabled: subagent.whiteLabelEnabled,
+    });
+
     const sessionToken = createPanelSessionToken({
       id: subagent.id,
       email: subagent.email,
       name: subagent.contactName || subagent.agencyName,
       panelRole: 'subagent',
-      appRole: 'subagent',
+      appRole: sellerLevel,
       code: subagent.code,
       commission: subagent.commission,
+      whiteLabelEnabled: capabilities.canUseWhiteLabel,
     });
 
     const response = NextResponse.json({
@@ -60,6 +68,8 @@ export async function POST(request: NextRequest) {
         country: subagent.country,
         phone: subagent.phone,
         commission: subagent.commission,
+        sellerLevel,
+        whiteLabelEnabled: capabilities.canUseWhiteLabel,
         active: subagent.active,
       },
     });

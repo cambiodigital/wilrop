@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         images: JSON.stringify(images || []),
         duration: duration ?? '3 horas',
         difficulty: difficulty ?? 'Fácil',
-        groupSize: groupSize ?? 20,
+        groupSize: String(groupSize ?? '20 personas'),
         basePrice: basePrice ?? 0,
         childPrice: childPrice ?? 0,
         includes: JSON.stringify(includes || []),

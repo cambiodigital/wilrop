@@ -11,6 +11,9 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // ─── Clean existing data ─────────────────────────────────────
+  await db.transportService.deleteMany();
+  await db.transportProvider.deleteMany();
+  await db.excursion.deleteMany();
   await db.travelPackage.deleteMany();
   await db.hotel.deleteMany();
   await db.destination.deleteMany();
@@ -361,6 +364,169 @@ async function main() {
     await db.hotel.create({ data: hotel });
   }
   console.log(`✅ ${hotelData.length} hotels created`);
+
+  const transportProviders = [
+    {
+      data: {
+        name: 'Wilrop Medellin Transfers',
+        legalName: 'Willro Group Travel',
+        nit: '',
+        phone: '+57 300 000 0000',
+        email: 'operaciones@willrogrouptravel.com',
+        vehicleType: 'van',
+        capacity: 6,
+        active: true,
+      },
+      services: [
+        {
+          name: 'Traslado Aeropuerto MDE - Hotel Medellin',
+          routeType: 'aeropuerto-hotel',
+          origin: 'Aeropuerto Jose Maria Cordova',
+          destination: 'Hotel en Medellin',
+          cityId: 'medellin',
+          cityName: 'Medellin',
+          durationMins: 55,
+          basePrice: 180000,
+          pricePerExtra: 25000,
+          includes: JSON.stringify(['Conductor privado', 'Equipaje', 'Seguimiento de vuelo']),
+          notes: 'Producto terrestre base para paquetes con hoteles y excursiones de Medellin.',
+          active: true,
+        },
+        {
+          name: 'Traslado Hotel Medellin - Aeropuerto MDE',
+          routeType: 'hotel-aeropuerto',
+          origin: 'Hotel en Medellin',
+          destination: 'Aeropuerto Jose Maria Cordova',
+          cityId: 'medellin',
+          cityName: 'Medellin',
+          durationMins: 55,
+          basePrice: 180000,
+          pricePerExtra: 25000,
+          includes: JSON.stringify(['Conductor privado', 'Equipaje', 'Confirmacion previa']),
+          notes: 'Servicio de salida para completar paquete terrestre receptivo.',
+          active: true,
+        },
+      ],
+    },
+    {
+      data: {
+        name: 'Wilrop Cartagena Transfers',
+        legalName: 'Willro Group Travel',
+        nit: '',
+        phone: '+57 300 000 0000',
+        email: 'operaciones@willrogrouptravel.com',
+        vehicleType: 'suv',
+        capacity: 4,
+        active: true,
+      },
+      services: [
+        {
+          name: 'Traslado Aeropuerto CTG - Hotel Cartagena',
+          routeType: 'aeropuerto-hotel',
+          origin: 'Aeropuerto Rafael Nunez',
+          destination: 'Hotel en Cartagena',
+          cityId: 'cartagena',
+          cityName: 'Cartagena',
+          durationMins: 25,
+          basePrice: 95000,
+          pricePerExtra: 15000,
+          includes: JSON.stringify(['Conductor privado', 'Equipaje', 'Asistencia en llegada']),
+          notes: 'Producto administrable para venta B2C y paquetes terrestres B2B.',
+          active: true,
+        },
+      ],
+    },
+  ];
+
+  let transportServiceCount = 0;
+  for (const provider of transportProviders) {
+    const createdProvider = await db.transportProvider.create({ data: provider.data });
+    for (const service of provider.services) {
+      await db.transportService.create({
+        data: {
+          providerId: createdProvider.id,
+          ...service,
+        },
+      });
+      transportServiceCount += 1;
+    }
+  }
+  console.log(`✅ ${transportProviders.length} transport providers and ${transportServiceCount} services created`);
+
+  // ─── Excursions ───────────────────────────────────────────────
+  const excursionData = [
+    {
+      slug: 'comuna-13-grafiti-transformacion',
+      name: 'Comuna 13: Grafiti y Transformacion Social',
+      destinationId: 'medellin',
+      destinationName: 'Medellin',
+      cityName: 'Medellin',
+      description: 'Recorrido guiado por escaleras electricas, murales y miradores de la Comuna 13, pensado como producto terrestre base para agencias y grupos receptivos.',
+      shortDesc: 'Tour urbano por grafitis, historia local y miradores de Medellin.',
+      images: JSON.stringify(['/images/medellin.png']),
+      duration: '4 horas',
+      difficulty: 'Facil',
+      groupSize: '2 - 20 personas',
+      basePrice: 120000,
+      childPrice: 90000,
+      includes: JSON.stringify(['Guia local', 'Recorrido grafiti', 'Snack local', 'Asistencia Willro']),
+      excludes: JSON.stringify(['Almuerzo', 'Propinas', 'Gastos personales']),
+      requirements: JSON.stringify(['Calzado comodo', 'Documento de identidad']),
+      category: 'Cultural',
+      rating: 4.8,
+      featured: true,
+      active: true,
+    },
+    {
+      slug: 'guatape-piedra-penol-dia-completo',
+      name: 'Guatape y Piedra del Penol',
+      destinationId: 'medellin',
+      destinationName: 'Medellin',
+      cityName: 'Guatape',
+      description: 'Excursion de dia completo desde Medellin hacia Guatape, con visita a la Piedra del Penol, malecon y recorrido por zocalos tradicionales.',
+      shortDesc: 'Dia completo a Guatape con Penol, malecon y pueblo de zocalos.',
+      images: JSON.stringify(['/images/medellin.png']),
+      duration: '10 horas',
+      difficulty: 'Moderado',
+      groupSize: '2 - 18 personas',
+      basePrice: 230000,
+      childPrice: 180000,
+      includes: JSON.stringify(['Transporte compartido', 'Guia acompanante', 'Almuerzo tipico', 'Seguro de asistencia']),
+      excludes: JSON.stringify(['Entrada a la Piedra del Penol', 'Bebidas no descritas']),
+      requirements: JSON.stringify(['Calzado comodo', 'Bloqueador solar', 'Chaqueta ligera']),
+      category: 'Naturaleza',
+      rating: 4.9,
+      featured: true,
+      active: true,
+    },
+    {
+      slug: 'city-tour-medellin-pueblito-paisa',
+      name: 'City Tour Medellin y Pueblito Paisa',
+      destinationId: 'medellin',
+      destinationName: 'Medellin',
+      cityName: 'Medellin',
+      description: 'Producto urbano para complementar paquetes con hoteles aliados: visita panoramica por Medellin, Pueblito Paisa y puntos representativos.',
+      shortDesc: 'Recorrido panoramico para completar paquetes terrestres en Medellin.',
+      images: JSON.stringify(['/images/medellin.png']),
+      duration: '5 horas',
+      difficulty: 'Facil',
+      groupSize: '2 - 20 personas',
+      basePrice: 150000,
+      childPrice: 110000,
+      includes: JSON.stringify(['Transporte local', 'Guia acompanante', 'Paradas fotograficas']),
+      excludes: JSON.stringify(['Almuerzo', 'Entradas no descritas']),
+      requirements: JSON.stringify(['Calzado comodo']),
+      category: 'Cultural',
+      rating: 4.7,
+      featured: false,
+      active: true,
+    },
+  ];
+
+  for (const excursion of excursionData) {
+    await db.excursion.create({ data: excursion });
+  }
+  console.log(`✅ ${excursionData.length} excursions created`);
 
   // ─── Travel Packages ─────────────────────────────────────────
   const packageData = [

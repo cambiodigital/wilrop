@@ -92,7 +92,7 @@ interface HotelBookingFlowProps {
   checkIn?: string
   checkOut?: string
   adults?: number
-  children?: number
+  childCount?: number
   childrenAges?: number[]
 }
 
@@ -102,7 +102,7 @@ export default function HotelBookingFlow({
   checkIn: initialCheckIn,
   checkOut: initialCheckOut,
   adults: initialAdults,
-  children: initialChildren,
+  childCount: initialChildren,
   childrenAges: initialChildrenAges,
 }: HotelBookingFlowProps) {
   const hotelBookingData = useNavigationStore((state) => state.hotelBookingData)

@@ -2,10 +2,11 @@ import { redirect } from 'next/navigation'
 import PortalShell from '@/components/portal/PortalShell'
 import PublicPortalHome from '@/components/portal/PublicPortalHome'
 import { buildPublicMetadata } from '@/lib/seo'
+import { brand } from '@/lib/brand'
 
 export const metadata = buildPublicMetadata({
-  title: 'WILROP Colombia Travel | Viajes por Colombia',
-  description: 'Explora destinos, hoteles y paquetes en Colombia con rutas claras y experiencia de reserva simple.',
+  title: `${brand.name} | Paquetes terrestres en Colombia`,
+  description: brand.description,
   path: '/',
 })
 

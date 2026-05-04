@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { brand } from "@/lib/brand";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WILROP Colombia Travel",
-  description:
-    "Descubre la magia de Colombia. Paquetes turísticos a los mejores destinos del país.",
+  title: brand.name,
+  description: brand.description,
   keywords: [
-    "WILROP",
+    brand.shortName,
+    brand.name,
     "Colombia",
     "viajes",
     "turismo",
@@ -30,21 +31,19 @@ export const metadata: Metadata = {
     "Bogotá",
     "paquetes turísticos",
   ],
-  authors: [{ name: "WILROP Colombia Travel" }],
+  authors: [{ name: brand.name }],
   icons: {
-    icon: "/logo.svg",
+    icon: brand.iconPath,
   },
   openGraph: {
-    title: "WILROP Colombia Travel",
-    description:
-      "Descubre la magia de Colombia. Paquetes turísticos a los mejores destinos del país.",
+    title: brand.name,
+    description: brand.description,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WILROP Colombia Travel",
-    description:
-      "Descubre la magia de Colombia. Paquetes turísticos a los mejores destinos del país.",
+    title: brand.name,
+    description: brand.description,
   },
 };
 

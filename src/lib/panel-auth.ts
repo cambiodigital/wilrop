@@ -11,6 +11,7 @@ export interface CreatePanelSessionInput {
   appRole?: string
   code?: string
   commission?: number
+  whiteLabelEnabled?: boolean
 }
 
 interface PanelSessionClaims extends CreatePanelSessionInput {
@@ -47,6 +48,10 @@ function signPayload(encodedPayload: string): string {
 
 function safeNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function safeBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined
 }
 
 export function secureCompare(left: string, right: string): boolean {
@@ -132,6 +137,7 @@ export function verifyPanelSessionToken(token?: string, expectedRole?: PanelRole
       appRole: claims.appRole,
       code: claims.code,
       commission: safeNumber(claims.commission),
+      whiteLabelEnabled: safeBoolean(claims.whiteLabelEnabled),
       issuedAt: claims.iat,
       expiresAt: claims.exp,
     }

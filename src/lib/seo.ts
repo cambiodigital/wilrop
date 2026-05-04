@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { brand } from '@/lib/brand'
 
 const FALLBACK_SITE_URL = 'https://wilroptravel.com'
 
@@ -50,7 +51,7 @@ export function buildPublicMetadata({ title, description, path, ogImage, noIndex
       title,
       description,
       url: canonical,
-      siteName: 'WILROP Colombia Travel',
+      siteName: brand.name,
       type: 'website',
       locale: 'es_CO',
       images: [

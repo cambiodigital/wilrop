@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPanelSessionToken, getPanelSessionCookie, secureCompare } from '@/lib/panel-auth'
+import { db } from '@/lib/db'
+import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access'
 
 interface ResellerAccount {
   email: string
@@ -68,11 +70,65 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const subagent = await db.subagent.findUnique({
+      where: { email },
+    })
+
+    if (subagent) {
+      if (!secureCompare(subagent.password, password)) {
+        return NextResponse.json(
+          { success: false, error: 'Credenciales invÃ¡lidas' },
+          { status: 401 },
+        )
+      }
+
+      if (!subagent.active) {
+        return NextResponse.json(
+          { success: false, error: 'Tu cuenta estÃ¡ desactivada. Contacta al administrador.' },
+          { status: 403 },
+        )
+      }
+
+      const sellerLevel = normalizeResellerLevel(subagent.sellerLevel)
+      const capabilities = getResellerCapabilities({
+        sellerLevel,
+        whiteLabelEnabled: subagent.whiteLabelEnabled,
+      })
+      const displayName = subagent.contactName || subagent.agencyName
+      const sessionToken = createPanelSessionToken({
+        id: subagent.id,
+        email: subagent.email,
+        name: displayName,
+        panelRole: 'reseller',
+        appRole: sellerLevel,
+        code: subagent.code,
+        commission: subagent.commission,
+        whiteLabelEnabled: capabilities.canUseWhiteLabel,
+      })
+
+      const response = NextResponse.json({
+        success: true,
+        reseller: {
+          id: subagent.id,
+          code: subagent.code,
+          email: subagent.email,
+          name: displayName,
+          agencyName: subagent.agencyName,
+          commission: subagent.commission,
+          sellerLevel,
+          whiteLabelEnabled: capabilities.canUseWhiteLabel,
+        },
+      })
+
+      response.cookies.set(getPanelSessionCookie('reseller', sessionToken))
+      return response
+    }
+
     const accounts = getResellerAccounts()
     if (accounts.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'No hay cuentas reseller configuradas en el servidor' },
-        { status: 503 },
+        { success: false, error: 'No existe una cuenta revendedora activa con ese correo' },
+        { status: 401 },
       )
     }
 
@@ -91,6 +147,7 @@ export async function POST(request: NextRequest) {
       name: reseller.name,
       panelRole: 'reseller',
       appRole: 'reseller',
+      whiteLabelEnabled: false,
     })
 
     const response = NextResponse.json({

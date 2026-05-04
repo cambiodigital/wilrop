@@ -52,7 +52,7 @@ interface Excursion {
   images: string[]
   duration: string
   difficulty: string
-  groupSize: number
+  groupSize: string
   basePrice: number
   childPrice: number
   includes: string[]
@@ -129,7 +129,7 @@ export default function ExcursionsPage() {
     try {
       const params = new URLSearchParams()
       if (destinationId) params.set('destinationId', destinationId)
-      if (category) params.set('cityId', category) // use cityId param as category filter is not directly supported
+      if (category) params.set('category', category)
       const url = `/api/public/excursions${params.toString() ? '?' + params.toString() : ''}`
       const res = await fetch(url)
       const json = await res.json()
@@ -241,7 +241,13 @@ export default function ExcursionsPage() {
   const today = new Date().toISOString().split('T')[0]
 
   // Get unique destinations from loaded excursions
-  const destinations = Array.from(new Set(excursions.map((e) => e.destinationName).filter(Boolean)))
+  const destinations = Array.from(
+    new Map(
+      excursions
+        .filter((e) => e.destinationId && e.destinationName)
+        .map((e) => [e.destinationId, e.destinationName]),
+    ).entries(),
+  )
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -300,9 +306,9 @@ export default function ExcursionsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los destinos</SelectItem>
-                {destinations.map((dest) => (
-                  <SelectItem key={dest} value={dest}>
-                    {dest}
+                {destinations.map(([destinationId, destinationName]) => (
+                  <SelectItem key={destinationId} value={destinationId}>
+                    {destinationName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -398,7 +404,7 @@ export default function ExcursionsPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Users className="size-3.5 text-amber-500" />
-                  Hasta {bookingExcursion?.groupSize} personas
+                  Grupo {bookingExcursion?.groupSize}
                 </span>
                 <span className="flex items-center gap-1">
                   <Star className="size-3.5 fill-amber-400 text-amber-400" />
@@ -435,7 +441,7 @@ export default function ExcursionsPage() {
                   id="exc-adults"
                   type="number"
                   min={1}
-                  max={bookingExcursion?.groupSize || 20}
+                  max={parseInt(bookingExcursion?.groupSize || '', 10) || 20}
                   value={bookingAdults}
                   onChange={(e) => setBookingAdults(Math.max(1, parseInt(e.target.value) || 1))}
                   className="rounded-xl"
@@ -448,7 +454,7 @@ export default function ExcursionsPage() {
                   id="exc-children"
                   type="number"
                   min={0}
-                  max={bookingExcursion?.groupSize ? bookingExcursion.groupSize - bookingAdults : 10}
+                  max={bookingExcursion?.groupSize ? Math.max(0, (parseInt(bookingExcursion.groupSize, 10) || 20) - bookingAdults) : 10}
                   value={bookingChildren}
                   onChange={(e) => setBookingChildren(Math.max(0, parseInt(e.target.value) || 0))}
                   className="rounded-xl"

@@ -11,11 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [totalDestinations, totalHotels, totalPackages, featuredHotels, soldOutPackages] =
+    const [totalDestinations, totalHotels, totalPackages, totalExcursions, totalTransportServices, featuredHotels, soldOutPackages] =
       await Promise.all([
         db.destination.count({ where: { active: true } }),
         db.hotel.count({ where: { active: true } }),
         db.travelPackage.count({ where: { active: true } }),
+        db.excursion.count({ where: { active: true } }),
+        db.transportService.count({ where: { active: true } }),
         db.hotel.count({ where: { featured: true } }),
         db.travelPackage.count({ where: { soldOut: true } }),
       ]);
@@ -55,6 +57,8 @@ export async function GET(request: NextRequest) {
         totalDestinations,
         totalHotels,
         totalPackages,
+        totalExcursions,
+        totalTransportServices,
         featuredHotels,
         avgRating,
         soldOutPackages,

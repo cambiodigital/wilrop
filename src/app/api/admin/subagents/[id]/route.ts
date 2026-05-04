@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { normalizeResellerLevel } from '@/lib/reseller-access';
 
 export async function GET(
   _request: NextRequest,
@@ -84,6 +85,8 @@ export async function PUT(
     if (body.country !== undefined) updates.country = body.country;
     if (body.phone !== undefined) updates.phone = body.phone;
     if (body.commission !== undefined) updates.commission = body.commission;
+    if (body.sellerLevel !== undefined) updates.sellerLevel = normalizeResellerLevel(body.sellerLevel);
+    if (body.whiteLabelEnabled !== undefined) updates.whiteLabelEnabled = Boolean(body.whiteLabelEnabled);
     if (body.active !== undefined) updates.active = body.active;
 
     const subagent = await db.subagent.update({

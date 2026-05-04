@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
@@ -12,6 +12,7 @@ const ALLOWED_TYPES = [
 ];
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_FOLDERS = new Set(['hotels', 'rooms', 'destinations', 'packages', 'excursions']);
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,11 +48,13 @@ export async function POST(request: NextRequest) {
 
     const ext = path.extname(file.name) || '.png';
     const uniqueName = `${randomUUID()}${ext}`;
-    const subfolder = (formData.get('folder') as string) || 'rooms';
+    const requestedFolder = (formData.get('folder') as string) || 'rooms';
+    const subfolder = ALLOWED_FOLDERS.has(requestedFolder) ? requestedFolder : 'rooms';
 
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', subfolder);
     const filePath = path.join(uploadDir, uniqueName);
 
+    await mkdir(uploadDir, { recursive: true });
     await writeFile(filePath, buffer);
 
     const publicUrl = `/uploads/${subfolder}/${uniqueName}`;

@@ -68,7 +68,7 @@ interface Excursion {
   images: string[];
   duration: string;
   difficulty: string;
-  groupSize: number;
+  groupSize: string;
   basePrice: number;
   childPrice: number;
   includes: string[];
@@ -93,7 +93,7 @@ const emptyExcursion = {
   images: [] as string[],
   duration: '3 horas',
   difficulty: 'Fácil',
-  groupSize: 20,
+  groupSize: '20 personas',
   basePrice: 0,
   childPrice: 0,
   includes: [] as string[],
@@ -565,10 +565,9 @@ export default function AdminExcursions() {
                 <div className="space-y-2">
                   <Label>Grupo Máximo</Label>
                   <Input
-                    type="number"
-                    min="1"
                     value={form.groupSize}
-                    onChange={(e) => updateField('groupSize', Number(e.target.value))}
+                    onChange={(e) => updateField('groupSize', e.target.value)}
+                    placeholder="20 personas"
                   />
                 </div>
               </div>

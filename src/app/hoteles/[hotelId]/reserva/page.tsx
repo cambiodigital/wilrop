@@ -61,7 +61,7 @@ export default async function HotelBookingRoutePage({ params, searchParams }: Ho
         checkIn={checkIn}
         checkOut={checkOut}
         adults={Number(adultsValue) || 1}
-        children={Number(childrenValue) || 0}
+        childCount={Number(childrenValue) || 0}
         childrenAges={parseChildrenAges(query.childrenAges)}
       />
     </PortalShell>

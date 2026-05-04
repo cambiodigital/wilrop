@@ -132,8 +132,8 @@ function sanitizeRoom(room: Partial<HotelRoom>): HotelRoom {
 const emptyHotel: Omit<Hotel, 'id'> = {
   name: '',
   slug: '',
-  cityId: '',
-  cityName: '',
+  cityId: 'medellin',
+  cityName: 'Medellin',
   stars: 3,
   address: '',
   description: '',
@@ -668,6 +668,10 @@ export default function AdminHotels() {
   const handleSave = async () => {
     if (!form.name.trim()) {
       toast.error('El nombre es obligatorio');
+      return;
+    }
+    if (!form.cityId.trim() || !form.cityName.trim()) {
+      toast.error('La ciudad es obligatoria');
       return;
     }
     setSaving(true);
