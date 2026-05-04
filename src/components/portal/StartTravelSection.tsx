@@ -29,7 +29,7 @@ export default function StartTravelSection() {
   const { navigate } = usePortalNavigation()
 
   return (
-    <section id="start-travel" className="relative bg-amber-50/50">
+    <section id="start-travel" className="relative bg-brand-surface-light">
       <motion.div
         variants={containerVariants}
         initial="hidden"

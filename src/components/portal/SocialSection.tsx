@@ -74,7 +74,7 @@ export default function SocialSection() {
   }
 
   return (
-    <section id="social" className="relative bg-neutral-900 text-white overflow-hidden">
+    <section id="social" className="relative bg-secondary text-white overflow-hidden">
       {/* Subtle background accents */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-3xl" />
 

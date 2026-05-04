@@ -13,7 +13,7 @@ export const brand = {
   },
   iconPath: '/brand/icon-light.webp',
   logoPath: '/brand/logo-light.webp',
-  primaryColor: '#0f6fb3',
+  primaryColor: '#1F3556',
   supportEmail: 'info@willrogrouptravel.com',
   phone: '+57 310 555 0123',
   address: 'Medellin, Colombia',

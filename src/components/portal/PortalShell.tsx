@@ -11,7 +11,7 @@ interface PortalShellProps {
 
 export default function PortalShell({ children }: PortalShellProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <PortalHeader />
       <main className="flex-1">{children}</main>
       <PortalFooter />

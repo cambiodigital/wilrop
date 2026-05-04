@@ -62,13 +62,13 @@ export default function PortalHeader() {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isTransparent
           ? 'bg-transparent'
-          : 'bg-white/95 backdrop-blur-lg shadow-sm'
+          : 'border-b border-white/10 bg-secondary/95 shadow-lg shadow-black/10 backdrop-blur-lg'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href={portalPaths.home} className="flex items-center gap-2">
-          <BrandWordmark inverted={isTransparent} />
+          <BrandWordmark inverted={isTransparent || scrolled} />
         </Link>
 
         {/* Desktop Navigation */}
@@ -84,7 +84,7 @@ export default function PortalHeader() {
                     : 'text-primary'
                   : isTransparent
                     ? 'text-white/90 hover:text-white'
-                    : 'text-neutral-600 hover:text-neutral-900'
+                    : 'text-brand-text-muted hover:text-brand-text'
               }`}
             >
               {link.label}
@@ -102,7 +102,7 @@ export default function PortalHeader() {
                       : 'text-primary'
                     : isTransparent
                       ? 'text-white/90 hover:text-white'
-                      : 'text-neutral-600 hover:text-neutral-900'
+                      : 'text-brand-text-muted hover:text-brand-text'
                 }`}
               >
                 Contacto
@@ -159,7 +159,7 @@ export default function PortalHeader() {
             <Button
               variant="ghost"
               size="icon"
-              className={`md:hidden ${isTransparent ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'}`}
+              className={`md:hidden ${isTransparent ? 'text-white hover:bg-white/10' : 'text-brand-text hover:bg-white/10'}`}
             >
               <Menu className="size-5" />
             </Button>

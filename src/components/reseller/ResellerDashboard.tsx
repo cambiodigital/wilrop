@@ -256,8 +256,8 @@ export default function ResellerDashboard() {
                   <AreaChart data={monthlySalesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                        <stop offset="5%" stopColor="var(--brand-gold)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--brand-gold)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
@@ -272,7 +272,7 @@ export default function ResellerDashboard() {
                     <Area
                       type="monotone"
                       dataKey="ventas"
-                      stroke="#f59e0b"
+                      stroke="var(--brand-gold)"
                       strokeWidth={2.5}
                       fill="url(#colorVentas)"
                     />
@@ -312,7 +312,7 @@ export default function ResellerDashboard() {
                         fontSize: '13px',
                       }}
                     />
-                    <Bar dataKey="ventas" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={20} />
+                    <Bar dataKey="ventas" fill="var(--brand-gold)" radius={[0, 6, 6, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

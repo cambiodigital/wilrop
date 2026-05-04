@@ -26,7 +26,7 @@ const socialLinks = [
 
 export default function PortalFooter() {
   return (
-    <footer className="bg-neutral-900 text-neutral-300">
+    <footer className="bg-secondary text-brand-text">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -39,7 +39,7 @@ export default function PortalFooter() {
                 <a
                   key={social.label}
                   href={social.href}
-                  className="flex size-9 items-center justify-center rounded-lg bg-neutral-800 text-neutral-400 transition-colors hover:bg-primary hover:text-white"
+                  className="flex size-9 items-center justify-center rounded-lg bg-brand-surface text-brand-text-muted transition-colors hover:bg-primary hover:text-primary-foreground"
                   aria-label={social.label}
                 >
                   <social.icon className="size-4" />
@@ -100,7 +100,7 @@ export default function PortalFooter() {
                 <span>{brand.address}</span>
               </li>
             </ul>
-            <div className="mt-5 rounded-lg bg-neutral-800 p-3">
+            <div className="mt-5 rounded-lg bg-brand-surface p-3">
               <p className="text-xs text-neutral-400">
                 ¿Necesitas ayuda inmediata?
               </p>
@@ -111,7 +111,7 @@ export default function PortalFooter() {
           </div>
         </div>
 
-        <Separator className="my-10 bg-neutral-800" />
+        <Separator className="my-10 bg-brand-line/30" />
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-xs text-neutral-500">

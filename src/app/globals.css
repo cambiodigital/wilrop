@@ -43,16 +43,49 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   /* ── WILROP Brand Colors ─────────────────────────────────── */
-  --color-amber-50: #fffbeb;
-  --color-amber-100: #fef3c7;
-  --color-amber-200: #fde68a;
-  --color-amber-300: #fcd34d;
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #f59e0b;
-  --color-amber-600: #d97706;
-  --color-amber-700: #b45309;
-  --color-amber-800: #92400e;
-  --color-amber-900: #78350f;
+  --color-brand-page: var(--brand-page);
+  --color-brand-section: var(--brand-section);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-surface-light: var(--brand-surface-light);
+  --color-brand-text: var(--brand-text);
+  --color-brand-text-muted: var(--brand-text-muted);
+  --color-brand-line: var(--brand-line);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-hover: var(--brand-gold-hover);
+  --color-brand-teal: var(--brand-teal);
+
+  --color-amber-50: #fbf6e9;
+  --color-amber-100: #f2e7ca;
+  --color-amber-200: #e6d19c;
+  --color-amber-300: #d9bb7f;
+  --color-amber-400: #cfb174;
+  --color-amber-500: var(--brand-gold);
+  --color-amber-600: var(--brand-gold-hover);
+  --color-amber-700: #8f7139;
+  --color-amber-800: #604c28;
+  --color-amber-900: #352b19;
+
+  --color-orange-50: #fbf6e9;
+  --color-orange-100: #f2e7ca;
+  --color-orange-200: #e6d19c;
+  --color-orange-300: #d9bb7f;
+  --color-orange-400: #cfb174;
+  --color-orange-500: var(--brand-gold);
+  --color-orange-600: var(--brand-gold-hover);
+  --color-orange-700: #8f7139;
+  --color-orange-800: #604c28;
+  --color-orange-900: #352b19;
+
+  --color-sky-50: #e9fbfc;
+  --color-sky-100: #cef4f6;
+  --color-sky-200: #9ee9ee;
+  --color-sky-300: #70dce3;
+  --color-sky-400: #3ec1c9;
+  --color-sky-500: var(--brand-teal);
+  --color-sky-600: #258d94;
+  --color-sky-700: #1e7076;
+  --color-sky-800: #1b5a5f;
+  --color-sky-900: #194b4f;
 
   /* Emerald accent for nature/eco */
   --color-emerald-50: #ecfdf5;
@@ -74,95 +107,107 @@
    * Accent: deep emerald (Colombian nature)
    * Neutrals kept clean and modern
    * ─────────────────────────────────────────────────────────── */
-  --background: oklch(0.99 0.002 90);
-  --foreground: oklch(0.17 0.015 50);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.015 50);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.015 50);
+  --brand-page: #1f3556;
+  --brand-section: #162a45;
+  --brand-surface: #2c4770;
+  --brand-surface-light: #f2f4f6;
+  --brand-text: #d6d9dd;
+  --brand-text-muted: #a7adb4;
+  --brand-line: #8c9197;
+  --brand-gold: #c8a96a;
+  --brand-gold-hover: #b8964f;
+  --brand-teal: #3ec1c9;
+  --brand-ink: #162a45;
+
+  --background: var(--brand-page);
+  --foreground: var(--brand-text);
+  --card: var(--brand-surface-light);
+  --card-foreground: var(--brand-ink);
+  --popover: var(--brand-surface-light);
+  --popover-foreground: var(--brand-ink);
 
   /* Primary = Willro blue */
-  --primary: oklch(0.52 0.14 245);
-  --primary-foreground: oklch(0.99 0.005 90);
+  --primary: var(--brand-gold);
+  --primary-foreground: var(--brand-ink);
 
   /* Secondary = soft warm gray */
-  --secondary: oklch(0.96 0.005 85);
-  --secondary-foreground: oklch(0.25 0.015 50);
+  --secondary: var(--brand-section);
+  --secondary-foreground: var(--brand-text);
 
   /* Muted */
-  --muted: oklch(0.96 0.005 85);
-  --muted-foreground: oklch(0.55 0.01 60);
+  --muted: #e6e9ed;
+  --muted-foreground: #66717d;
 
   /* Accent = emerald for eco/nature */
-  --accent: oklch(0.96 0.005 160);
-  --accent-foreground: oklch(0.3 0.05 160);
+  --accent: #e9fbfc;
+  --accent-foreground: #1b5a5f;
 
   /* Destructive */
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #dc2626;
 
   /* Borders & inputs */
-  --border: oklch(0.92 0.005 85);
-  --input: oklch(0.92 0.005 85);
-  --ring: oklch(0.52 0.14 245);
+  --border: color-mix(in srgb, var(--brand-line) 36%, transparent);
+  --input: color-mix(in srgb, var(--brand-line) 42%, transparent);
+  --ring: var(--brand-gold);
 
   /* Charts */
-  --chart-1: oklch(0.52 0.14 245);    /* blue */
-  --chart-2: oklch(0.55 0.1 160);     /* emerald */
-  --chart-3: oklch(0.65 0.15 25);     /* terracotta */
-  --chart-4: oklch(0.7 0.13 280);     /* lavender */
-  --chart-5: oklch(0.6 0.12 200);     /* teal */
+  --chart-1: var(--brand-page);
+  --chart-2: var(--brand-gold);
+  --chart-3: var(--brand-teal);
+  --chart-4: var(--brand-surface);
+  --chart-5: #5f7da8;
 
   /* Sidebar */
-  --sidebar: oklch(0.98 0.005 85);
-  --sidebar-foreground: oklch(0.17 0.015 50);
-  --sidebar-primary: oklch(0.52 0.14 245);
-  --sidebar-primary-foreground: oklch(0.99 0.005 90);
-  --sidebar-accent: oklch(0.95 0.01 85);
-  --sidebar-accent-foreground: oklch(0.25 0.015 50);
-  --sidebar-border: oklch(0.92 0.005 85);
-  --sidebar-ring: oklch(0.52 0.14 245);
+  --sidebar: var(--brand-section);
+  --sidebar-foreground: var(--brand-text);
+  --sidebar-primary: var(--brand-gold);
+  --sidebar-primary-foreground: var(--brand-ink);
+  --sidebar-accent: var(--brand-surface);
+  --sidebar-accent-foreground: var(--brand-text);
+  --sidebar-border: color-mix(in srgb, var(--brand-line) 30%, transparent);
+  --sidebar-ring: var(--brand-gold);
 }
 
 .dark {
-  --background: oklch(0.16 0.01 55);
-  --foreground: oklch(0.96 0.005 85);
-  --card: oklch(0.22 0.015 55);
-  --card-foreground: oklch(0.96 0.005 85);
-  --popover: oklch(0.22 0.015 55);
-  --popover-foreground: oklch(0.96 0.005 85);
+  --background: var(--brand-section);
+  --foreground: var(--brand-text);
+  --card: var(--brand-surface);
+  --card-foreground: var(--brand-text);
+  --popover: var(--brand-surface);
+  --popover-foreground: var(--brand-text);
 
-  --primary: oklch(0.66 0.13 245);
-  --primary-foreground: oklch(0.15 0.01 55);
+  --primary: var(--brand-gold);
+  --primary-foreground: var(--brand-ink);
 
-  --secondary: oklch(0.28 0.01 55);
-  --secondary-foreground: oklch(0.96 0.005 85);
+  --secondary: var(--brand-page);
+  --secondary-foreground: var(--brand-text);
 
-  --muted: oklch(0.28 0.01 55);
-  --muted-foreground: oklch(0.68 0.01 70);
+  --muted: var(--brand-surface);
+  --muted-foreground: var(--brand-text-muted);
 
-  --accent: oklch(0.28 0.02 160);
-  --accent-foreground: oklch(0.96 0.005 85);
+  --accent: #193f56;
+  --accent-foreground: #c9f7fa;
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: #f87171;
 
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.66 0.13 245);
+  --border: color-mix(in srgb, var(--brand-line) 32%, transparent);
+  --input: color-mix(in srgb, var(--brand-line) 36%, transparent);
+  --ring: var(--brand-gold);
 
-  --chart-1: oklch(0.66 0.13 245);
-  --chart-2: oklch(0.65 0.12 160);
-  --chart-3: oklch(0.7 0.14 25);
-  --chart-4: oklch(0.7 0.12 280);
-  --chart-5: oklch(0.65 0.1 200);
+  --chart-1: var(--brand-gold);
+  --chart-2: var(--brand-teal);
+  --chart-3: #5f7da8;
+  --chart-4: #d6d9dd;
+  --chart-5: #8c9197;
 
-  --sidebar: oklch(0.2 0.015 55);
-  --sidebar-foreground: oklch(0.96 0.005 85);
-  --sidebar-primary: oklch(0.66 0.13 245);
-  --sidebar-primary-foreground: oklch(0.15 0.01 55);
-  --sidebar-accent: oklch(0.28 0.01 55);
-  --sidebar-accent-foreground: oklch(0.96 0.005 85);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.66 0.13 245);
+  --sidebar: var(--brand-section);
+  --sidebar-foreground: var(--brand-text);
+  --sidebar-primary: var(--brand-gold);
+  --sidebar-primary-foreground: var(--brand-ink);
+  --sidebar-accent: var(--brand-surface);
+  --sidebar-accent-foreground: var(--brand-text);
+  --sidebar-border: color-mix(in srgb, var(--brand-line) 30%, transparent);
+  --sidebar-ring: var(--brand-gold);
 }
 
 /* ── Base layer ──────────────────────────────────────────────── */
@@ -186,18 +231,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.75 0.04 55);
+  background: color-mix(in srgb, var(--brand-line) 70%, var(--brand-section));
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.65 0.06 55);
+  background: var(--brand-gold-hover);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.75 0.04 55) transparent;
+  scrollbar-color: color-mix(in srgb, var(--brand-line) 70%, var(--brand-section)) transparent;
 }
 
 /* ── Keyframe Animations ─────────────────────────────────────── */
@@ -283,6 +328,6 @@ html {
 
 /* ── Selection color (brand amber) ───────────────────────────── */
 ::selection {
-  background: oklch(0.72 0.16 55 / 30%);
-  color: oklch(0.17 0.015 50);
+  background: color-mix(in srgb, var(--brand-gold) 35%, transparent);
+  color: var(--brand-ink);
 }

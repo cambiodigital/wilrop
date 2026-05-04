@@ -46,7 +46,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
   const displayDestinations = isPreview ? filteredDestinations.slice(0, limit) : filteredDestinations
 
   return (
-    <section id="destinations" className="py-20">
+    <section id="destinations" className="bg-brand-surface-light py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div

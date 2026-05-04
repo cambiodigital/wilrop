@@ -433,9 +433,9 @@ export default function DynamicPackager() {
   const today = new Date().toISOString().split('T')[0]
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-brand-surface-light">
       {/* ─── Hero ────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-purple-600 via-violet-500 to-indigo-500 overflow-hidden">
+      <div className="overflow-hidden bg-gradient-to-br from-brand-page via-brand-surface to-secondary">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-1/4 text-white/20">
             <Package className="size-40" />
@@ -450,7 +450,7 @@ export default function DynamicPackager() {
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
               Paquete Personalizado
             </h1>
-            <p className="text-purple-100 text-lg max-w-xl mx-auto">
+            <p className="text-brand-text text-lg max-w-xl mx-auto">
               Combina transporte, hotel y excursión para crear tu experiencia ideal en Colombia
             </p>
           </motion.div>

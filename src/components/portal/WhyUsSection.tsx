@@ -73,7 +73,7 @@ export default function WhyUsSection() {
   const { navigate } = usePortalNavigation()
 
   return (
-    <section id="why-us" className="bg-neutral-50">
+    <section id="why-us" className="bg-brand-surface-light">
       <motion.div
         variants={containerVariants}
         initial="hidden"

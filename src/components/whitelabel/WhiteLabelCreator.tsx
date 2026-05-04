@@ -107,7 +107,7 @@ function LogoUpload({ logoUrl, onUpload, onRemove }: { logoUrl: string | null; o
         <div className="relative w-full h-24 rounded-lg border border-border overflow-hidden bg-muted/50 flex items-center justify-center">
           <div
             className="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl"
-            style={{ backgroundColor: 'var(--brand-primary, #d97706)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #C8A96A)' }}
           >
             {logoUrl.split('/').pop()?.[0]?.toUpperCase() || 'A'}
           </div>

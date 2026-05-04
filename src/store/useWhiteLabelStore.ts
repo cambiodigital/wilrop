@@ -23,12 +23,12 @@ interface WhiteLabelState {
 export const themes: Record<string, { primary: string; secondary: string; accent: string }> = {
   'Tropical': { primary: '#16a34a', secondary: '#eab308', accent: '#22c55e' },
   'Caribeño': { primary: '#0891b2', secondary: '#f43f5e', accent: '#06b6d4' },
-  'Elegante': { primary: '#1e3a5f', secondary: '#d97706', accent: '#334155' },
+  'Elegante': { primary: '#1F3556', secondary: '#C8A96A', accent: '#2C4770' },
   'Naturaleza': { primary: '#15803d', secondary: '#92400e', accent: '#4ade80' },
 };
 
 export const colorPresets = [
-  { name: 'Amber', value: '#d97706' },
+  { name: 'Gold', value: '#C8A96A' },
   { name: 'Emerald', value: '#059669' },
   { name: 'Coral', value: '#ef4444' },
   { name: 'Navy', value: '#1e3a5f' },
@@ -42,9 +42,9 @@ const defaultConfig: WhiteLabelConfig = {
   storeName: 'Tu Agencia de Viajes',
   slogan: 'Tu puerta a los mejores destinos de Colombia',
   logoUrl: null,
-  primaryColor: '#d97706',
-  secondaryColor: '#059669',
-  accentColor: '#f59e0b',
+  primaryColor: '#1F3556',
+  secondaryColor: '#C8A96A',
+  accentColor: '#2C4770',
   selectedDestinations: destinations.map(d => d.id),
   whatsappNumber: '',
   commissionRate: 12,

@@ -75,7 +75,7 @@ export default function HotelPreviewSection() {
   const featuredHotels = getFeaturedHotels()
 
   return (
-    <section className="bg-gradient-to-b from-white to-amber-50/30">
+    <section className="bg-gradient-to-b from-brand-surface-light to-amber-50">
       <motion.div
         variants={containerVariants}
         initial="hidden"

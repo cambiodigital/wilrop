@@ -79,11 +79,11 @@ const commissionHistory: Commission[] = [
 ];
 
 const commissionByDestination = [
-  { name: 'Cartagena', value: 3475000, color: '#f59e0b' },
-  { name: 'San Andrés', value: 2106000, color: '#fb923c' },
-  { name: 'Amazonas', value: 1022000, color: '#fbbf24' },
-  { name: 'Medellín', value: 1041000, color: '#f97316' },
-  { name: 'Otros', value: 1106000, color: '#fde68a' },
+  { name: 'Cartagena', value: 3475000, color: 'var(--brand-gold)' },
+  { name: 'San Andrés', value: 2106000, color: 'var(--brand-gold-hover)' },
+  { name: 'Amazonas', value: 1022000, color: 'var(--brand-teal)' },
+  { name: 'Medellín', value: 1041000, color: 'var(--brand-surface)' },
+  { name: 'Otros', value: 1106000, color: 'var(--brand-line)' },
 ];
 
 const summaryCards = [
@@ -284,7 +284,7 @@ export default function ResellerCommissions() {
                     }}
                     formatter={(value: number) => [formatCOP(value), 'Comisión']}
                   />
-                  <Bar dataKey="comision" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={36} />
+                  <Bar dataKey="comision" fill="var(--brand-gold)" radius={[6, 6, 0, 0]} barSize={36} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
