@@ -155,7 +155,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
                   >
                     <Button
                       variant="outline"
-                      className="mt-4 w-full rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                      className="mt-4 w-full rounded-xl border-amber-200 text-white hover:bg-amber-50 hover:text-amber-700"
                     >
                       Ver Paquetes
                       <ArrowRight className="ml-2 size-4" />
