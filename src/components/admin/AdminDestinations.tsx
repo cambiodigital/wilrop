@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatCOP } from '@/data/packages';
-import { Plus, Search, Pencil, Trash2, Star, MapPin } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Star, MapPin, Upload, ImagePlus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface Destination {
   id: string;
@@ -86,6 +87,9 @@ export default function AdminDestinations() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyDestination);
 
   const fetchDestinations = useCallback(async () => {
@@ -135,9 +139,59 @@ export default function AdminDestinations() {
     setDialogOpen(true);
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar los 5 MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'destinations');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      const data = await res.json();
+      updateField('image', data.url);
+      toast.success('Imagen subida correctamente');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir';
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) {
       toast.error('El nombre es obligatorio');
+      return;
+    }
+    if (!form.region.trim()) {
+      toast.error('La región es obligatoria');
+      return;
+    }
+    if (!form.description.trim()) {
+      toast.error('La descripción es obligatoria');
+      return;
+    }
+    if (!form.image.trim()) {
+      toast.error('La imagen es obligatoria');
       return;
     }
     setSaving(true);
@@ -355,7 +409,7 @@ export default function AdminDestinations() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dest-region">Región</Label>
+                <Label htmlFor="dest-region">Región *</Label>
                 <Input
                   id="dest-region"
                   value={form.region}
@@ -376,7 +430,7 @@ export default function AdminDestinations() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dest-description">Descripción</Label>
+              <Label htmlFor="dest-description">Descripción *</Label>
               <Textarea
                 id="dest-description"
                 value={form.description}
@@ -387,12 +441,83 @@ export default function AdminDestinations() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dest-image">URL de Imagen</Label>
-              <Input
-                id="dest-image"
-                value={form.image}
-                onChange={(e) => updateField('image', e.target.value)}
-                placeholder="/images/cartagena.png"
+              <Label>Imagen *</Label>
+              {form.image ? (
+                <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+                  <img
+                    src={form.image}
+                    alt="Vista previa"
+                    className="w-full h-36 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => imageInputRef.current?.click()}
+                    >
+                      <Upload className="w-4 h-4 mr-1" />
+                      Cambiar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => updateField('image', '')}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file) handleImageUpload(file);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onClick={() => imageInputRef.current?.click()}
+                  className={cn(
+                    'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                    dragOver
+                      ? 'border-amber-400 bg-amber-50'
+                      : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                    uploading && 'pointer-events-none opacity-60'
+                  )}
+                >
+                  {uploading ? (
+                    <div className="space-y-2">
+                      <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+                      <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
+                      <p className="text-sm text-gray-500">
+                        Arrastra una imagen o{' '}
+                        <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                      </p>
+                      <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                }}
+                className="hidden"
               />
             </div>
 

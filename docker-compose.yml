@@ -21,9 +21,11 @@ services:
       WILROP_ADMIN_PASSWORD: ${WILROP_ADMIN_PASSWORD:-}
       WILROP_ADMIN_NAME: ${WILROP_ADMIN_NAME:-Administrador WILROP}
       WILROP_ADMIN_RESET_PASSWORD: ${WILROP_ADMIN_RESET_PASSWORD:-false}
+    volumes:
+      - wilrop-uploads:/app/public/uploads
     depends_on:
       db:
-        condition: service_healthy   # espera hasta que Postgres esté listo
+        condition: service_healthy
     networks:
       - wilrop-net
 
@@ -52,6 +54,8 @@ services:
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
 volumes:
   wilrop-db-data:
+    driver: local
+  wilrop-uploads:
     driver: local
 
 # ─── Redes ──────────────────────────────────────────────────────────────────

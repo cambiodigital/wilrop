@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Card,
@@ -34,8 +34,12 @@ import {
   Type,
   MousePointerClick,
   LayoutGrid,
+  Upload,
+  ImagePlus,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface ModalConfig {
   id: string;
@@ -76,6 +80,9 @@ export default function AdminMarketingModal() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchConfig();
@@ -93,6 +100,44 @@ export default function AdminMarketingModal() {
       toast.error(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar los 5 MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'marketing');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      const data = await res.json();
+      updateField('imageUrl', data.url);
+      toast.success('Imagen subida correctamente');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir';
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
     }
   };
 
@@ -261,26 +306,85 @@ export default function AdminMarketingModal() {
               <div className="space-y-2">
                 <Label htmlFor="mm-image" className="flex items-center gap-1.5">
                   <ImageIcon className="w-3.5 h-3.5" />
-                  URL de Imagen
+                  Imagen
                 </Label>
-                <Input
-                  id="mm-image"
-                  value={config.imageUrl}
-                  onChange={(e) => updateField('imageUrl', e.target.value)}
-                  placeholder="/images/cartagena.png"
-                />
-                {config.imageUrl && (
-                  <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 max-w-xs">
+                {config.imageUrl ? (
+                  <div className="relative group rounded-lg overflow-hidden border border-gray-200 max-w-xs">
                     <img
                       src={config.imageUrl}
                       alt="Preview"
                       className="w-full h-32 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
                     />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => imageInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        Cambiar
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => updateField('imageUrl', '')}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragOver(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file) handleImageUpload(file);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver(true);
+                    }}
+                    onDragLeave={() => setDragOver(false)}
+                    onClick={() => imageInputRef.current?.click()}
+                    className={cn(
+                      'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                      dragOver
+                        ? 'border-amber-400 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                      uploading && 'pointer-events-none opacity-60'
+                    )}
+                  >
+                    {uploading ? (
+                      <div className="space-y-2">
+                        <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+                        <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
+                        <p className="text-sm text-gray-500">
+                          Arrastra una imagen o{' '}
+                          <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                        </p>
+                        <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                      </div>
+                    )}
                   </div>
                 )}
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                  }}
+                  className="hidden"
+                />
               </div>
             </CardContent>
           </Card>

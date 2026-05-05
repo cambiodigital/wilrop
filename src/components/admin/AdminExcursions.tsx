@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,8 +51,11 @@ import {
   Compass,
   Star,
   X,
+  Upload,
+  ImagePlus,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -203,6 +206,9 @@ export default function AdminExcursions() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const imagesInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyExcursion);
 
   const fetchExcursions = useCallback(async () => {
@@ -259,6 +265,54 @@ export default function AdminExcursions() {
       active: exc.active,
     });
     setDialogOpen(true);
+  };
+
+  const handleImagesUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter((f) => {
+      if (!f.type.startsWith('image/')) {
+        toast.error(`${f.name} no es una imagen válida`);
+        return false;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`${f.name} supera los 5 MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of validFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'excursions');
+
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Error al subir imagen');
+        }
+
+        const data = await res.json();
+        newUrls.push(data.url);
+      }
+      updateField('images', [...form.images, ...newUrls]);
+      toast.success(`${newUrls.length} imagen(es) subida(s) correctamente`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir';
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+      if (imagesInputRef.current) imagesInputRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
@@ -698,22 +752,52 @@ export default function AdminExcursions() {
             {/* Media */}
             <TabsContent value="media" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Imágenes (JSON)</Label>
-                <p className="text-xs text-gray-400">
-                  URLs de imágenes separadas por coma, o formato JSON array
-                </p>
-                <Textarea
-                  value={Array.isArray(form.images) ? form.images.join('\n') : ''}
-                  onChange={(e) => {
-                    const lines = e.target.value
-                      .split('\n')
-                      .map((l) => l.trim())
-                      .filter(Boolean);
-                    updateField('images', lines);
+                <Label>Imágenes ({form.images.length})</Label>
+                <div
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    handleImagesUpload(e.dataTransfer.files);
                   }}
-                  placeholder={`https://example.com/image1.jpg\nhttps://example.com/image2.jpg`}
-                  rows={8}
-                  className="font-mono text-xs"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onClick={() => imagesInputRef.current?.click()}
+                  className={cn(
+                    'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                    dragOver
+                      ? 'border-amber-400 bg-amber-50'
+                      : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                    uploading && 'pointer-events-none opacity-60'
+                  )}
+                >
+                  {uploading ? (
+                    <div className="space-y-2">
+                      <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+                      <p className="text-sm text-gray-500">Subiendo imagen(es)...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
+                      <p className="text-sm text-gray-500">
+                        Arrastra imágenes o{' '}
+                        <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                      </p>
+                      <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB cada una)</p>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={imagesInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) handleImagesUpload(e.target.files);
+                  }}
+                  className="hidden"
                 />
               </div>
               {form.images.length > 0 && (

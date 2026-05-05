@@ -12,7 +12,7 @@ const ALLOWED_TYPES = [
 ];
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_FOLDERS = new Set(['hotels', 'rooms', 'destinations', 'packages', 'excursions']);
+const ALLOWED_FOLDERS = new Set(['hotels', 'rooms', 'destinations', 'packages', 'excursions', 'marketing']);
 
 export async function POST(request: NextRequest) {
   try {
