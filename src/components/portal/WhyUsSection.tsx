@@ -1,61 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Shield, DollarSign, MapPin, Sliders, Phone, Star, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { teamAssets } from '@/lib/team'
-
-const features = [
-  {
-    icon: Shield,
-    title: 'Seguridad Total',
-    description:
-      'Todos nuestros paquetes incluyen seguro de viaje completo. Tu tranquilidad es nuestra prioridad.',
-    iconBg: 'bg-sky-100',
-    iconColor: 'text-sky-600',
-  },
-  {
-    icon: DollarSign,
-    title: 'Mejor Precio',
-    description:
-      'Garantizamos los mejores precios del mercado. Si encuentras uno mejor, te igualamos.',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-  },
-  {
-    icon: MapPin,
-    title: 'Expertos Locales',
-    description:
-      'Nuestros guías son locales que conocen cada rincón de Colombia como nadie.',
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-  },
-  {
-    icon: Sliders,
-    title: 'Personalización',
-    description:
-      'Cada viaje se adapta a tus gustos, presupuesto y ritmo. No hay paquetes rígidos.',
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
-  },
-  {
-    icon: Phone,
-    title: 'Soporte 24/7',
-    description:
-      'Estamos contigo antes, durante y después de tu viaje. Siempre disponibles.',
-    iconBg: 'bg-rose-100',
-    iconColor: 'text-rose-600',
-  },
-  {
-    icon: Star,
-    title: '4.9 de calificación',
-    description:
-      'Más de 500 reseñas verificadas nos respaldan. La confianza de nuestros viajeros habla por nosotros.',
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-  },
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -93,42 +42,24 @@ export default function WhyUsSection() {
             ?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-base text-neutral-500 sm:text-lg">
-            Lo que nos hace diferentes
+            Conoce al equipo que hace posible cada viaje
           </p>
         </motion.div>
 
         <motion.div variants={itemVariants} className="mt-10">
           <div className="grid gap-4 overflow-hidden rounded-2xl shadow-lg sm:grid-cols-3">
             {photos.map((photo) => (
-              <div key={photo.imageSrc} className="relative aspect-[4/5] sm:aspect-[3/4]">
+              <motion.div key={photo.imageSrc} variants={itemVariants} className="relative aspect-[4/5] sm:aspect-[3/4]">
                 <img src={photo.imageSrc} alt={photo.alt} className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10" />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                  <p className="text-base font-semibold leading-tight">{photo.name}</p>
+                  <p className="mt-1 text-sm text-white/85">{photo.role}</p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
-
-        {/* Feature Cards */}
-        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-          {features.map((feature) => (
-            <motion.div
-              key={feature.title}
-              variants={itemVariants}
-              whileHover={{ y: -4 }}
-              className="group rounded-xl border border-neutral-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:border-neutral-300"
-            >
-              <div
-                className={`flex size-12 items-center justify-center rounded-xl ${feature.iconBg} transition-transform duration-300 group-hover:scale-110`}
-              >
-                <feature.icon className={`size-6 ${feature.iconColor}`} />
-              </div>
-              <h3 className="mt-4 text-lg font-bold text-neutral-900">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
 
         {/* Bottom CTA */}
         <motion.div variants={itemVariants} className="mt-12 text-center">
