@@ -9,7 +9,7 @@
 
 ### 1. Validación de Compilación
 ```bash
-✅ npx tsc --noEmit → SIN ERRORES
+✅ bunx tsc --noEmit → SIN ERRORES
 ```
 - Todo el código TypeScript compila correctamente
 - No hay incompatibilidades de tipos
@@ -116,7 +116,7 @@ const images = JSON.parse(hotel.images || "[]");
 
 ### Test 1: Compilación
 ```bash
-npx tsc --noEmit
+bunx tsc --noEmit
 # ✅ Sin salida = éxito
 ```
 
@@ -199,7 +199,7 @@ Para detalles adicionales, consulta:
 
 Si encuentras problemas:
 
-1. Verifica `npx tsc --noEmit` compile sin errores
+1. Verifica `bunx tsc --noEmit` compile sin errores
 2. Consulta la sección **Troubleshooting** en `E2E_TESTING.md`
 3. Revisa los logs del navegador (DevTools → Console)
 4. Verifica que `/public/uploads` existe y tiene permisos de escritura

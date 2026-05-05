@@ -43,7 +43,7 @@ Objetivo: que TODO el proyecto use rutas URL reales (fijas y dinámicas), elimin
 ### 1.3 Estado técnico de validación
 
 - [x] Análisis de errores del editor sin errores en src.
-- [x] Lint por terminal corregido: script actualizado a `next lint` (estándar Next.js); código sin errores de lint verificado vía `npx eslint .`.
+- [x] Lint por terminal corregido: script actualizado a `next lint` (estándar Next.js); código sin errores de lint verificado vía `bun run lint`.
 
 ## 2) Mapa Objetivo de Rutas
 
@@ -165,7 +165,7 @@ Objetivo: que TODO el proyecto use rutas URL reales (fijas y dinámicas), elimin
 - [ ] H1. Pruebas de navegación E2E para rutas críticas.
 - [ ] H2. Pruebas de regresión en formularios de reserva.
 - [ ] H3. Pruebas de auth/guard por rol (admin/reseller/subagent).
-- [x] H4. Corregir script de lint: cambiado de `eslint .` a `next lint` en package.json; `npx eslint .` confirmó 0 errores.
+- [x] H4. Corregir script de lint: cambiado de `eslint .` a `next lint` en package.json; `bun run lint` confirmó 0 errores.
 - [ ] H5. Checklist final de 404/redirects/errores de hidratación. Revisado: `not-found.tsx` global ✅, `loading.tsx` en rutas de detalle/reserva ✅, guards de auth redirigen al login correctamente ✅. Pendiente validar deploy real tras remover `typescript.ignoreBuildErrors` de next.config.ts.
 
 ## 4) Plan de Reparto para IAs
@@ -297,7 +297,7 @@ Archivos tocados:
 - package.json (lint: `eslint .` → `next lint`)
 - next.config.ts (removido `typescript.ignoreBuildErrors`)
 Notas técnicas:
-- `npx eslint .` confirmó 0 errores de lint en toda la base de código.
+- `bun run lint` confirmó 0 errores de lint en toda la base de código.
 - `not-found.tsx` global y `loading.tsx` en rutas de detalle/reserva ya existían y están correctos.
 - Guards de auth en layouts de /admin, /reseller y /subagent redirigen correctamente.
 - Se removió `typescript.ignoreBuildErrors` para que el build falle correctamente si hay errores de tipos.
@@ -338,4 +338,4 @@ Riesgos detectados:
 - [x] Deep-link funciona para rutas dinámicas (layout guards y pages son Server Components que resuelven contenido en servidor).
 - [x] Reservas crean pedido y redirigen a URL de pedido.
 - [ ] Tests de humo de rutas y auth pasan. ← Pendiente (H1-H3)
-- [ ] Lint y build pasan en entorno CI. ← Requiere `npm install` en CI y un deploy exitoso tras remover `ignoreBuildErrors`.
+- [ ] Lint y build pasan en entorno CI. ← Requiere `bun install --frozen-lockfile` en CI y un deploy exitoso tras remover `ignoreBuildErrors`.
