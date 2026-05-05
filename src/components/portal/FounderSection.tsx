@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Award, Users, MapPin, ThumbsUp, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { teamAssets } from '@/lib/team'
 
 const stats = [
   { value: '15+', label: 'años', icon: Award },
@@ -44,8 +45,8 @@ export default function FounderSection() {
             <div className="relative">
               <div className="overflow-hidden rounded-2xl border-2 border-amber-200/20 shadow-2xl shadow-black/30">
                 <img
-                  src="/images/wilson.png"
-                  alt="Wilson Bautista - Fundador de WILROP"
+                  src={teamAssets.founder.imageSrc}
+                  alt={`${teamAssets.founder.name} - Fundador de WILROP`}
                   className="aspect-[3/4] w-full max-w-sm object-cover lg:max-w-md"
                 />
               </div>
@@ -68,7 +69,7 @@ export default function FounderSection() {
               </span>
             </h2>
             <p className="mt-4 text-base font-medium text-amber-400/80 sm:text-lg">
-              Fundador y CEO de WILROP Colombia Travel
+              {teamAssets.founder.roleLabel}
             </p>
             <p className="mt-5 text-base leading-relaxed text-neutral-400 sm:text-lg">
               Con más de 15 años de experiencia en el sector turístico, fundé WILROP

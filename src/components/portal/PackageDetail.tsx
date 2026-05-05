@@ -82,7 +82,7 @@ export default function PackageDetail({ packageId }: PackageDetailProps) {
   }
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen bg-neutral-50">
       {/* Hero Image */}
       <div className="relative h-64 sm:h-80 md:h-96">
         <img

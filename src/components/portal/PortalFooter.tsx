@@ -7,6 +7,7 @@ import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { destinations } from '@/data/destinations'
 import { portalPaths } from '@/lib/portal-routes'
 import { brand } from '@/lib/brand'
+import { supportTelUrl, supportWhatsAppUrl } from '@/lib/contact'
 
 const quickLinks = [
   { label: 'Inicio', href: portalPaths.home },
@@ -89,7 +90,9 @@ export default function PortalFooter() {
             <ul className="mt-4 space-y-3">
               <li className="flex items-center gap-2 text-sm text-brand-text-muted">
                 <Phone className="size-4 shrink-0 text-sky-300/80" />
-                {brand.phone}
+                <a href={supportTelUrl} className="transition-colors hover:text-sky-300">
+                  {brand.phone}
+                </a>
               </li>
               <li className="flex items-center gap-2 text-sm text-brand-text-muted">
                 <Mail className="size-4 shrink-0 text-sky-300/80" />
@@ -100,14 +103,19 @@ export default function PortalFooter() {
                 <span>{brand.address}</span>
               </li>
             </ul>
-            <div className="mt-5 rounded-lg bg-brand-surface p-3">
+            <a
+              href={supportWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 block rounded-lg bg-brand-surface p-3 transition-colors hover:bg-brand-surface/90"
+            >
               <p className="text-xs text-brand-text-muted">
                 ¿Necesitas ayuda inmediata?
               </p>
               <p className="mt-1 text-sm font-medium text-sky-300">
                 Escríbenos por WhatsApp
               </p>
-            </div>
+            </a>
           </div>
         </div>
 

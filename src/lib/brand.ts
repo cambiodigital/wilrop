@@ -15,6 +15,6 @@ export const brand = {
   logoPath: '/brand/logo-light.webp',
   primaryColor: '#1F3556',
   supportEmail: 'info@willrogrouptravel.com',
-  phone: '+57 310 555 0123',
+  phone: '+57 300 7144549',
   address: 'Medellin, Colombia',
 } as const

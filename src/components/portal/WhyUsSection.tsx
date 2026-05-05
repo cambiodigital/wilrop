@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Shield, DollarSign, MapPin, Sliders, Phone, Star, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { teamAssets } from '@/lib/team'
 
 const features = [
   {
@@ -71,6 +72,7 @@ const itemVariants = {
 
 export default function WhyUsSection() {
   const { navigate } = usePortalNavigation()
+  const photos = teamAssets.whyUsPhotos
 
   return (
     <section id="why-us" className="bg-brand-surface-light">
@@ -95,14 +97,15 @@ export default function WhyUsSection() {
           </p>
         </motion.div>
 
-        {/* Image Banner */}
-        <motion.div variants={itemVariants} className="mt-10 relative overflow-hidden rounded-2xl shadow-lg">
-          <img
-            src="/images/why-us.png"
-            alt="¿Por qué viajar con WILROP?"
-            className="w-full aspect-[21/9] object-cover sm:aspect-[3/1]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        <motion.div variants={itemVariants} className="mt-10">
+          <div className="grid gap-4 overflow-hidden rounded-2xl shadow-lg sm:grid-cols-3">
+            {photos.map((photo) => (
+              <div key={photo.imageSrc} className="relative aspect-[4/5] sm:aspect-[3/4]">
+                <img src={photo.imageSrc} alt={photo.alt} className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10" />
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         {/* Feature Cards */}

@@ -43,14 +43,16 @@ export default async function PackageDetailRoutePage({ params }: PackageDetailRo
 
   return (
     <PortalShell>
-      <div className="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
-        <PortalBreadcrumbs
-          items={[
-            { label: 'Inicio', href: '/' },
-            { label: 'Destinos', href: '/destinos' },
-            { label: travelPackage.title },
-          ]}
-        />
+      <div className="bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 pt-20 pb-4 sm:px-6 lg:px-8">
+          <PortalBreadcrumbs
+            items={[
+              { label: 'Inicio', href: '/' },
+              { label: 'Destinos', href: '/destinos' },
+              { label: travelPackage.title },
+            ]}
+          />
+        </div>
       </div>
       <PackageDetail packageId={packageId} />
     </PortalShell>

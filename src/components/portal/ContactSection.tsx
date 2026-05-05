@@ -21,28 +21,30 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
+import { brand } from '@/lib/brand'
+import { supportWhatsAppUrl } from '@/lib/contact'
 
 const contactInfo = [
   {
     icon: MessageCircle,
     label: 'WhatsApp',
-    value: '+57 310 555 0123',
-    href: 'https://wa.me/573105550123',
+    value: brand.phone,
+    href: supportWhatsAppUrl,
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
   },
   {
     icon: Mail,
     label: 'Email',
-    value: 'info@wilroptravel.com',
-    href: 'mailto:info@wilroptravel.com',
+    value: brand.supportEmail,
+    href: `mailto:${brand.supportEmail}`,
     color: 'text-amber-600',
     bg: 'bg-amber-50',
   },
   {
     icon: MapPin,
     label: 'Dirección',
-    value: 'Calle 72 #10-34, Bogotá, Colombia',
+    value: brand.address,
     href: '#',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
