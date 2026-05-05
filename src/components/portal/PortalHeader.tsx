@@ -61,14 +61,14 @@ export default function PortalHeader() {
       transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isTransparent
-          ? 'bg-transparent'
+          ? 'bg-gradient-to-b from-black/60 to-transparent'
           : 'border-b border-white/10 bg-secondary/95 shadow-lg shadow-black/10 backdrop-blur-lg'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href={portalPaths.home} className="flex items-center gap-2">
-          <BrandWordmark inverted={isTransparent || scrolled} />
+          <BrandWordmark inverted />
         </Link>
 
         {/* Desktop Navigation */}
@@ -77,14 +77,14 @@ export default function PortalHeader() {
             <Link
               key={link.view}
               href={link.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-black/5 ${
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 currentView === link.view
                   ? isTransparent
                     ? 'text-sky-200'
                     : 'text-primary'
                   : isTransparent
-                    ? 'text-white/90 hover:text-white'
-                    : 'text-brand-text-muted hover:text-brand-text'
+                    ? 'text-white/90 hover:bg-white/10 hover:text-white'
+                    : 'text-brand-text-muted hover:bg-white/10 hover:text-brand-text'
               }`}
             >
               {link.label}
@@ -95,30 +95,33 @@ export default function PortalHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-black/5 ${
+                className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                   currentView === 'portal-contact'
                     ? isTransparent
                       ? 'text-sky-200'
                       : 'text-primary'
                     : isTransparent
-                      ? 'text-white/90 hover:text-white'
-                      : 'text-brand-text-muted hover:text-brand-text'
+                      ? 'text-white/90 hover:bg-white/10 hover:text-white'
+                      : 'text-brand-text-muted hover:bg-white/10 hover:text-brand-text'
                 }`}
               >
                 Contacto
                 <ChevronDown className="size-3.5 opacity-60" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-52 rounded-xl p-1.5">
+            <DropdownMenuContent
+              align="center"
+              className="w-52 rounded-xl bg-popover p-1.5 text-popover-foreground"
+            >
               <DropdownMenuItem
                 asChild
                 className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 cursor-pointer"
               >
                 <Link href={portalPaths.contact}>
-                  <Phone className="size-4 text-neutral-400" />
+                  <Phone className="size-4 text-muted-foreground" />
                   <div>
-                    <span className="text-sm font-medium text-neutral-800">Contáctanos</span>
-                    <p className="text-xs text-neutral-400">Información de contacto</p>
+                    <span className="text-sm font-medium">Contáctanos</span>
+                    <p className="text-xs text-muted-foreground">Información de contacto</p>
                   </div>
                 </Link>
               </DropdownMenuItem>
@@ -130,8 +133,8 @@ export default function PortalHeader() {
                 <Link href={portalPaths.resellerLogin}>
                   <UserCircle className="size-4 text-primary" />
                   <div>
-                    <span className="text-sm font-medium text-neutral-800">Soy Revendedor</span>
-                    <p className="text-xs text-neutral-400">Accede a tu panel</p>
+                    <span className="text-sm font-medium">Soy Revendedor</span>
+                    <p className="text-xs text-muted-foreground">Accede a tu panel</p>
                   </div>
                 </Link>
               </DropdownMenuItem>
@@ -164,7 +167,7 @@ export default function PortalHeader() {
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72">
+          <SheetContent side="right" className="w-72 bg-card text-card-foreground">
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2 text-left">
                 <BrandWordmark compact />
@@ -175,8 +178,8 @@ export default function PortalHeader() {
                 <SheetClose asChild key={link.view}>
                   <Link
                     href={link.href}
-                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-100 ${
-                      currentView === link.view ? 'bg-primary/10 text-primary' : 'text-neutral-700'
+                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted ${
+                      currentView === link.view ? 'bg-primary/10 text-primary' : 'text-card-foreground'
                     }`}
                   >
                     {link.label}
@@ -188,16 +191,16 @@ export default function PortalHeader() {
               <div>
                 <button
                   onClick={() => setContactOpen(!contactOpen)}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-100 ${
-                    currentView === 'portal-contact' ? 'bg-primary/10 text-primary' : 'text-neutral-700'
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted ${
+                    currentView === 'portal-contact' ? 'bg-primary/10 text-primary' : 'text-card-foreground'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="size-4 opacity-60" />
+                    <MessageCircle className="size-4 text-muted-foreground" />
                     Contacto
                   </div>
                   <ChevronDown
-                    className={`size-4 text-neutral-400 transition-transform duration-200 ${
+                    className={`size-4 text-muted-foreground transition-transform duration-200 ${
                       contactOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -211,20 +214,20 @@ export default function PortalHeader() {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="ml-4 flex flex-col gap-0.5 border-l-2 border-neutral-200 pl-3 py-1">
+                      <div className="ml-4 flex flex-col gap-0.5 border-l-2 border-border pl-3 py-1">
                         <SheetClose asChild>
                           <Link
                             href={portalPaths.contact}
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground"
                           >
-                            <Phone className="size-4 text-neutral-400" />
+                            <Phone className="size-4 text-muted-foreground" />
                             Contáctanos
                           </Link>
                         </SheetClose>
                         <SheetClose asChild>
                           <Link
                             href={portalPaths.resellerLogin}
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-card-foreground"
                           >
                             <UserCircle className="size-4 text-primary" />
                             Soy Revendedor

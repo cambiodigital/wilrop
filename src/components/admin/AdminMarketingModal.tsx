@@ -192,11 +192,11 @@ export default function AdminMarketingModal() {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
             <Megaphone className="w-6 h-6 text-amber-600" />
             Modal de Marketing
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Configura el popup promocional que se muestra a los visitantes
           </p>
         </div>
@@ -208,7 +208,7 @@ export default function AdminMarketingModal() {
                 Activo
               </Badge>
             ) : (
-              <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100">
+              <Badge className="bg-muted text-muted-foreground hover:bg-muted">
                 <EyeOff className="w-3 h-3 mr-1" />
                 Inactivo
               </Badge>
@@ -247,7 +247,7 @@ export default function AdminMarketingModal() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-sm font-medium">Modal activo</Label>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     El popup se mostrará a los visitantes del portal
                   </p>
                 </div>
@@ -309,7 +309,7 @@ export default function AdminMarketingModal() {
                   Imagen
                 </Label>
                 {config.imageUrl ? (
-                  <div className="relative group rounded-lg overflow-hidden border border-gray-200 max-w-xs">
+                  <div className="relative group rounded-lg overflow-hidden border border-border max-w-xs">
                     <img
                       src={config.imageUrl}
                       alt="Preview"
@@ -354,23 +354,23 @@ export default function AdminMarketingModal() {
                       'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                       dragOver
                         ? 'border-amber-400 bg-amber-50'
-                        : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                        : 'border-input hover:border-amber-300 hover:bg-muted',
                       uploading && 'pointer-events-none opacity-60'
                     )}
                   >
                     {uploading ? (
                       <div className="space-y-2">
                         <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-                        <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                        <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
-                        <p className="text-sm text-gray-500">
+                        <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
+                        <p className="text-sm text-muted-foreground">
                           Arrastra una imagen o{' '}
                           <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
                         </p>
-                        <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
                       </div>
                     )}
                   </div>
@@ -432,7 +432,7 @@ export default function AdminMarketingModal() {
                     <SelectItem value="link">Enlace externo (URL)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {config.ctaType === 'navigate'
                     ? 'El botón navegará a una vista interna del portal (ej: portal-destinations, portal-hotels)'
                     : 'El botón abrirá una URL externa en una nueva pestaña'}
@@ -459,7 +459,7 @@ export default function AdminMarketingModal() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-sm font-medium">Activar temporizador</Label>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Muestra cuenta regresiva en el popup
                   </p>
                 </div>
@@ -497,7 +497,7 @@ export default function AdminMarketingModal() {
                         )
                       }
                     />
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       Cuando el temporizador llegue a cero, el modal se ocultará automáticamente
                     </p>
                   </div>
@@ -543,7 +543,7 @@ export default function AdminMarketingModal() {
                   value={config.delayMs}
                   onChange={(e) => updateField('delayMs', Number(e.target.value))}
                 />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   Tiempo en milisegundos antes de mostrar el popup (3000 ms = 3 seg)
                 </p>
               </div>
@@ -602,10 +602,10 @@ export default function AdminMarketingModal() {
                           {config.subtitle}
                         </p>
                       )}
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      <h3 className="text-lg font-bold text-card-foreground mb-2">
                         {config.title || 'Título del Modal'}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                         {config.description || 'Descripción de la oferta...'}
                       </p>
                       {config.timerEnabled && config.timerEnd && (

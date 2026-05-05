@@ -53,6 +53,7 @@
   --color-brand-gold: var(--brand-gold);
   --color-brand-gold-hover: var(--brand-gold-hover);
   --color-brand-teal: var(--brand-teal);
+  --color-brand-ink: var(--brand-ink);
 
   --color-amber-50: #fbf6e9;
   --color-amber-100: #f2e7ca;
@@ -136,7 +137,7 @@
 
   /* Muted */
   --muted: #e6e9ed;
-  --muted-foreground: #66717d;
+  --muted-foreground: #4b5563;
 
   /* Accent = emerald for eco/nature */
   --accent: #e9fbfc;
@@ -144,6 +145,7 @@
 
   /* Destructive */
   --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
 
   /* Borders & inputs */
   --border: color-mix(in srgb, var(--brand-line) 36%, transparent);
@@ -189,6 +191,7 @@
   --accent-foreground: #c9f7fa;
 
   --destructive: #f87171;
+  --destructive-foreground: #7f1d1d;
 
   --border: color-mix(in srgb, var(--brand-line) 32%, transparent);
   --input: color-mix(in srgb, var(--brand-line) 36%, transparent);

@@ -31,7 +31,7 @@ export default function PortalFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <BrandWordmark inverted />
-            <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+            <p className="mt-4 text-sm leading-relaxed text-brand-text-muted">
               {brand.description}
             </p>
             <div className="mt-5 flex gap-3">
@@ -55,7 +55,7 @@ export default function PortalFooter() {
             <ul className="mt-4 space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-neutral-400 transition-colors hover:text-sky-300">
+                  <Link href={link.href} className="text-sm text-brand-text-muted transition-colors hover:text-sky-300">
                     {link.label}
                   </Link>
                 </li>
@@ -72,7 +72,7 @@ export default function PortalFooter() {
                 <li key={dest.id}>
                   <Link
                     href={portalPaths.destinationDetail(dest.id)}
-                    className="flex items-center gap-1.5 text-sm text-neutral-400 transition-colors hover:text-sky-300"
+                    className="flex items-center gap-1.5 text-sm text-brand-text-muted transition-colors hover:text-sky-300"
                   >
                     <MapPin className="size-3" />
                     {dest.name}
@@ -87,21 +87,21 @@ export default function PortalFooter() {
               Contacto
             </h3>
             <ul className="mt-4 space-y-3">
-              <li className="flex items-center gap-2 text-sm text-neutral-400">
+              <li className="flex items-center gap-2 text-sm text-brand-text-muted">
                 <Phone className="size-4 shrink-0 text-sky-300/80" />
                 {brand.phone}
               </li>
-              <li className="flex items-center gap-2 text-sm text-neutral-400">
+              <li className="flex items-center gap-2 text-sm text-brand-text-muted">
                 <Mail className="size-4 shrink-0 text-sky-300/80" />
                 {brand.supportEmail}
               </li>
-              <li className="flex items-start gap-2 text-sm text-neutral-400">
+              <li className="flex items-start gap-2 text-sm text-brand-text-muted">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-sky-300/80" />
                 <span>{brand.address}</span>
               </li>
             </ul>
             <div className="mt-5 rounded-lg bg-brand-surface p-3">
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-brand-text-muted">
                 ¿Necesitas ayuda inmediata?
               </p>
               <p className="mt-1 text-sm font-medium text-sky-300">
@@ -114,10 +114,10 @@ export default function PortalFooter() {
         <Separator className="my-10 bg-brand-line/30" />
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-brand-text-muted">
             &copy; {new Date().getFullYear()} {brand.name}. Todos los derechos reservados.
           </p>
-          <div className="flex gap-6 text-xs text-neutral-500">
+          <div className="flex gap-6 text-xs text-brand-text-muted">
             <button className="hover:text-sky-300 transition-colors">
               Términos y Condiciones
             </button>

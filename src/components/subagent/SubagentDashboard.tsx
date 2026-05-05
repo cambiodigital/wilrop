@@ -148,10 +148,10 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
       <motion.div {...fadeIn}>
-        <h1 className="text-2xl font-bold text-neutral-900">
+        <h1 className="text-2xl font-bold text-card-foreground">
           Dashboard
         </h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Bienvenido, <span className="font-medium text-amber-600">{currentSession.name}</span> · Código: <span className="font-mono text-amber-600">{currentSession.code}</span> · Comisión: <span className="font-medium">{currentSession.commission}%</span>
         </p>
       </motion.div>
@@ -159,12 +159,12 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div {...fadeIn} transition={{ delay: 0.05 }}>
-          <Card className="border-neutral-200">
+          <Card className="border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">Total Reservas</p>
-                  <p className="text-2xl font-bold text-neutral-900 mt-1">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Total Reservas</p>
+                  <p className="text-2xl font-bold text-card-foreground mt-1">{stats.total}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-blue-100 flex items-center justify-center">
                   <ShoppingCart className="size-5 text-blue-600" />
@@ -175,11 +175,11 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
         </motion.div>
 
         <motion.div {...fadeIn} transition={{ delay: 0.1 }}>
-          <Card className="border-neutral-200">
+          <Card className="border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">Pendientes</p>
+                  <p className="text-xs text-muted-foreground font-medium">Pendientes</p>
                   <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -191,11 +191,11 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
         </motion.div>
 
         <motion.div {...fadeIn} transition={{ delay: 0.15 }}>
-          <Card className="border-neutral-200">
+          <Card className="border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">Ingresos Totales</p>
+                  <p className="text-xs text-muted-foreground font-medium">Ingresos Totales</p>
                   <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCOP(stats.totalRevenue)}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-emerald-100 flex items-center justify-center">
@@ -207,11 +207,11 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
         </motion.div>
 
         <motion.div {...fadeIn} transition={{ delay: 0.2 }}>
-          <Card className="border-neutral-200">
+          <Card className="border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">Comisiones Ganadas</p>
+                  <p className="text-xs text-muted-foreground font-medium">Comisiones Ganadas</p>
                   <p className="text-2xl font-bold text-amber-600 mt-1">{formatCOP(stats.totalCommission)}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -225,12 +225,12 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
 
       {/* Bookings Table */}
       <motion.div {...fadeIn} transition={{ delay: 0.25 }}>
-        <Card className="border-neutral-200">
+        <Card className="border-border">
           <CardContent className="p-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-neutral-900">Mis Ventas</h2>
-                <p className="text-xs text-neutral-500">{filteredBookings.length} reservas encontradas</p>
+                <h2 className="text-lg font-semibold text-card-foreground">Mis Ventas</h2>
+                <p className="text-xs text-muted-foreground">{filteredBookings.length} reservas encontradas</p>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40 rounded-xl text-sm">
@@ -257,38 +257,38 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
               ) : filteredBookings.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                   <ShoppingCart className="size-10 text-neutral-300 mb-3" />
-                  <p className="text-sm font-semibold text-neutral-600">No hay reservas</p>
-                  <p className="text-xs text-neutral-400 mt-1">Las reservas que realices aparecerán aquí</p>
+                  <p className="text-sm font-semibold text-muted-foreground">No hay reservas</p>
+                  <p className="text-xs text-muted-foreground mt-1">Las reservas que realices aparecerán aquí</p>
                 </div>
               ) : (
                 <table className="w-full text-sm">
-                  <thead className="bg-neutral-50 border-y border-neutral-200 sticky top-0">
+                  <thead className="bg-muted border-y border-border sticky top-0">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Código</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden sm:table-cell">Pasajero</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Pax</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Estado</th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Total</th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Comisión</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Fecha</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Código</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Pasajero</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Pax</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total</th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Comisión</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Fecha</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody className="divide-y divide-border">
                     {filteredBookings.map((booking) => {
                       const st = statusConfig[booking.status] || statusConfig.pending
                       return (
-                        <tr key={booking.id} className="hover:bg-neutral-50 transition-colors">
+                        <tr key={booking.id} className="hover:bg-muted transition-colors">
                           <td className="px-4 py-3">
                             <span className="font-mono text-amber-600 font-semibold text-xs">{booking.code}</span>
                           </td>
                           <td className="px-4 py-3 hidden sm:table-cell">
                             <div>
-                              <p className="font-medium text-neutral-800 text-sm">{booking.guestName}</p>
-                              <p className="text-[11px] text-neutral-400">{booking.guestEmail}</p>
+                              <p className="font-medium text-card-foreground text-sm">{booking.guestName}</p>
+                              <p className="text-[11px] text-muted-foreground">{booking.guestEmail}</p>
                             </div>
                           </td>
                           <td className="px-4 py-3 hidden md:table-cell">
-                            <span className="text-neutral-600">{booking.adults}{booking.children > 0 ? `+${booking.children}` : ''}</span>
+                            <span className="text-muted-foreground">{booking.adults}{booking.children > 0 ? `+${booking.children}` : ''}</span>
                           </td>
                           <td className="px-4 py-3">
                             <Badge className={`${st.bg} ${st.color} border-transparent text-xs rounded-full`}>
@@ -296,13 +296,13 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
                             </Badge>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="font-semibold text-neutral-900">{formatCOP(booking.totalPrice)}</span>
+                            <span className="font-semibold text-card-foreground">{formatCOP(booking.totalPrice)}</span>
                           </td>
                           <td className="px-4 py-3 text-right hidden lg:table-cell">
                             <span className="font-medium text-amber-600">{formatCOP(booking.commissionAmt)}</span>
                           </td>
                           <td className="px-4 py-3 hidden lg:table-cell">
-                            <span className="text-neutral-500 text-xs flex items-center gap-1">
+                            <span className="text-muted-foreground text-xs flex items-center gap-1">
                               <Calendar className="size-3" />
                               {new Date(booking.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>

@@ -123,7 +123,7 @@ function ItemTypeIcon({ type }: { type: string }) {
     case 'excursion':
       return <Compass className="w-4 h-4 text-purple-500" />;
     default:
-      return <BedDouble className="w-4 h-4 text-gray-400" />;
+      return <BedDouble className="w-4 h-4 text-muted-foreground" />;
   }
 }
 
@@ -235,11 +235,11 @@ export default function AdminBookings() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
           <CalendarCheck className="w-6 h-6 text-amber-600" />
           Reservas
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Vista de todas las reservas recibidas (B2C y B2B)
         </p>
       </div>
@@ -253,8 +253,8 @@ export default function AdminBookings() {
                 <CalendarCheck className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Total Reservas</p>
-                <p className="text-lg font-bold text-gray-900">{bookings.length}</p>
+                <p className="text-xs text-muted-foreground">Total Reservas</p>
+                <p className="text-lg font-bold text-card-foreground">{bookings.length}</p>
               </div>
             </div>
           </CardContent>
@@ -266,7 +266,7 @@ export default function AdminBookings() {
                 <Clock className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Pendientes</p>
+                <p className="text-xs text-muted-foreground">Pendientes</p>
                 <p className="text-lg font-bold text-yellow-600">{pendingCount}</p>
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function AdminBookings() {
                 <CreditCard className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Ingresos Totales</p>
+                <p className="text-xs text-muted-foreground">Ingresos Totales</p>
                 <p className="text-lg font-bold text-green-600">{formatCOP(totalRevenue)}</p>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function AdminBookings() {
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">B2B</p>
+                <p className="text-xs text-muted-foreground">B2B</p>
                 <p className="text-lg font-bold text-blue-600">{b2bCount}</p>
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function AdminBookings() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por código, nombre o email..."
                 value={search}
@@ -314,7 +314,7 @@ export default function AdminBookings() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-gray-500">Estado</Label>
+              <Label className="text-xs text-muted-foreground">Estado</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-44">
                   <SelectValue />
@@ -360,7 +360,7 @@ export default function AdminBookings() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         {search || statusFilter !== 'all'
                           ? 'No se encontraron resultados'
                           : 'No hay reservas registradas'}
@@ -375,13 +375,13 @@ export default function AdminBookings() {
                         <TableCell>
                           <div>
                             <p className="text-sm font-medium">{b.guestName}</p>
-                            <p className="text-xs text-gray-400">{b.guestEmail}</p>
+                            <p className="text-xs text-muted-foreground">{b.guestEmail}</p>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
                           <span className="font-medium">{b.adults}</span>
                           {b.children > 0 && (
-                            <span className="text-gray-400"> + {b.children}</span>
+                            <span className="text-muted-foreground"> + {b.children}</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -397,23 +397,23 @@ export default function AdminBookings() {
                               'text-xs',
                               b.bookedBy === 'b2b'
                                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                : 'bg-gray-50 text-gray-600 border border-gray-200'
+                                : 'bg-muted text-muted-foreground border border-border'
                             )}
                           >
                             {b.bookedBy === 'b2b' ? 'B2B' : 'B2C'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {b.subagent?.agencyName || '—'}
                         </TableCell>
-                        <TableCell className="text-xs text-gray-400">
+                        <TableCell className="text-xs text-muted-foreground">
                           {formatDateTime(b.createdAt)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                            className="h-8 w-8 text-muted-foreground hover:text-amber-600"
                             onClick={() => handleViewDetail(b)}
                           >
                             <Eye className="w-4 h-4" />
@@ -444,9 +444,9 @@ export default function AdminBookings() {
 
               <div className="space-y-6">
                 {/* Status Update */}
-                <Card className="border border-gray-200">
+                <Card className="border border-border">
                   <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-semibold text-gray-700">
+                    <CardTitle className="text-sm font-semibold text-card-foreground">
                       Cambiar Estado
                     </CardTitle>
                   </CardHeader>
@@ -471,38 +471,38 @@ export default function AdminBookings() {
                 </Card>
 
                 {/* Guest Info */}
-                <Card className="border border-gray-200">
+                <Card className="border border-border">
                   <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <CardTitle className="text-sm font-semibold text-card-foreground flex items-center gap-2">
                       <User className="w-4 h-4" /> Información del Huésped
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs text-gray-400">Nombre</p>
+                        <p className="text-xs text-muted-foreground">Nombre</p>
                         <p className="text-sm font-medium">{selectedBooking.guestName}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Mail className="w-3 h-3" /> Email
                         </p>
                         <p className="text-sm">{selectedBooking.guestEmail}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Phone className="w-3 h-3" /> Teléfono
                         </p>
                         <p className="text-sm">{selectedBooking.guestPhone || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Globe className="w-3 h-3" /> País
                         </p>
                         <p className="text-sm">{selectedBooking.guestCountry || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Users className="w-3 h-3" /> Pax
                         </p>
                         <p className="text-sm">
@@ -512,14 +512,14 @@ export default function AdminBookings() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Tipo</p>
+                        <p className="text-xs text-muted-foreground">Tipo</p>
                         <Badge
                           variant="secondary"
                           className={cn(
                             'text-xs',
                             selectedBooking.bookedBy === 'b2b'
                               ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : 'bg-gray-50 text-gray-600 border border-gray-200'
+                              : 'bg-muted text-muted-foreground border border-border'
                           )}
                         >
                           {selectedBooking.bookedBy === 'b2b' ? 'B2B' : 'B2C'}
@@ -528,18 +528,18 @@ export default function AdminBookings() {
                     </div>
                     {selectedBooking.notes && (
                       <div className="mt-3">
-                        <p className="text-xs text-gray-400">Notas</p>
-                        <p className="text-sm text-gray-600">{selectedBooking.notes}</p>
+                        <p className="text-xs text-muted-foreground">Notas</p>
+                        <p className="text-sm text-muted-foreground">{selectedBooking.notes}</p>
                       </div>
                     )}
                     {selectedBooking.subagent && (
                       <div className="mt-3 pt-3 border-t">
                         <p className="text-xs text-blue-600 font-medium">Subagente</p>
                         <p className="text-sm">{selectedBooking.subagent.agencyName}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           Contacto: {selectedBooking.subagent.contactName} ({selectedBooking.subagent.email})
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           Comisión: {selectedBooking.subagent.commission}%
                           {selectedBooking.commissionAmt > 0 &&
                             ` — ${formatCOP(selectedBooking.commissionAmt)}`}
@@ -550,26 +550,26 @@ export default function AdminBookings() {
                 </Card>
 
                 {/* Pricing */}
-                <Card className="border border-gray-200">
+                <Card className="border border-border">
                   <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <CardTitle className="text-sm font-semibold text-card-foreground flex items-center gap-2">
                       <CreditCard className="w-4 h-4" /> Precios
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs text-gray-400">Total</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-lg font-bold text-card-foreground">
                           {formatCOP(selectedBooking.totalPrice)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Costo Neto</p>
+                        <p className="text-xs text-muted-foreground">Costo Neto</p>
                         <p className="text-sm font-medium">{formatCOP(selectedBooking.netPrice)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Margen</p>
+                        <p className="text-xs text-muted-foreground">Margen</p>
                         <p className="text-sm font-medium text-green-600">
                           {formatCOP(selectedBooking.totalPrice - selectedBooking.netPrice)}
                         </p>
@@ -580,15 +580,15 @@ export default function AdminBookings() {
 
                 {/* Check-in/out */}
                 {(selectedBooking.checkIn || selectedBooking.checkOut) && (
-                  <Card className="border border-gray-200">
+                  <Card className="border border-border">
                     <CardContent className="p-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs text-gray-400">Check-in</p>
+                          <p className="text-xs text-muted-foreground">Check-in</p>
                           <p className="text-sm font-medium">{formatDate(selectedBooking.checkIn)}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400">Check-out</p>
+                          <p className="text-xs text-muted-foreground">Check-out</p>
                           <p className="text-sm font-medium">{formatDate(selectedBooking.checkOut)}</p>
                         </div>
                       </div>
@@ -598,9 +598,9 @@ export default function AdminBookings() {
 
                 {/* Booking Items */}
                 {selectedBooking.items && selectedBooking.items.length > 0 && (
-                  <Card className="border border-gray-200">
+                  <Card className="border border-border">
                     <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-semibold text-gray-700">
+                      <CardTitle className="text-sm font-semibold text-card-foreground">
                         Servicios ({selectedBooking.items.length})
                       </CardTitle>
                     </CardHeader>
@@ -609,7 +609,7 @@ export default function AdminBookings() {
                         {selectedBooking.items.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+                            className="flex items-start gap-3 p-3 rounded-lg bg-muted border border-border"
                           >
                             <ItemTypeIcon type={item.itemType} />
                             <div className="flex-1 min-w-0">
@@ -623,14 +623,14 @@ export default function AdminBookings() {
                                 )}
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-muted-foreground">
                                   {item.dateFrom && formatDate(item.dateFrom)}
                                   {item.dateTo && item.dateTo !== item.dateFrom && ` → ${formatDate(item.dateTo)}`}
                                 </span>
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-muted-foreground">
                                   Cant: {item.quantity}
                                 </span>
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-muted-foreground">
                                   Unit: {formatCOP(item.unitPrice)}
                                 </span>
                               </div>
@@ -646,7 +646,7 @@ export default function AdminBookings() {
                 )}
 
                 {/* Created At */}
-                <div className="text-xs text-gray-400 text-right">
+                <div className="text-xs text-muted-foreground text-right">
                   Creada: {formatDateTime(selectedBooking.createdAt)}
                 </div>
               </div>

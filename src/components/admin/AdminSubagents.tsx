@@ -239,11 +239,11 @@ export default function AdminSubagents() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
             <Users className="w-6 h-6 text-amber-600" />
             Subagentes
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona las agencias subagentes (canal B2B)
           </p>
         </div>
@@ -265,8 +265,8 @@ export default function AdminSubagents() {
                 <Users className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Total Subagentes</p>
-                <p className="text-lg font-bold text-gray-900">{subagents.length}</p>
+                <p className="text-xs text-muted-foreground">Total Subagentes</p>
+                <p className="text-lg font-bold text-card-foreground">{subagents.length}</p>
               </div>
             </div>
           </CardContent>
@@ -278,7 +278,7 @@ export default function AdminSubagents() {
                 <Building className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Activos</p>
+                <p className="text-xs text-muted-foreground">Activos</p>
                 <p className="text-lg font-bold text-green-600">{activeCount}</p>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function AdminSubagents() {
                 <Globe className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-400">Reservas B2B</p>
+                <p className="text-xs text-muted-foreground">Reservas B2B</p>
                 <p className="text-lg font-bold text-blue-600">{totalBookings}</p>
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function AdminSubagents() {
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por agencia, contacto o código..."
               value={search}
@@ -345,7 +345,7 @@ export default function AdminSubagents() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                         {search
                           ? 'No se encontraron resultados'
                           : 'No hay subagentes registrados'}
@@ -360,16 +360,16 @@ export default function AdminSubagents() {
                         <TableCell className="font-medium text-sm">
                           {sub.agencyName}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {sub.contactName}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {sub.country || '—'}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {sub.email}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {sub.phone || '—'}
                         </TableCell>
                         <TableCell>
@@ -388,7 +388,7 @@ export default function AdminSubagents() {
                               Habilitada
                             </Badge>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                            <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
                               No
                             </Badge>
                           )}
@@ -402,7 +402,7 @@ export default function AdminSubagents() {
                               Activo
                             </Badge>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                            <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
                               Inactivo
                             </Badge>
                           )}
@@ -412,7 +412,7 @@ export default function AdminSubagents() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-amber-600"
                               onClick={() => handleEdit(sub)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -420,7 +420,7 @@ export default function AdminSubagents() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-red-600"
                               onClick={() => {
                                 setDeletingId(sub.id);
                                 setDeleteDialogOpen(true);
@@ -459,7 +459,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>Código *</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                     WIL-
                   </span>
                   <Input
@@ -474,7 +474,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>Email *</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="email"
                     value={form.email}
@@ -513,7 +513,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>Nombre de Agencia *</Label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.agencyName}
                     onChange={(e) => setForm((f) => ({ ...f, agencyName: e.target.value }))}
@@ -525,7 +525,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>Nombre de Contacto *</Label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.contactName}
                     onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
@@ -540,7 +540,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>País</Label>
                 <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.country}
                     onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
@@ -552,7 +552,7 @@ export default function AdminSubagents() {
               <div className="space-y-2">
                 <Label>Teléfono</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.phone}
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
@@ -573,7 +573,7 @@ export default function AdminSubagents() {
                 onChange={(e) => setForm((f) => ({ ...f, commission: Number(e.target.value) }))}
                 placeholder="15"
               />
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Porcentaje de comisión sobre las ventas del subagente
               </p>
             </div>
@@ -600,11 +600,11 @@ export default function AdminSubagents() {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-3">
+              <div className="flex items-center gap-3 rounded-lg border border-border p-3">
                 <Palette className="h-5 w-5 text-purple-600" />
                 <div className="flex-1">
                   <Label>Marca blanca</Label>
-                  <p className="text-xs text-gray-400">Free Light la incluye; este switch la habilita manualmente.</p>
+                  <p className="text-xs text-muted-foreground">Free Light la incluye; este switch la habilita manualmente.</p>
                 </div>
                 <Switch
                   checked={form.whiteLabelEnabled}

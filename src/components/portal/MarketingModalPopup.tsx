@@ -231,7 +231,7 @@ export default function MarketingModalPopup() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className={`relative bg-white rounded-2xl shadow-2xl overflow-hidden ${
+            className={`relative bg-card text-card-foreground rounded-2xl shadow-2xl overflow-hidden ${
               modalData.position === 'center'
                 ? 'max-w-md w-[calc(100%-2rem)] mx-4'
                 : 'max-w-sm w-[calc(100%-2rem)]'
@@ -277,12 +277,12 @@ export default function MarketingModalPopup() {
                 </span>
               )}
 
-              <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
+              <h3 className="text-xl font-bold mb-2 leading-tight">
                 {modalData.title}
               </h3>
 
               {modalData.description && (
-                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {modalData.description}
                 </p>
               )}
@@ -302,7 +302,7 @@ export default function MarketingModalPopup() {
                 {modalData.ctaText}
               </button>
 
-              <p className="text-center text-[10px] text-gray-400 mt-3">
+              <p className="text-center text-[10px] text-muted-foreground mt-3">
                 Puedes cerrar este aviso
               </p>
             </div>

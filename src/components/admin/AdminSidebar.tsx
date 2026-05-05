@@ -77,8 +77,8 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
       <div className="flex items-center gap-3 px-5 py-5">
         <BrandWordmark compact />
         <div>
-          <h2 className="font-bold text-gray-900 text-sm leading-none">Willro</h2>
-          <p className="text-xs text-gray-500">Admin Panel</p>
+          <h2 className="font-bold text-card-foreground text-sm leading-none">Willro</h2>
+          <p className="text-xs text-muted-foreground">Admin Panel</p>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{currentAdminName}</p>
+            <p className="text-sm font-semibold text-card-foreground truncate">{currentAdminName}</p>
             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0">
               Administrador
             </Badge>
@@ -101,7 +101,7 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
-        <p className="px-3 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Menú Principal</p>
+        <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Menú Principal</p>
         {menuItems.map((item) => {
           const isActive = isItemActive(item.href);
           return (
@@ -111,10 +111,10 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-500/25'
-                  : 'text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                  : 'text-muted-foreground hover:bg-amber-50 hover:text-amber-700'
               }`}
             >
-              <span className={isActive ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
+              <span className={isActive ? 'text-white' : 'text-muted-foreground'}>{item.icon}</span>
               {item.label}
             </button>
           );
@@ -151,12 +151,12 @@ export default function AdminSidebar({ children, adminName }: { children: React.
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-neutral-50">
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+      <div className="min-h-screen bg-brand-surface-light">
+        <div className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
               <BrandWordmark compact />
-              <span className="font-bold text-gray-900 text-sm">Willro Admin</span>
+              <span className="font-bold text-card-foreground text-sm">Willro Admin</span>
             </div>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -164,7 +164,7 @@ export default function AdminSidebar({ children, adminName }: { children: React.
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0 bg-white">
+              <SheetContent side="left" className="w-72 p-0 bg-card">
                 <SheetHeader className="sr-only">
                   <SheetTitle>Menú de Administración</SheetTitle>
                 </SheetHeader>
@@ -179,8 +179,8 @@ export default function AdminSidebar({ children, adminName }: { children: React.
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
-      <aside className="w-64 bg-white border-r border-gray-100 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <div className="min-h-screen bg-brand-surface-light flex">
+      <aside className="w-64 bg-card border-r border-border flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
         <SidebarNav fallbackAdminName={adminName} />
       </aside>
       <main className="flex-1 min-w-0">{children}</main>

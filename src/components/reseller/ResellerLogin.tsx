@@ -53,7 +53,7 @@ export default function ResellerLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 relative overflow-hidden text-card-foreground">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-200/30 rounded-full blur-3xl" />
@@ -66,7 +66,7 @@ export default function ResellerLogin() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="shadow-xl border-amber-200/50 backdrop-blur-sm bg-white/90">
+        <Card className="shadow-xl border-amber-200/50 backdrop-blur-sm bg-card/90 text-card-foreground">
           <CardHeader className="text-center pb-2">
             <CardTitle className="flex justify-center">
               <BrandWordmark className="justify-center" />
@@ -80,7 +80,7 @@ export default function ResellerLogin() {
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electronico</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -95,7 +95,7 @@ export default function ResellerLogin() {
               <div className="space-y-2">
                 <Label htmlFor="password">Contrasena</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -131,10 +131,10 @@ export default function ResellerLogin() {
               </Button>
             </form>
 
-            <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="mt-6 pt-4 border-t border-border">
               <button
                 onClick={() => router.push('/')}
-                className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-amber-600 transition-colors"
+                className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-amber-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Volver al Portal
@@ -147,7 +147,7 @@ export default function ResellerLogin() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="text-center text-xs text-gray-400 mt-6"
+          className="text-center text-xs text-muted-foreground mt-6"
         >
           2025 WILROP Colombia Travel. Todos los derechos reservados.
         </motion.p>
