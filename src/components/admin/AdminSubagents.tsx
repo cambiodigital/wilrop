@@ -240,17 +240,14 @@ export default function AdminSubagents() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
-            <Users className="w-6 h-6 text-amber-600" />
+            <Users className="w-6 h-6 text-primary" />
             Subagentes
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gestiona las agencias subagentes (canal B2B)
           </p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-        >
+        <Button onClick={handleCreate}>
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Subagente
         </Button>
@@ -258,11 +255,11 @@ export default function AdminSubagents() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <Users className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Subagentes</p>
@@ -271,7 +268,7 @@ export default function AdminSubagents() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
@@ -284,7 +281,7 @@ export default function AdminSubagents() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -300,7 +297,7 @@ export default function AdminSubagents() {
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -315,7 +312,7 @@ export default function AdminSubagents() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -354,7 +351,7 @@ export default function AdminSubagents() {
                   ) : (
                     filtered.map((sub) => (
                       <TableRow key={sub.id}>
-                        <TableCell className="font-mono font-semibold text-sm text-amber-700">
+                        <TableCell className="font-mono font-semibold text-sm text-primary">
                           {sub.code}
                         </TableCell>
                         <TableCell className="font-medium text-sm">
@@ -373,7 +370,7 @@ export default function AdminSubagents() {
                           {sub.phone || '—'}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs font-semibold">
+                          <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs font-semibold">
                             {sub.commission}%
                           </Badge>
                         </TableCell>
@@ -398,7 +395,7 @@ export default function AdminSubagents() {
                         </TableCell>
                         <TableCell>
                           {sub.active ? (
-                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">
+                            <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Activo
                             </Badge>
                           ) : (
@@ -412,7 +409,7 @@ export default function AdminSubagents() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleEdit(sub)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -420,7 +417,7 @@ export default function AdminSubagents() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
                                 setDeletingId(sub.id);
                                 setDeleteDialogOpen(true);
@@ -625,11 +622,7 @@ export default function AdminSubagents() {
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Subagente'}
               </Button>
             </div>
@@ -651,7 +644,7 @@ export default function AdminSubagents() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

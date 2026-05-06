@@ -174,13 +174,13 @@ function TagInput({
             <Badge
               key={idx}
               variant="secondary"
-              className="pl-2 pr-1 py-1 gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+              className="pl-2 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground hover:bg-accent"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(idx)}
-                className="ml-0.5 rounded-full hover:bg-amber-200 p-0.5 transition-colors"
+                className="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -189,7 +189,7 @@ function TagInput({
         </div>
       )}
       {tags.length === 0 && (
-        <p className="text-xs text-gray-400">Presiona Enter para agregar</p>
+        <p className="text-xs text-muted-foreground">Presiona Enter para agregar</p>
       )}
     </div>
   );
@@ -377,28 +377,25 @@ export default function AdminExcursions() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Compass className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Compass className="w-6 h-6 text-primary" />
             Excursiones
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona las excursiones y actividades disponibles
           </p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-        >
+        <Button onClick={handleCreate}>
           <Plus className="w-4 h-4 mr-2" />
           Nueva Excursión
         </Button>
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar excursión..."
               value={search}
@@ -410,7 +407,7 @@ export default function AdminExcursions() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -439,7 +436,7 @@ export default function AdminExcursions() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                         {search ? 'No se encontraron resultados' : 'No hay excursiones registradas'}
                       </TableCell>
                     </TableRow>
@@ -447,7 +444,7 @@ export default function AdminExcursions() {
                     filtered.map((exc) => (
                       <TableRow key={exc.id}>
                         <TableCell className="font-medium text-sm">{exc.name}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{exc.cityName || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{exc.cityName || '—'}</TableCell>
                         <TableCell className="text-sm">{exc.duration}</TableCell>
                         <TableCell>
                           <Badge
@@ -467,7 +464,7 @@ export default function AdminExcursions() {
                         <TableCell className="text-sm font-semibold">
                           {formatCOP(exc.basePrice)}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {exc.childPrice > 0 ? formatCOP(exc.childPrice) : '—'}
                         </TableCell>
                         <TableCell>
@@ -478,20 +475,20 @@ export default function AdminExcursions() {
                         </TableCell>
                         <TableCell>
                           {exc.featured ? (
-                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                            <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
                               Destacado
                             </Badge>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell>
                           {exc.active ? (
-                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">
+                            <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Activo
                             </Badge>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                            <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
                               Inactivo
                             </Badge>
                           )}
@@ -501,7 +498,7 @@ export default function AdminExcursions() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleEdit(exc)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -509,7 +506,7 @@ export default function AdminExcursions() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
                                 setDeletingId(exc.id);
                                 setDeleteDialogOpen(true);
@@ -740,7 +737,7 @@ export default function AdminExcursions() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-red-700">✗ Qué no incluye</Label>
+                <Label className="text-sm font-semibold text-destructive">✗ Qué no incluye</Label>
                 <TagInput
                   tags={form.excludes}
                   onChange={(v) => updateField('excludes', v)}
@@ -768,24 +765,24 @@ export default function AdminExcursions() {
                   className={cn(
                     'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                     dragOver
-                      ? 'border-amber-400 bg-amber-50'
-                      : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                      ? 'border-ring bg-accent'
+                      : 'border-border hover:border-ring/60 hover:bg-accent/50',
                     uploading && 'pointer-events-none opacity-60'
                   )}
                 >
                   {uploading ? (
                     <div className="space-y-2">
-                      <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-                      <p className="text-sm text-gray-500">Subiendo imagen(es)...</p>
+                      <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+                      <p className="text-sm text-muted-foreground">Subiendo imagen(es)...</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
-                      <p className="text-sm text-gray-500">
+                      <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
+                      <p className="text-sm text-muted-foreground">
                         Arrastra imágenes o{' '}
-                        <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                        <span className="text-primary font-medium">haz clic para seleccionar</span>
                       </p>
-                      <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB cada una)</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB cada una)</p>
                     </div>
                   )}
                 </div>
@@ -805,7 +802,7 @@ export default function AdminExcursions() {
                   <Label>Vista previa ({form.images.length} imágenes)</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {form.images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border">
                         <img
                           src={img}
                           alt={`Preview ${idx + 1}`}
@@ -822,7 +819,7 @@ export default function AdminExcursions() {
                               form.images.filter((_, i) => i !== idx)
                             )
                           }
-                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                          className="absolute top-1 right-1 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/90"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -834,15 +831,11 @@ export default function AdminExcursions() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
-            >
+            <Button onClick={handleSave} disabled={saving}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Excursión'}
             </Button>
           </div>
@@ -862,7 +855,7 @@ export default function AdminExcursions() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

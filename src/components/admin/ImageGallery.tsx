@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface ImageGalleryProps {
@@ -77,7 +76,7 @@ export function ImageGallery({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2">{label}</label>
+        <label className="block text-sm font-medium mb-2 text-foreground">{label}</label>
 
         <Input
           type="file"
@@ -92,13 +91,13 @@ export function ImageGallery({
           className="cursor-pointer"
         />
 
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-muted-foreground">
           {images.length} / {maxImages} imágenes
         </div>
 
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        {error && <p className="text-destructive text-sm mt-2">{error}</p>}
         {isLoading && (
-          <p className="text-blue-600 text-sm mt-2">Subiendo imagen...</p>
+          <p className="text-primary text-sm mt-2">Subiendo imagen...</p>
         )}
       </div>
 
@@ -111,11 +110,11 @@ export function ImageGallery({
                 <img
                   src={imageUrl}
                   alt={`Image ${idx + 1}`}
-                  className="w-full h-24 object-cover rounded-md border border-gray-200"
+                  className="w-full h-24 object-cover rounded-md border border-border"
                 />
                 <button
                   onClick={() => removeImage(idx)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute -top-2 -right-2 bg-destructive text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   type="button"
                   title="Eliminar imagen"
                 >

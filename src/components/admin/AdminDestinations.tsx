@@ -257,28 +257,25 @@ export default function AdminDestinations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <MapPin className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-primary" />
             Destinos
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona los destinos turísticos de Colombia
           </p>
         </div>
-        <Button
-          onClick={handleOpenCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-        >
+        <Button onClick={handleOpenCreate}>
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Destino
         </Button>
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre..."
               value={search}
@@ -290,7 +287,7 @@ export default function AdminDestinations() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -314,7 +311,7 @@ export default function AdminDestinations() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         {search ? 'No se encontraron resultados' : 'No hay destinos registrados'}
                       </TableCell>
                     </TableRow>
@@ -322,7 +319,7 @@ export default function AdminDestinations() {
                     filtered.map((dest) => (
                       <TableRow key={dest.id}>
                         <TableCell className="font-medium text-sm">{dest.name}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{dest.region}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{dest.region}</TableCell>
                         <TableCell className="text-sm font-semibold">{formatCOP(dest.priceFrom)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -334,8 +331,8 @@ export default function AdminDestinations() {
                           <Badge
                             className={
                               dest.active
-                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs'
-                                : 'bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs'
+                                ? 'bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs'
+                                : 'bg-muted text-muted-foreground hover:bg-muted text-xs'
                             }
                           >
                             {dest.active ? 'Activo' : 'Inactivo'}
@@ -346,7 +343,7 @@ export default function AdminDestinations() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleOpenEdit(dest)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -354,7 +351,7 @@ export default function AdminDestinations() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
                                 setDeletingId(dest.id);
                                 setDeleteDialogOpen(true);
@@ -443,7 +440,7 @@ export default function AdminDestinations() {
             <div className="space-y-2">
               <Label>Imagen *</Label>
               {form.image ? (
-                <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+                <div className="relative group rounded-lg overflow-hidden border border-border">
                   <img
                     src={form.image}
                     alt="Vista previa"
@@ -487,24 +484,24 @@ export default function AdminDestinations() {
                   className={cn(
                     'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                     dragOver
-                      ? 'border-amber-400 bg-amber-50'
-                      : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                      ? 'border-ring bg-accent'
+                      : 'border-border hover:border-ring/60 hover:bg-accent/50',
                     uploading && 'pointer-events-none opacity-60'
                   )}
                 >
                   {uploading ? (
                     <div className="space-y-2">
-                      <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-                      <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                      <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+                      <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
-                      <p className="text-sm text-gray-500">
+                      <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
+                      <p className="text-sm text-muted-foreground">
                         Arrastra una imagen o{' '}
-                        <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                        <span className="text-primary font-medium">haz clic para seleccionar</span>
                       </p>
-                      <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
                     </div>
                   )}
                 </div>
@@ -581,11 +578,7 @@ export default function AdminDestinations() {
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
               </Button>
             </div>
@@ -606,7 +599,7 @@ export default function AdminDestinations() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

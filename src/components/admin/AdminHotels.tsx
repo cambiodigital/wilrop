@@ -169,7 +169,7 @@ function StarRating({ count }: { count: number }) {
           key={i}
           className={cn(
             'w-3.5 h-3.5',
-            i < count ? 'fill-amber-400 text-amber-400' : 'text-gray-200'
+            i < count ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/40'
           )}
         />
       ))}
@@ -240,13 +240,13 @@ function TagInput({
             <Badge
               key={idx}
               variant="secondary"
-              className="pl-2 pr-1 py-1 gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+              className="pl-2 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground hover:bg-accent"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(idx)}
-                className="ml-0.5 rounded-full hover:bg-amber-200 p-0.5 transition-colors"
+                className="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
                 aria-label={`Eliminar ${tag}`}
               >
                 <X className="w-3 h-3" />
@@ -256,7 +256,7 @@ function TagInput({
         </div>
       )}
       {tags.length === 0 && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground">
           Presiona Enter para agregar un servicio
         </p>
       )}
@@ -340,7 +340,7 @@ function ImageUpload({
     <div className="space-y-2">
       <Label>{label}</Label>
       {value ? (
-        <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+        <div className="relative group rounded-lg overflow-hidden border border-border">
           <img
             src={value}
             alt="Vista previa"
@@ -376,26 +376,26 @@ function ImageUpload({
           className={cn(
             'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
             dragOver
-              ? 'border-amber-400 bg-amber-50'
-              : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+              ? 'border-ring bg-accent'
+              : 'border-border hover:border-ring/60 hover:bg-accent/50',
             uploading && 'pointer-events-none opacity-60'
           )}
         >
           {uploading ? (
             <div className="space-y-2">
-              <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-              <p className="text-sm text-gray-500">Subiendo imagen...</p>
+              <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+              <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
-              <p className="text-sm text-gray-500">
+              <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">
                 Arrastra una imagen o{' '}
-                <span className="text-amber-600 font-medium">
+                <span className="text-primary font-medium">
                   haz clic para seleccionar
                 </span>
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 PNG, JPG, WebP, GIF (máx. 5 MB)
               </p>
             </div>
@@ -435,14 +435,14 @@ function RoomEditorCard({
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <BedDouble className="w-4 h-4 text-amber-600" />
+            <BedDouble className="w-4 h-4 text-primary" />
             Habitación {index + 1}
             {room.name !== 'Habitación Estándar' && (
-              <span className="text-xs text-gray-400 font-normal">
+              <span className="text-xs text-muted-foreground font-normal">
                 — {room.name}
               </span>
             )}
@@ -456,9 +456,9 @@ function RoomEditorCard({
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
             </Button>
             {canRemove && (
@@ -466,7 +466,7 @@ function RoomEditorCard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-gray-400 hover:text-red-600"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
                 onClick={onRemove}
               >
                 <Trash2 className="w-4 h-4" />
@@ -490,7 +490,7 @@ function RoomEditorCard({
           {/* Room Name & Beds */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Nombre de la habitación</Label>
+              <Label className="text-xs text-muted-foreground">Nombre de la habitación</Label>
               <Input
                 value={room.name}
                 onChange={(e) => updateField('name', e.target.value)}
@@ -499,7 +499,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Camas</Label>
+              <Label className="text-xs text-muted-foreground">Camas</Label>
               <Input
                 value={room.beds}
                 onChange={(e) => updateField('beds', e.target.value)}
@@ -512,7 +512,7 @@ function RoomEditorCard({
           {/* Max Guests & Available */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500 flex items-center gap-1">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Users className="w-3 h-3" /> Max. Huéspedes
               </Label>
               <Input
@@ -525,7 +525,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Disponibles</Label>
+              <Label className="text-xs text-muted-foreground">Disponibles</Label>
               <Input
                 type="number"
                 min="0"
@@ -539,7 +539,7 @@ function RoomEditorCard({
           {/* Prices */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500 flex items-center gap-1">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <DollarSign className="w-3 h-3" /> Precio (COP)
               </Label>
               <Input
@@ -552,7 +552,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Precio Original (COP)</Label>
+              <Label className="text-xs text-muted-foreground">Precio Original (COP)</Label>
               <Input
                 type="number"
                 min="0"
@@ -573,7 +573,7 @@ function RoomEditorCard({
 
           {/* Includes (Tags) */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Servicios incluidos</Label>
+            <Label className="text-xs text-muted-foreground">Servicios incluidos</Label>
             <TagInput
               tags={room.includes}
               onChange={(includes) => updateField('includes', includes)}
@@ -872,28 +872,25 @@ export default function AdminHotels() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-primary" />
             Hoteles
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona los hoteles asociados a WILROP Colombia Travel
           </p>
         </div>
-        <Button
-          onClick={handleOpenCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-        >
+        <Button onClick={handleOpenCreate}>
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Hotel
         </Button>
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre..."
               value={search}
@@ -905,7 +902,7 @@ export default function AdminHotels() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -933,7 +930,7 @@ export default function AdminHotels() {
                     <TableRow>
                       <TableCell
                         colSpan={8}
-                        className="text-center py-8 text-gray-400"
+                        className="text-center py-8 text-muted-foreground"
                       >
                         {search
                           ? 'No se encontraron resultados'
@@ -946,7 +943,7 @@ export default function AdminHotels() {
                         <TableCell className="font-medium text-sm">
                           {hotel.name}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-muted-foreground">
                           {hotel.cityName}
                         </TableCell>
                         <TableCell>
@@ -973,7 +970,7 @@ export default function AdminHotels() {
                               </Badge>
                             ))}
                             {hotel.tags.length > 2 && (
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-muted-foreground">
                                 +{hotel.tags.length - 2}
                               </span>
                             )}
@@ -981,11 +978,11 @@ export default function AdminHotels() {
                         </TableCell>
                         <TableCell>
                           {hotel.featured ? (
-                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                            <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
                               Destacado
                             </Badge>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -993,7 +990,7 @@ export default function AdminHotels() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleOpenEdit(hotel)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -1001,7 +998,7 @@ export default function AdminHotels() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
                                 setDeletingId(hotel.id);
                                 setDeleteDialogOpen(true);
@@ -1174,10 +1171,10 @@ export default function AdminHotels() {
             <TabsContent value="media" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-foreground">
                     Galería de imágenes del hotel
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {form.images.length} imagen{form.images.length !== 1 ? 'es' : ''}
                     {form.images.length > 0 && ' · Arrastra para reordenar'}
                   </p>
@@ -1187,7 +1184,6 @@ export default function AdminHotels() {
                   variant="outline"
                   size="sm"
                   onClick={() => imagesInputRef.current?.click()}
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
                 >
                   <Upload className="w-4 h-4 mr-1.5" />
                   Subir imagen
@@ -1203,24 +1199,24 @@ export default function AdminHotels() {
                 className={cn(
                   'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
                   imagesDragOver
-                    ? 'border-amber-400 bg-amber-50'
-                    : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                    ? 'border-ring bg-accent'
+                    : 'border-border hover:border-ring/60 hover:bg-accent/50',
                   imagesUploading && 'pointer-events-none opacity-60'
                 )}
               >
                 {imagesUploading ? (
                   <div className="space-y-2">
-                    <div className="animate-spin w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-                    <p className="text-sm text-gray-500">Subiendo imagen{pendingUploads > 1 ? 'es' : ''}...</p>
+                    <div className="animate-spin w-8 h-8 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+                    <p className="text-sm text-muted-foreground">Subiendo imagen{pendingUploads > 1 ? 'es' : ''}...</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <ImagePlus className="w-10 h-10 text-gray-400 mx-auto" />
-                    <p className="text-sm text-gray-500">
+                    <ImagePlus className="w-10 h-10 text-muted-foreground mx-auto" />
+                    <p className="text-sm text-muted-foreground">
                       Arrastra imágenes aquí o{' '}
-                      <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                      <span className="text-primary font-medium">haz clic para seleccionar</span>
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       PNG, JPG, WebP, GIF · Máx. 5 MB por imagen · Puedes seleccionar varias
                     </p>
                   </div>
@@ -1246,9 +1242,9 @@ export default function AdminHotels() {
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => handleImageDrop(e, idx)}
                       className={cn(
-                        'relative group rounded-lg overflow-hidden border border-gray-200 transition-all',
-                        'hover:shadow-md hover:border-amber-300',
-                        draggedImageIdx === idx && 'opacity-50 ring-2 ring-amber-400'
+                        'relative group rounded-lg overflow-hidden border border-border transition-all',
+                        'hover:shadow-md hover:border-ring/60',
+                        draggedImageIdx === idx && 'opacity-50 ring-2 ring-ring'
                       )}
                     >
                       <img
@@ -1258,7 +1254,7 @@ export default function AdminHotels() {
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '';
                           (e.target as HTMLImageElement).alt = 'Imagen no disponible';
-                          (e.target as HTMLImageElement).className = 'w-full h-32 bg-gray-100 flex items-center justify-center';
+                          (e.target as HTMLImageElement).className = 'w-full h-32 bg-muted flex items-center justify-center';
                         }}
                       />
                       {/* Index badge */}
@@ -1287,7 +1283,7 @@ export default function AdminHotels() {
               {/* Add by URL */}
               <Separator />
               <div className="space-y-2">
-                <Label className="text-xs text-gray-500 flex items-center gap-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Link2 className="w-3 h-3" />
                   Agregar imagen por URL
                 </Label>
@@ -1339,7 +1335,7 @@ export default function AdminHotels() {
                   }
                   placeholder="wifi, pool, restaurant, spa, gym, parking"
                 />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   IDs de amenidades: wifi, pool, restaurant, parking, gym, spa,
                   ac, breakfast, bar, reception, transfer, sea-view
                 </p>
@@ -1387,10 +1383,10 @@ export default function AdminHotels() {
             <TabsContent value="rooms" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-foreground">
                     Habitaciones del hotel
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {form.rooms.length} habitación
                     {form.rooms.length !== 1 ? 'es' : ''} configurada
                     {form.rooms.length !== 1 ? 's' : ''}
@@ -1401,7 +1397,6 @@ export default function AdminHotels() {
                   variant="outline"
                   size="sm"
                   onClick={addRoom}
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
                 >
                   <Plus className="w-4 h-4 mr-1.5" />
                   Agregar habitación
@@ -1422,7 +1417,7 @@ export default function AdminHotels() {
               </div>
 
               {form.rooms.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-muted-foreground">
                   <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No hay habitaciones configuradas</p>
                   <Button
@@ -1430,7 +1425,7 @@ export default function AdminHotels() {
                     variant="outline"
                     size="sm"
                     onClick={addRoom}
-                    className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-50"
+                    className="mt-3"
                   >
                     <Plus className="w-4 h-4 mr-1.5" />
                     Agregar primera habitación
@@ -1462,15 +1457,11 @@ export default function AdminHotels() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
-            >
+            <Button onClick={handleSave} disabled={saving}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
             </Button>
           </div>
@@ -1491,7 +1482,7 @@ export default function AdminHotels() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

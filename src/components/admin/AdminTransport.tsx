@@ -199,13 +199,13 @@ function TagInput({
             <Badge
               key={idx}
               variant="secondary"
-              className="pl-2 pr-1 py-1 gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+              className="pl-2 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground hover:bg-accent"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(idx)}
-                className="ml-0.5 rounded-full hover:bg-amber-200 p-0.5 transition-colors"
+                className="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -458,11 +458,11 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Car className="w-6 h-6 text-amber-600" />
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Car className="w-6 h-6 text-primary" />
           Transporte
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Gestiona proveedores y servicios de transporte
         </p>
       </div>
@@ -482,10 +482,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
         {/* ═══ PROVIDERS TAB ═══ */}
         <TabsContent value="providers" className="space-y-4 mt-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <Card className="border-0 shadow-sm flex-1">
+            <Card className="flex-1">
               <CardContent className="p-4">
                 <div className="relative max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar proveedor..."
                     value={providerSearch}
@@ -495,16 +495,13 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 </div>
               </CardContent>
             </Card>
-            <Button
-              onClick={handleProviderCreate}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-            >
+            <Button onClick={handleProviderCreate}>
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Proveedor
             </Button>
           </div>
 
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 {providersLoading ? (
@@ -530,7 +527,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     <TableBody>
                       {filteredProviders.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-gray-400">
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                             {providerSearch ? 'No se encontraron resultados' : 'No hay proveedores registrados'}
                           </TableCell>
                         </TableRow>
@@ -538,22 +535,22 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                         filteredProviders.map((p) => (
                           <TableRow key={p.id}>
                             <TableCell className="font-medium text-sm">{p.name}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{p.legalName || '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{p.legalName || '—'}</TableCell>
                             <TableCell>
                               <Badge variant="secondary" className="text-xs">
                                 {vehicleTypeLabels[p.vehicleType] || p.vehicleType}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-sm">{p.capacity}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{p.phone || '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{p.phone || '—'}</TableCell>
                             <TableCell className="text-sm">{p._count?.services || 0}</TableCell>
                             <TableCell>
                               {p.active ? (
-                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">
+                                <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                                   Activo
                                 </Badge>
                               ) : (
-                                <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                                <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
                                   Inactivo
                                 </Badge>
                               )}
@@ -563,7 +560,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
                                   onClick={() => handleProviderEdit(p)}
                                 >
                                   <Pencil className="w-4 h-4" />
@@ -571,7 +568,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-gray-500 hover:text-red-600"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                   onClick={() => {
                                     setDeletingProviderId(p.id);
                                     setProviderDeleteOpen(true);
@@ -595,10 +592,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
         {/* ═══ SERVICES TAB ═══ */}
         <TabsContent value="services" className="space-y-4 mt-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <Card className="border-0 shadow-sm flex-1">
+            <Card className="flex-1">
               <CardContent className="p-4">
                 <div className="relative max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar servicio..."
                     value={serviceSearch}
@@ -610,7 +607,6 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             </Card>
             <Button
               onClick={handleServiceCreate}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
               disabled={providers.length === 0}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -618,7 +614,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             </Button>
           </div>
 
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 {servicesLoading ? (
@@ -646,7 +642,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     <TableBody>
                       {filteredServices.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={10} className="text-center py-8 text-gray-400">
+                          <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                             {serviceSearch
                               ? 'No se encontraron resultados'
                               : providers.length === 0
@@ -658,7 +654,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                         filteredServices.map((s) => (
                           <TableRow key={s.id}>
                             <TableCell className="font-medium text-sm">{s.name || '—'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-muted-foreground">
                               {s.provider?.name || '—'}
                             </TableCell>
                             <TableCell>
@@ -666,20 +662,20 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                                 {routeTypeLabels[s.routeType] || s.routeType}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">{s.origin || '—'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{s.destination || '—'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{s.cityName || '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{s.origin || '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{s.destination || '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{s.cityName || '—'}</TableCell>
                             <TableCell className="text-sm">{s.durationMins} min</TableCell>
                             <TableCell className="text-sm font-semibold">
                               {formatCOP(s.basePrice)}
                             </TableCell>
                             <TableCell>
                               {s.active ? (
-                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">
+                                <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                                   Activo
                                 </Badge>
                               ) : (
-                                <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 text-xs">
+                                <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
                                   Inactivo
                                 </Badge>
                               )}
@@ -689,7 +685,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
                                   onClick={() => handleServiceEdit(s)}
                                 >
                                   <Pencil className="w-4 h-4" />
@@ -697,7 +693,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-gray-500 hover:text-red-600"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                   onClick={() => {
                                     setDeletingServiceId(s.id);
                                     setServiceDeleteOpen(true);
@@ -765,7 +761,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               <div className="space-y-2">
                 <Label>Teléfono</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={providerForm.phone}
                     onChange={(e) => setProviderForm((p) => ({ ...p, phone: e.target.value }))}
@@ -779,7 +775,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             <div className="space-y-2">
               <Label>Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="email"
                   value={providerForm.email}
@@ -812,7 +808,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               <div className="space-y-2">
                 <Label>Capacidad</Label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="number"
                     min="1"
@@ -839,11 +835,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               >
                 Cancelar
               </Button>
-              <Button
-                onClick={handleProviderSave}
-                disabled={providerSaving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleProviderSave} disabled={providerSaving}>
                 {providerSaving ? 'Guardando...' : editingProvider ? 'Actualizar' : 'Crear'}
               </Button>
             </div>
@@ -1024,11 +1016,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               <Button variant="outline" onClick={() => setServiceDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleServiceSave}
-                disabled={serviceSaving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleServiceSave} disabled={serviceSaving}>
                 {serviceSaving ? 'Guardando...' : editingService ? 'Actualizar' : 'Crear'}
               </Button>
             </div>
@@ -1050,7 +1038,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleProviderDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>
@@ -1071,7 +1059,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleServiceDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

@@ -33,11 +33,11 @@ export default function AdminDetailRoutePlaceholder({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-accent text-accent-foreground border border-border">
             <Route className="w-4 h-4" />
             <span className="text-sm font-medium">ID detectado: {id}</span>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Esta URL ya es navegable y puede enlazarse desde tablas/listados para edición o detalle por entidad.
           </p>
         </CardContent>

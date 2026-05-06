@@ -270,28 +270,25 @@ export default function AdminPackages() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Package className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Package className="w-6 h-6 text-primary" />
             Paquetes
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona los paquetes turísticos disponibles
           </p>
         </div>
-        <Button
-          onClick={handleOpenCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
-        >
+        <Button onClick={handleOpenCreate}>
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Paquete
         </Button>
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por título o destino..."
               value={search}
@@ -303,7 +300,7 @@ export default function AdminPackages() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -330,7 +327,7 @@ export default function AdminPackages() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-400">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         {search ? 'No se encontraron resultados' : 'No hay paquetes registrados'}
                       </TableCell>
                     </TableRow>
@@ -340,20 +337,20 @@ export default function AdminPackages() {
                         <TableCell className="font-medium text-sm max-w-[200px] truncate">
                           {pkg.title}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">{pkg.destinationName}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{pkg.destinationName}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {pkg.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500 whitespace-nowrap">
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                           {pkg.duration}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="text-sm font-semibold">{formatCOP(pkg.price)}</span>
                             {pkg.originalPrice && (
-                              <span className="text-xs text-gray-400 line-through">
+                              <span className="text-xs text-muted-foreground line-through">
                                 {formatCOP(pkg.originalPrice)}
                               </span>
                             )}
@@ -367,24 +364,24 @@ export default function AdminPackages() {
                         </TableCell>
                         <TableCell>
                           {pkg.soldOut ? (
-                            <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">
+                            <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10 text-xs">
                               Agotado
                             </Badge>
                           ) : (
-                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs">
+                            <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Disponible
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium text-amber-600">{pkg.commission}%</span>
+                          <span className="text-sm font-medium text-primary">{pkg.commission}%</span>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-amber-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleOpenEdit(pkg)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -392,7 +389,7 @@ export default function AdminPackages() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-500 hover:text-red-600"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
                                 setDeletingId(pkg.id);
                                 setDeleteDialogOpen(true);
@@ -427,7 +424,7 @@ export default function AdminPackages() {
           <div className="space-y-5 pt-2">
             {/* Basic Info */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Información Básica</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Información Básica</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="pkg-title">Título *</Label>
@@ -535,7 +532,7 @@ export default function AdminPackages() {
 
             {/* Description */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Descripción</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Descripción</h3>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
@@ -546,7 +543,7 @@ export default function AdminPackages() {
 
             {/* Pricing */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Precios y Comisión</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Precios y Comisión</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="pkg-price">Precio (COP)</Label>
@@ -586,9 +583,9 @@ export default function AdminPackages() {
 
             {/* Image */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Imagen</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Imagen</h3>
               {form.image ? (
-                <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+                <div className="relative group rounded-lg overflow-hidden border border-border">
                   <img
                     src={form.image}
                     alt="Vista previa"
@@ -632,24 +629,24 @@ export default function AdminPackages() {
                   className={cn(
                     'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                     dragOver
-                      ? 'border-amber-400 bg-amber-50'
-                      : 'border-gray-300 hover:border-amber-300 hover:bg-gray-50',
+                      ? 'border-ring bg-accent'
+                      : 'border-border hover:border-ring/60 hover:bg-accent/50',
                     uploading && 'pointer-events-none opacity-60'
                   )}
                 >
                   {uploading ? (
                     <div className="space-y-2">
-                      <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
-                      <p className="text-sm text-gray-500">Subiendo imagen...</p>
+                      <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+                      <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <ImagePlus className="w-8 h-8 text-gray-400 mx-auto" />
-                      <p className="text-sm text-gray-500">
+                      <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
+                      <p className="text-sm text-muted-foreground">
                         Arrastra una imagen o{' '}
-                        <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                        <span className="text-primary font-medium">haz clic para seleccionar</span>
                       </p>
-                      <p className="text-xs text-gray-400">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
                     </div>
                   )}
                 </div>
@@ -668,7 +665,7 @@ export default function AdminPackages() {
 
             {/* Includes */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Qué Incluye</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Qué Incluye</h3>
               <Textarea
                 value={form.includes.join('\n')}
                 onChange={(e) =>
@@ -680,12 +677,12 @@ export default function AdminPackages() {
                 placeholder="Alojamiento en hotel boutique 4★&#10;Desayuno buffet diario&#10;Tour privado Ciudad Amurallada"
                 rows={5}
               />
-              <p className="text-xs text-gray-400 mt-1">Un item por línea</p>
+              <p className="text-xs text-muted-foreground mt-1">Un item por línea</p>
             </div>
 
             {/* Departure Dates */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Fechas de Salida</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Fechas de Salida</h3>
               <Input
                 value={form.departureDates.join(', ')}
                 onChange={(e) =>
@@ -696,7 +693,7 @@ export default function AdminPackages() {
                 }
                 placeholder="2025-07-15, 2025-08-10, 2025-09-05"
               />
-              <p className="text-xs text-gray-400 mt-1">Fechas separadas por coma (YYYY-MM-DD)</p>
+              <p className="text-xs text-muted-foreground mt-1">Fechas separadas por coma (YYYY-MM-DD)</p>
             </div>
 
             {/* Toggles */}
@@ -717,15 +714,11 @@ export default function AdminPackages() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
               </Button>
             </div>
@@ -746,7 +739,7 @@ export default function AdminPackages() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

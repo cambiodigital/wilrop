@@ -213,6 +213,52 @@
   --sidebar-ring: var(--brand-gold);
 }
 
+/* Admin panel: force a clear theme scoped to the admin layout only */
+.admin-theme {
+  --background: #f7f8fa;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: var(--brand-gold);
+  --primary-foreground: var(--brand-ink);
+
+  --secondary: #eef2f7;
+  --secondary-foreground: #162a45;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+
+  --accent: #eef2f7;
+  --accent-foreground: #162a45;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: var(--brand-gold-hover);
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: var(--brand-gold);
+  --sidebar-primary-foreground: var(--brand-ink);
+  --sidebar-accent: #eef2f7;
+  --sidebar-accent-foreground: #162a45;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: var(--brand-gold-hover);
+}
+
+.admin-theme [data-slot="button"].bg-primary {
+  color: var(--primary-foreground);
+}
+
+.admin-theme [data-slot="button"].bg-secondary {
+  color: var(--secondary-foreground);
+}
+
 /* ── Base layer ──────────────────────────────────────────────── */
 @layer base {
   * {

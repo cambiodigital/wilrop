@@ -236,7 +236,7 @@ export default function AdminBookings() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
-          <CalendarCheck className="w-6 h-6 text-amber-600" />
+          <CalendarCheck className="w-6 h-6 text-primary" />
           Reservas
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -246,11 +246,11 @@ export default function AdminBookings() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <CalendarCheck className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                <CalendarCheck className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Reservas</p>
@@ -259,7 +259,7 @@ export default function AdminBookings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center">
@@ -272,7 +272,7 @@ export default function AdminBookings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
@@ -285,7 +285,7 @@ export default function AdminBookings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -301,7 +301,7 @@ export default function AdminBookings() {
       </div>
 
       {/* Filters */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
             <div className="relative flex-1 max-w-sm">
@@ -333,7 +333,7 @@ export default function AdminBookings() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {loading ? (
@@ -369,7 +369,7 @@ export default function AdminBookings() {
                   ) : (
                     filtered.map((b) => (
                       <TableRow key={b.id}>
-                        <TableCell className="font-mono font-semibold text-sm text-amber-700">
+                        <TableCell className="font-mono font-semibold text-sm text-primary">
                           {b.code}
                         </TableCell>
                         <TableCell>
@@ -413,7 +413,7 @@ export default function AdminBookings() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-amber-600"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
                             onClick={() => handleViewDetail(b)}
                           >
                             <Eye className="w-4 h-4" />
@@ -436,7 +436,7 @@ export default function AdminBookings() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
-                  <span className="font-mono text-amber-700">{selectedBooking.code}</span>
+                  <span className="font-mono text-primary">{selectedBooking.code}</span>
                   <StatusBadge status={selectedBooking.status} />
                 </DialogTitle>
                 <DialogDescription>Detalle completo de la reserva</DialogDescription>

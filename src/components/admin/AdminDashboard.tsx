@@ -85,36 +85,36 @@ export default function AdminDashboard() {
       title: 'Total Destinos',
       value: stats?.totalDestinations ?? 0,
       icon: <MapPin className="w-5 h-5" />,
-      color: 'bg-blue-50 text-blue-600',
-      iconBg: 'bg-blue-100',
+      color: 'text-blue-600',
+      iconBg: 'bg-blue-50',
     },
     {
       title: 'Total Hoteles',
       value: stats?.totalHotels ?? 0,
       icon: <Building2 className="w-5 h-5" />,
-      color: 'bg-purple-50 text-purple-600',
-      iconBg: 'bg-purple-100',
+      color: 'text-purple-600',
+      iconBg: 'bg-purple-50',
     },
     {
       title: 'Total Paquetes',
       value: stats?.totalPackages ?? 0,
       icon: <Package className="w-5 h-5" />,
-      color: 'bg-emerald-50 text-emerald-600',
-      iconBg: 'bg-emerald-100',
+      color: 'text-emerald-600',
+      iconBg: 'bg-emerald-50',
     },
     {
       title: 'Hoteles Destacados',
       value: stats?.featuredHotels ?? 0,
       icon: <Star className="w-5 h-5" />,
-      color: 'bg-amber-50 text-amber-600',
-      iconBg: 'bg-amber-100',
+      color: 'text-primary',
+      iconBg: 'bg-accent',
     },
     {
       title: 'Paquetes Agotados',
       value: stats?.soldOutPackages ?? 0,
       icon: <AlertTriangle className="w-5 h-5" />,
-      color: 'bg-red-50 text-red-600',
-      iconBg: 'bg-red-100',
+      color: 'text-destructive',
+      iconBg: 'bg-destructive/10',
     },
   ];
 
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
             <p className="text-red-700 font-medium">{error}</p>
             <button
               onClick={fetchStats}
-              className="mt-3 text-sm text-amber-600 hover:text-amber-700 font-medium underline"
+              className="mt-3 text-sm text-primary font-medium underline"
             >
               Reintentar
             </button>
@@ -141,8 +141,8 @@ export default function AdminDashboard() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Resumen general de la plataforma WILROP Colombia Travel
         </p>
       </motion.div>
@@ -156,15 +156,15 @@ export default function AdminDashboard() {
       >
         {statCards.map((card) => (
           <motion.div key={card.title} variants={fadeUp}>
-            <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">{card.title}</p>
+                    <p className="text-xs text-muted-foreground font-medium">{card.title}</p>
                     {loading ? (
                       <Skeleton className="h-8 w-16 mt-1" />
                     ) : (
-                      <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{card.value}</p>
                     )}
                   </div>
                   <div className={`w-10 h-10 rounded-xl ${card.iconBg} flex items-center justify-center ${card.color}`}>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
+              <TrendingUp className="w-5 h-5 text-primary" />
               <CardTitle className="text-lg">Paquetes Recientes</CardTitle>
             </div>
             <CardDescription>Los últimos 5 paquetes registrados</CardDescription>
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                     {stats.recentPackages.map((pkg) => (
                       <TableRow key={pkg.id}>
                         <TableCell className="font-medium text-sm">{pkg.title}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{pkg.destinationName}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{pkg.destinationName}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {pkg.category}
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                               Agotado
                             </Badge>
                           ) : (
-                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs">
+                            <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Disponible
                             </Badge>
                           )}
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                 </Table>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No hay paquetes registrados</p>
               </div>

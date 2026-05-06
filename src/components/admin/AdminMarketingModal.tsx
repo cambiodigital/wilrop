@@ -193,7 +193,7 @@ export default function AdminMarketingModal() {
       >
         <div>
           <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-amber-600" />
+            <Megaphone className="w-6 h-6 text-primary" />
             Modal de Marketing
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -224,7 +224,6 @@ export default function AdminMarketingModal() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Guardando...' : 'Guardar'}
@@ -236,10 +235,10 @@ export default function AdminMarketingModal() {
         {/* Left column — Form */}
         <div className="lg:col-span-2 space-y-6">
           {/* Activation */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-amber-600" />
+                <Eye className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base">Visibilidad</CardTitle>
               </div>
             </CardHeader>
@@ -260,10 +259,10 @@ export default function AdminMarketingModal() {
           </Card>
 
           {/* Content */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <Type className="w-4 h-4 text-amber-600" />
+                <Type className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base">Contenido</CardTitle>
               </div>
               <CardDescription>
@@ -353,14 +352,14 @@ export default function AdminMarketingModal() {
                     className={cn(
                       'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                       dragOver
-                        ? 'border-amber-400 bg-amber-50'
-                        : 'border-input hover:border-amber-300 hover:bg-muted',
+                        ? 'border-ring bg-accent'
+                        : 'border-input hover:border-ring/60 hover:bg-accent/50',
                       uploading && 'pointer-events-none opacity-60'
                     )}
                   >
                     {uploading ? (
                       <div className="space-y-2">
-                        <div className="animate-spin w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full mx-auto" />
+                        <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
                         <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
                       </div>
                     ) : (
@@ -368,7 +367,7 @@ export default function AdminMarketingModal() {
                         <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
                         <p className="text-sm text-muted-foreground">
                           Arrastra una imagen o{' '}
-                          <span className="text-amber-600 font-medium">haz clic para seleccionar</span>
+                          <span className="text-primary font-medium">haz clic para seleccionar</span>
                         </p>
                         <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
                       </div>
@@ -390,10 +389,10 @@ export default function AdminMarketingModal() {
           </Card>
 
           {/* CTA */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <MousePointerClick className="w-4 h-4 text-amber-600" />
+                <MousePointerClick className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base">Botón de Acción (CTA)</CardTitle>
               </div>
             </CardHeader>
@@ -445,10 +444,10 @@ export default function AdminMarketingModal() {
         {/* Right column — Settings & Preview */}
         <div className="space-y-6">
           {/* Timer Settings */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-600" />
+                <Clock className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base">Temporizador</CardTitle>
               </div>
               <CardDescription>
@@ -507,10 +506,10 @@ export default function AdminMarketingModal() {
           </Card>
 
           {/* Display Settings */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <LayoutGrid className="w-4 h-4 text-amber-600" />
+                <LayoutGrid className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base">Visualización</CardTitle>
               </div>
             </CardHeader>
@@ -550,9 +549,9 @@ export default function AdminMarketingModal() {
 
               <Separator className="my-2" />
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-xs text-amber-700 font-medium mb-1">Comportamiento</p>
-                <ul className="text-xs text-amber-600 space-y-1">
+              <div className="bg-accent border border-border rounded-lg p-3">
+                <p className="text-xs text-foreground font-medium mb-1">Comportamiento</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Se muestra una vez por sesión del navegador</li>
                   <li>• Si el usuario cierra el popup, no vuelve en la misma sesión</li>
                   <li>• Si pasan 24 horas, se vuelve a mostrar</li>
@@ -570,9 +569,9 @@ export default function AdminMarketingModal() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="border-2 border-dashed border-amber-300 bg-amber-50/30">
+          <Card className="border-2 border-dashed border-border bg-accent/30">
             <CardHeader>
-              <CardTitle className="text-base text-amber-700">
+              <CardTitle className="text-base text-foreground">
                 👁️ Vista Previa del Modal
               </CardTitle>
               <CardDescription>
@@ -580,9 +579,9 @@ export default function AdminMarketingModal() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="relative bg-black/40 rounded-xl overflow-hidden" style={{ minHeight: 320 }}>
+              <div className="relative bg-black/40 rounded-xl overflow-hidden min-h-[320px]">
                 <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+                  <div className="relative bg-card text-card-foreground rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
                     {config.imageUrl && (
                       <div className="relative h-40">
                         <img
@@ -598,7 +597,7 @@ export default function AdminMarketingModal() {
                     )}
                     <div className="p-5">
                       {config.subtitle && (
-                        <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
                           {config.subtitle}
                         </p>
                       )}
@@ -609,16 +608,16 @@ export default function AdminMarketingModal() {
                         {config.description || 'Descripción de la oferta...'}
                       </p>
                       {config.timerEnabled && config.timerEnd && (
-                        <div className="bg-amber-50 rounded-lg p-2.5 mb-4 text-center">
-                          <p className="text-[10px] text-amber-600 uppercase tracking-wider font-medium">
+                        <div className="bg-accent rounded-lg p-2.5 mb-4 text-center border border-border">
+                          <p className="text-[10px] text-primary uppercase tracking-wider font-medium">
                             {config.timerLabel}
                           </p>
-                          <p className="text-lg font-bold text-amber-700 font-mono">
+                          <p className="text-lg font-bold text-foreground font-mono">
                             23:59:59
                           </p>
                         </div>
                       )}
-                      <button className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-amber-500/25">
+                      <button className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold text-sm shadow-sm">
                         {config.ctaText || 'Ver Oferta'}
                       </button>
                     </div>

@@ -91,7 +91,7 @@ function getAvailable(totalRooms: number, bookedRooms: number): number {
 }
 
 function getAvailabilityColor(available: number, total: number): string {
-  if (total === 0) return 'text-gray-400';
+  if (total === 0) return 'text-muted-foreground';
   const ratio = available / total;
   if (ratio === 0) return 'text-red-600 bg-red-50';
   if (ratio <= 0.2) return 'text-yellow-600 bg-yellow-50';
@@ -99,7 +99,7 @@ function getAvailabilityColor(available: number, total: number): string {
 }
 
 function getAvailabilityBadge(available: number, total: number) {
-  if (total === 0) return <span className="text-xs text-gray-400">—</span>;
+  if (total === 0) return <span className="text-xs text-muted-foreground">—</span>;
   if (available === 0)
     return (
       <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs font-semibold">
@@ -310,17 +310,16 @@ export default function AdminAllotments() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Warehouse className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Warehouse className="w-6 h-6 text-primary" />
             Cupos (Allotments)
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona la disponibilidad de habitaciones por hotel
           </p>
         </div>
         <Button
           onClick={handleCreate}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
           disabled={!selectedHotelId}
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -329,11 +328,11 @@ export default function AdminAllotments() {
       </div>
 
       {/* Hotel Selector */}
-      <Card className="border-0 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
             <div className="flex-1 space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Hotel</Label>
+              <Label className="text-sm font-medium text-foreground">Hotel</Label>
               <Select value={selectedHotelId} onValueChange={handleHotelChange}>
                 <SelectTrigger className="max-w-sm">
                   <SelectValue placeholder="Selecciona un hotel..." />
@@ -349,7 +348,7 @@ export default function AdminAllotments() {
             </div>
             {selectedHotelId && (
               <div className="relative max-w-sm flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por tipo de habitación..."
                   value={search}
@@ -366,54 +365,54 @@ export default function AdminAllotments() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Card className="border-0 shadow-sm">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                    <BedDouble className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <BedDouble className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Habitaciones</p>
-                    <p className="text-lg font-bold text-gray-900">{rooms.length}</p>
+                    <p className="text-xs text-muted-foreground">Habitaciones</p>
+                    <p className="text-lg font-bold text-foreground">{rooms.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                     <CalendarDays className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Total Cupos</p>
-                    <p className="text-lg font-bold text-gray-900">{totalCupos}</p>
+                    <p className="text-xs text-muted-foreground">Total Cupos</p>
+                    <p className="text-lg font-bold text-foreground">{totalCupos}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
                     <Warehouse className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Disponibles</p>
+                    <p className="text-xs text-muted-foreground">Disponibles</p>
                     <p className="text-lg font-bold text-green-600">{totalAvailable}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
                     <Building2 className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Activos</p>
-                    <p className="text-lg font-bold text-gray-900">{activeAllotments}</p>
+                    <p className="text-xs text-muted-foreground">Activos</p>
+                    <p className="text-lg font-bold text-foreground">{activeAllotments}</p>
                   </div>
                 </div>
               </CardContent>
@@ -421,7 +420,7 @@ export default function AdminAllotments() {
           </div>
 
           {/* Allotments Table */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 {allotmentsLoading ? (
@@ -449,7 +448,7 @@ export default function AdminAllotments() {
                     <TableBody>
                       {filteredAllotments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={10} className="text-center py-8 text-gray-400">
+                          <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                             {search
                               ? 'No se encontraron resultados'
                               : rooms.length === 0
@@ -465,11 +464,11 @@ export default function AdminAllotments() {
                               <TableCell className="font-medium text-sm">
                                 {a.roomType?.name || '—'}
                               </TableCell>
-                              <TableCell className="text-sm text-gray-500">{a.dateFrom}</TableCell>
-                              <TableCell className="text-sm text-gray-500">{a.dateTo}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{a.dateFrom}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{a.dateTo}</TableCell>
                               <TableCell className="text-sm text-center">{a.totalRooms}</TableCell>
                               <TableCell className="text-sm text-center">
-                                <span className="font-semibold text-gray-700">{a.bookedRooms}</span>
+                                <span className="font-semibold text-foreground">{a.bookedRooms}</span>
                               </TableCell>
                               <TableCell className="text-center">
                                 {getAvailabilityBadge(available, a.totalRooms)}
@@ -477,7 +476,7 @@ export default function AdminAllotments() {
                               <TableCell className="text-sm font-semibold">
                                 {formatCOP(a.netPrice)}
                               </TableCell>
-                              <TableCell className="text-sm text-gray-500">
+                              <TableCell className="text-sm text-muted-foreground">
                                 {a.releaseDays} días
                               </TableCell>
                               <TableCell>
@@ -485,10 +484,10 @@ export default function AdminAllotments() {
                                   className={cn(
                                     'text-xs',
                                     a.status === 'active'
-                                      ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                      ? 'bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10'
                                       : a.status === 'paused'
                                         ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
-                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-100'
+                                        : 'bg-muted text-muted-foreground hover:bg-muted'
                                   )}
                                 >
                                   {statusLabels[a.status] || a.status}
@@ -498,7 +497,7 @@ export default function AdminAllotments() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-gray-500 hover:text-red-600"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                   onClick={() => {
                                     setDeletingId(a.id);
                                     setDeleteDialogOpen(true);
@@ -521,11 +520,11 @@ export default function AdminAllotments() {
       )}
 
       {!selectedHotelId && !loading && (
-        <Card className="border-0 shadow-sm">
+        <Card>
           <CardContent className="p-12 text-center">
-            <Warehouse className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">Selecciona un hotel para ver sus cupos</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <Warehouse className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">Selecciona un hotel para ver sus cupos</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Administra la disponibilidad de habitaciones por rangos de fechas
             </p>
           </CardContent>
@@ -614,7 +613,7 @@ export default function AdminAllotments() {
                   value={form.releaseDays}
                   onChange={(e) => setForm((f) => ({ ...f, releaseDays: Number(e.target.value) }))}
                 />
-                <p className="text-xs text-gray-400">Días antes del check-in para liberar</p>
+                <p className="text-xs text-muted-foreground">Días antes del check-in para liberar</p>
               </div>
             </div>
 
@@ -627,18 +626,14 @@ export default function AdminAllotments() {
                 onChange={(e) => setForm((f) => ({ ...f, netPrice: Number(e.target.value) }))}
                 placeholder="0"
               />
-              <p className="text-xs text-gray-400">Precio negociado con el hotel</p>
+              <p className="text-xs text-muted-foreground">Precio negociado con el hotel</p>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? 'Creando...' : 'Crear Cupo'}
               </Button>
             </div>
@@ -659,7 +654,7 @@ export default function AdminAllotments() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>
