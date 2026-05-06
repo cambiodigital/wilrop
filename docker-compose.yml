@@ -1,15 +1,14 @@
 services:
 
-  # ─── Aplicación Next.js ────────────────────────────────────────────────────
-  app:
+  # ─── Job de migraciones (1 vez) ────────────────────────────────────────────
+  migrate:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: wilrop-app
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
+    container_name: wilrop-migrate
+    restart: "no"
+    command: ["migrate"]
+    environment: &wilrop_app_env
       # Prisma construye la URL internamente a partir de estas variables
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       NODE_ENV: production
@@ -21,11 +20,30 @@ services:
       WILROP_ADMIN_PASSWORD: ${WILROP_ADMIN_PASSWORD:-}
       WILROP_ADMIN_NAME: ${WILROP_ADMIN_NAME:-Administrador WILROP}
       WILROP_ADMIN_RESET_PASSWORD: ${WILROP_ADMIN_RESET_PASSWORD:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wilrop-net
+
+  # ─── Aplicación Next.js ────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wilrop-app
+    restart: unless-stopped
+    command: ["web"]
+    ports:
+      - "3000:3000"
+    environment: *wilrop_app_env
     volumes:
       - wilrop-uploads:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - wilrop-net
 

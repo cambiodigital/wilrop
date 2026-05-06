@@ -2,13 +2,16 @@
 # docker-entrypoint.sh - runs when the container starts
 set -e
 
+MODE="${1:-all}"
+
 echo "----------------------------------------------"
-echo " Wilrop - Docker Entrypoint"
+echo " Wilrop - Docker Entrypoint (mode: ${MODE})"
 echo "----------------------------------------------"
 
-echo "[pre] Checking reseller migration repair..."
-set +e
-node <<'NODE'
+run_migration_repair() {
+  echo "[pre] Checking reseller migration repair..."
+  set +e
+  node <<'NODE'
 const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
@@ -65,25 +68,59 @@ main()
     process.exit(1)
   })
 NODE
-repair_status=$?
-set -e
+  repair_status=$?
+  set -e
 
-if [ "$repair_status" -eq 10 ]; then
-  echo "[pre] Marking reseller migration as applied after repair..."
-  node /app/node_modules/prisma/build/index.js migrate resolve --applied 20260504120000_add_reseller_capabilities
-elif [ "$repair_status" -eq 20 ]; then
-  echo "[pre] Marking reseller migration as rolled back so migrate deploy can apply it again..."
-  node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back 20260504120000_add_reseller_capabilities
-elif [ "$repair_status" -ne 0 ]; then
-  echo "[pre] Reseller migration repair failed."
-  exit "$repair_status"
-fi
+  if [ "$repair_status" -eq 10 ]; then
+    echo "[pre] Marking reseller migration as applied after repair..."
+    node /app/node_modules/prisma/build/index.js migrate resolve --applied 20260504120000_add_reseller_capabilities
+  elif [ "$repair_status" -eq 20 ]; then
+    echo "[pre] Marking reseller migration as rolled back so migrate deploy can apply it again..."
+    node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back 20260504120000_add_reseller_capabilities
+  elif [ "$repair_status" -ne 0 ]; then
+    echo "[pre] Reseller migration repair failed."
+    exit "$repair_status"
+  fi
+}
 
-echo "[1/3] Applying Prisma migrations..."
-node /app/node_modules/prisma/build/index.js migrate deploy
+run_migrations() {
+  step_label="${1:-[migrate]}"
+  echo "${step_label} Applying Prisma migrations..."
+  node /app/node_modules/prisma/build/index.js migrate deploy
+}
 
-echo "[2/3] Ensuring admin bootstrap account..."
-node /app/scripts/ensure-admin.mjs
+run_admin_bootstrap() {
+  step_label="${1:-[admin]}"
+  echo "${step_label} Ensuring admin bootstrap account..."
+  node /app/scripts/ensure-admin.mjs
+}
 
-echo "[3/3] Starting Next.js server on port ${PORT:-3000}..."
-exec node /app/server.js
+run_web() {
+  echo "[web] Starting Next.js server on port ${PORT:-3000}..."
+  exec node /app/server.js
+}
+
+case "$MODE" in
+  migrate)
+    run_migration_repair
+    run_migrations "[1/2]"
+    run_admin_bootstrap "[2/2]"
+    echo "[done] Migrations/admin bootstrap completed."
+    exit 0
+    ;;
+  web)
+    run_web
+    ;;
+  all)
+    run_migration_repair
+    run_migrations "[1/3]"
+    run_admin_bootstrap "[2/3]"
+    echo "[3/3] Starting Next.js server on port ${PORT:-3000}..."
+    exec node /app/server.js
+    ;;
+  *)
+    echo "Unknown mode: $MODE"
+    echo "Usage: docker-entrypoint.sh [all|migrate|web]"
+    exit 2
+    ;;
+esac
