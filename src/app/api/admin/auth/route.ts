@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { encodeAdminSession, getAdminSessionCookie } from '@/lib/admin-auth';
-import { secureCompare } from '@/lib/panel-auth';
+import { hashPassword, shouldUpgradePasswordHash, verifyPassword } from '@/lib/password.mjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,11 +27,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!secureCompare(admin.password, password)) {
+    if (!(await verifyPassword(admin.password, password))) {
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
         { status: 401 }
       );
+    }
+
+    if (shouldUpgradePasswordHash(admin.password)) {
+      try {
+        const upgradedHash = await hashPassword(password);
+        await db.admin.update({
+          where: { id: admin.id },
+          data: { password: upgradedHash },
+        });
+      } catch {}
     }
 
     const sessionValue = encodeAdminSession({

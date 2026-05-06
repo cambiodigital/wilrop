@@ -1,5 +1,6 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+export { secureCompare } from './secure-compare.mjs'
 
 export type PanelRole = 'admin' | 'reseller' | 'subagent'
 
@@ -52,12 +53,6 @@ function safeNumber(value: unknown): number | undefined {
 
 function safeBoolean(value: unknown): boolean | undefined {
   return typeof value === 'boolean' ? value : undefined
-}
-
-export function secureCompare(left: string, right: string): boolean {
-  const leftHash = createHash('sha256').update(left, 'utf8').digest()
-  const rightHash = createHash('sha256').update(right, 'utf8').digest()
-  return timingSafeEqual(leftHash, rightHash)
 }
 
 export function getPanelSessionCookieName(role: PanelRole): string {

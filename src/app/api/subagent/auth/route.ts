@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { createPanelSessionToken, getPanelSessionCookie, secureCompare } from '@/lib/panel-auth';
+import { createPanelSessionToken, getPanelSessionCookie } from '@/lib/panel-auth';
 import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access';
+import { hashPassword, shouldUpgradePasswordHash, verifyPassword } from '@/lib/password.mjs';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
 
     if (!email || !password) {
       return NextResponse.json(
@@ -26,11 +28,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!secureCompare(subagent.password, password)) {
+    if (!(await verifyPassword(subagent.password, password))) {
       return NextResponse.json(
         { success: false, error: 'Credenciales inválidas' },
         { status: 401 }
       );
+    }
+
+    if (shouldUpgradePasswordHash(subagent.password)) {
+      try {
+        const upgradedHash = await hashPassword(password);
+        await db.subagent.update({
+          where: { id: subagent.id },
+          data: { password: upgradedHash },
+        });
+      } catch {}
     }
 
     if (!subagent.active) {

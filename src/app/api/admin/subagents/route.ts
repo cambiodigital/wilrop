@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { normalizeResellerLevel } from '@/lib/reseller-access';
+import { hashPassword } from '@/lib/password.mjs';
 
 export async function GET() {
   try {
@@ -51,6 +52,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const hashedPassword = await hashPassword(String(password));
+
     // Check if code or email already exists
     const existingByCode = await db.subagent.findUnique({ where: { code } });
     if (existingByCode) {
@@ -60,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingByEmail = await db.subagent.findUnique({ where: { email } });
+    const existingByEmail = await db.subagent.findUnique({ where: { email: normalizedEmail } });
     if (existingByEmail) {
       return NextResponse.json(
         { success: false, error: 'A subagent with this email already exists' },
@@ -71,8 +75,8 @@ export async function POST(request: NextRequest) {
     const subagent = await db.subagent.create({
       data: {
         code,
-        email,
-        password,
+        email: normalizedEmail,
+        password: hashedPassword,
         agencyName,
         contactName,
         country: country ?? '',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createPanelSessionToken, getPanelSessionCookie, secureCompare } from '@/lib/panel-auth'
 import { db } from '@/lib/db'
 import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access'
+import { hashPassword, shouldUpgradePasswordHash, verifyPassword } from '@/lib/password.mjs'
 
 interface ResellerAccount {
   email: string
@@ -25,7 +26,13 @@ function parseResellerAccounts(rawValue: string): ResellerAccount[] {
       return []
     }
 
-    return [{ email: candidate.email, password: candidate.password, name: candidate.name }]
+    return [
+      {
+        email: candidate.email.trim().toLowerCase(),
+        password: candidate.password,
+        name: candidate.name,
+      },
+    ]
   })
 }
 
@@ -38,7 +45,7 @@ function getResellerAccounts(): ResellerAccount[] {
   if (process.env.WILROP_RESELLER_EMAIL && process.env.WILROP_RESELLER_PASSWORD) {
     return [
       {
-        email: process.env.WILROP_RESELLER_EMAIL,
+        email: process.env.WILROP_RESELLER_EMAIL.trim().toLowerCase(),
         password: process.env.WILROP_RESELLER_PASSWORD,
         name: process.env.WILROP_RESELLER_NAME || 'Socio WILROP',
       },
@@ -61,7 +68,8 @@ function getResellerAccounts(): ResellerAccount[] {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+    const password = typeof body.password === 'string' ? body.password : ''
 
     if (!email || !password) {
       return NextResponse.json(
@@ -75,16 +83,26 @@ export async function POST(request: NextRequest) {
     })
 
     if (subagent) {
-      if (!secureCompare(subagent.password, password)) {
+      if (!(await verifyPassword(subagent.password, password))) {
         return NextResponse.json(
-          { success: false, error: 'Credenciales invÃ¡lidas' },
+          { success: false, error: 'Credenciales inválidas' },
           { status: 401 },
         )
       }
 
+      if (shouldUpgradePasswordHash(subagent.password)) {
+        try {
+          const upgradedHash = await hashPassword(password)
+          await db.subagent.update({
+            where: { id: subagent.id },
+            data: { password: upgradedHash },
+          })
+        } catch {}
+      }
+
       if (!subagent.active) {
         return NextResponse.json(
-          { success: false, error: 'Tu cuenta estÃ¡ desactivada. Contacta al administrador.' },
+          { success: false, error: 'Tu cuenta está desactivada. Contacta al administrador.' },
           { status: 403 },
         )
       }
@@ -134,7 +152,7 @@ export async function POST(request: NextRequest) {
 
     const reseller = accounts.find((account) => secureCompare(account.email, email))
 
-    if (!reseller || !secureCompare(reseller.password, password)) {
+    if (!reseller || !(await verifyPassword(reseller.password, password))) {
       return NextResponse.json(
         { success: false, error: 'Credenciales inválidas' },
         { status: 401 },

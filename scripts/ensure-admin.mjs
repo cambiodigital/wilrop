@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword, isBcryptHash, verifyPassword } from '../src/lib/password.mjs';
 
 const db = new PrismaClient();
 
@@ -32,10 +33,11 @@ async function main() {
   const existingAdmin = await db.admin.findUnique({ where: { email } });
 
   if (!existingAdmin) {
+    const passwordHash = await hashPassword(password);
     await db.admin.create({
       data: {
         email,
-        password,
+        password: passwordHash,
         name,
         role: 'admin',
       },
@@ -45,12 +47,29 @@ async function main() {
   }
 
   if (shouldResetPassword) {
+    const passwordMatches = await verifyPassword(existingAdmin.password, password);
+    if (passwordMatches && existingAdmin.name === name) {
+      console.log(`[admin] Admin account already up to date for ${email}; password unchanged.`);
+      return;
+    }
+
+    const passwordHash = await hashPassword(password);
     await db.admin.update({
       where: { email },
-      data: { password, name },
+      data: { password: passwordHash, name },
     });
     console.log(`[admin] Admin account password reset for ${email}.`);
     return;
+  }
+
+  if (!isBcryptHash(existingAdmin.password) && (await verifyPassword(existingAdmin.password, password))) {
+    try {
+      const passwordHash = await hashPassword(password);
+      await db.admin.update({
+        where: { email },
+        data: { password: passwordHash },
+      });
+    } catch {}
   }
 
   console.log(`[admin] Admin account already exists for ${email}; password unchanged.`);

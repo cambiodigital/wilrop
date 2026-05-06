@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { normalizeResellerLevel } from '@/lib/reseller-access';
+import { hashPassword } from '@/lib/password.mjs';
 
 export async function GET(
   _request: NextRequest,
@@ -65,8 +66,11 @@ export async function PUT(
       }
     }
 
-    if (body.email && body.email !== existing.email) {
-      const existingByEmail = await db.subagent.findUnique({ where: { email: body.email } });
+    const normalizedEmail =
+      typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : undefined;
+
+    if (normalizedEmail && normalizedEmail !== existing.email) {
+      const existingByEmail = await db.subagent.findUnique({ where: { email: normalizedEmail } });
       if (existingByEmail) {
         return NextResponse.json(
           { success: false, error: 'A subagent with this email already exists' },
@@ -78,8 +82,8 @@ export async function PUT(
     const updates: any = {};
 
     if (body.code !== undefined) updates.code = body.code;
-    if (body.email !== undefined) updates.email = body.email;
-    if (body.password !== undefined) updates.password = body.password;
+    if (normalizedEmail !== undefined) updates.email = normalizedEmail;
+    if (body.password !== undefined) updates.password = await hashPassword(String(body.password));
     if (body.agencyName !== undefined) updates.agencyName = body.agencyName;
     if (body.contactName !== undefined) updates.contactName = body.contactName;
     if (body.country !== undefined) updates.country = body.country;

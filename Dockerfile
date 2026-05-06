@@ -63,6 +63,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./no
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
 # Scripts operativos usados por el entrypoint
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/ensure-admin.mjs      ./scripts/ensure-admin.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/password.mjs         ./src/lib/password.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/secure-compare.mjs   ./src/lib/secure-compare.mjs
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./

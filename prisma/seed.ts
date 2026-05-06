@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────────────
 
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from '../src/lib/password.mjs';
 
 const db = new PrismaClient();
 
@@ -23,7 +24,7 @@ async function main() {
   await db.admin.create({
     data: {
       email: 'admin@wilrop.com',
-      password: 'admin123',
+      password: await hashPassword('admin123'),
       name: 'Administrador WILROP',
       role: 'admin',
     },
