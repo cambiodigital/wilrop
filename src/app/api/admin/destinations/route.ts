@@ -27,7 +27,14 @@ function generateSlug(name: string): string {
 
 export async function GET() {
   try {
+    const realCount = await db.destination.count({
+      where: { isTemplate: false },
+    });
+
     const destinations = await db.destination.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
       orderBy: { order: 'asc' },
     });
 
@@ -82,6 +89,7 @@ export async function POST(request: NextRequest) {
         reviewCount: reviewCount ?? 0,
         priceFrom: priceFrom ?? 0,
         active: active ?? true,
+        isTemplate: false,
         order: order ?? 0,
       },
     });

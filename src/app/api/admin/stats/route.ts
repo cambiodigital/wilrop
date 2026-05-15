@@ -11,25 +11,52 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [totalDestinations, totalHotels, totalPackages, totalExcursions, totalTransportServices, featuredHotels, soldOutPackages] =
-      await Promise.all([
-        db.destination.count({ where: { active: true } }),
-        db.hotel.count({ where: { active: true } }),
-        db.travelPackage.count({ where: { active: true } }),
-        db.excursion.count({ where: { active: true } }),
-        db.transportService.count({ where: { active: true } }),
-        db.hotel.count({ where: { featured: true } }),
-        db.travelPackage.count({ where: { soldOut: true } }),
-      ]);
+    const [
+      destinationsRealCount,
+      hotelsRealCount,
+      packagesRealCount,
+      excursionsRealCount,
+      transportServicesRealCount,
+    ] = await Promise.all([
+      db.destination.count({ where: { active: true, isTemplate: false } }),
+      db.hotel.count({ where: { active: true, isTemplate: false } }),
+      db.travelPackage.count({ where: { active: true, isTemplate: false } }),
+      db.excursion.count({ where: { active: true, isTemplate: false } }),
+      db.transportService.count({ where: { active: true, isTemplate: false } }),
+    ]);
+
+    const destinationWhere = { active: true, isTemplate: destinationsRealCount > 0 ? false : true };
+    const hotelWhere = { active: true, isTemplate: hotelsRealCount > 0 ? false : true };
+    const packageWhere = { active: true, isTemplate: packagesRealCount > 0 ? false : true };
+    const excursionWhere = { active: true, isTemplate: excursionsRealCount > 0 ? false : true };
+    const transportServiceWhere = { active: true, isTemplate: transportServicesRealCount > 0 ? false : true };
+
+    const [
+      totalDestinations,
+      totalHotels,
+      totalPackages,
+      totalExcursions,
+      totalTransportServices,
+      featuredHotels,
+      soldOutPackages,
+    ] = await Promise.all([
+      db.destination.count({ where: destinationWhere }),
+      db.hotel.count({ where: hotelWhere }),
+      db.travelPackage.count({ where: packageWhere }),
+      db.excursion.count({ where: excursionWhere }),
+      db.transportService.count({ where: transportServiceWhere }),
+      db.hotel.count({ where: { ...hotelWhere, featured: true } }),
+      db.travelPackage.count({ where: { ...packageWhere, soldOut: true } }),
+    ]);
 
     // Calculate average rating across destinations and hotels
     const [destRatings, hotelRatings] = await Promise.all([
       db.destination.findMany({
-        where: { active: true },
+        where: destinationWhere,
         select: { rating: true },
       }),
       db.hotel.findMany({
-        where: { active: true },
+        where: hotelWhere,
         select: { rating: true },
       }),
     ]);
@@ -47,6 +74,7 @@ export async function GET(request: NextRequest) {
 
     // Get recent 5 packages by createdAt desc
     const recentPackages = await db.travelPackage.findMany({
+      where: packageWhere,
       orderBy: { createdAt: 'desc' },
       take: 5,
     });

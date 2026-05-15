@@ -30,7 +30,14 @@ function generateSlug(name: string): string {
 
 export async function GET() {
   try {
+    const realCount = await db.excursion.count({
+      where: { isTemplate: false },
+    });
+
     const excursions = await db.excursion.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -104,6 +111,7 @@ export async function POST(request: NextRequest) {
         rating: rating ?? 0,
         featured: featured ?? false,
         active: active ?? true,
+        isTemplate: false,
       },
     });
 

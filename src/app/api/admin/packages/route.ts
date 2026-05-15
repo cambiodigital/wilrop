@@ -28,7 +28,15 @@ function generateSlug(title: string): string {
 
 export async function GET() {
   try {
-    const packages = await db.travelPackage.findMany();
+    const realCount = await db.travelPackage.count({
+      where: { isTemplate: false },
+    });
+
+    const packages = await db.travelPackage.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
+    });
 
     const parsed = packages.map(formatPackage);
 
@@ -100,6 +108,7 @@ export async function POST(request: NextRequest) {
         category: category ?? 'Cultural',
         commission: commission ?? 10,
         active: active ?? true,
+        isTemplate: false,
       },
     });
 

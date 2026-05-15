@@ -6,3 +6,7 @@
 - Autenticación de panel (admin/subagent/reseller): passwords se verifican con bcrypt cuando están hasheados y se soporta compatibilidad legacy; al iniciar sesión con password legacy se actualiza automáticamente a bcrypt.
 - Docker: `docker-entrypoint.sh` soporta modos `all|migrate|web`; en `docker-compose` las migraciones/bootstrap admin corren en el servicio `migrate` y la app arranca en modo `web`.
 - Docker: el `Dockerfile` define `CMD ["web"]` para que, si la plataforma no pasa argumentos, el contenedor arranque por defecto en modo `web` (evita ejecutar migraciones en cada restart).
+
+## 2026-05-15
+- Catálogos (destinos/hoteles/paquetes/excursiones/transporte): se agrega `isTemplate` con fallback (si existen registros reales, no se devuelven plantillas).
+- Migración Prisma: `bun run db:migrate` (dev) / `prisma migrate deploy` (prod) y `bun run db:generate`.

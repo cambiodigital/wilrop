@@ -21,7 +21,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const cityId = searchParams.get('cityId');
 
+    const realCount = await db.transportService.count({
+      where: { active: true, isTemplate: false },
+    });
+
     const where: any = { active: true };
+    where.isTemplate = realCount > 0 ? false : true;
 
     if (cityId) {
       where.cityId = cityId;

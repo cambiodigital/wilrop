@@ -114,7 +114,7 @@ async function main() {
   ];
 
   for (const dest of destinationData) {
-    await db.destination.create({ data: dest });
+    await db.destination.create({ data: { ...dest, isTemplate: true } });
   }
   console.log(`✅ ${destinationData.length} destinations created`);
 
@@ -362,7 +362,7 @@ async function main() {
   ];
 
   for (const hotel of hotelData) {
-    await db.hotel.create({ data: hotel });
+    await db.hotel.create({ data: { ...hotel, isTemplate: true } });
   }
   console.log(`✅ ${hotelData.length} hotels created`);
 
@@ -441,12 +441,13 @@ async function main() {
 
   let transportServiceCount = 0;
   for (const provider of transportProviders) {
-    const createdProvider = await db.transportProvider.create({ data: provider.data });
+    const createdProvider = await db.transportProvider.create({ data: { ...provider.data, isTemplate: true } });
     for (const service of provider.services) {
       await db.transportService.create({
         data: {
           providerId: createdProvider.id,
           ...service,
+          isTemplate: true,
         },
       });
       transportServiceCount += 1;
@@ -525,7 +526,7 @@ async function main() {
   ];
 
   for (const excursion of excursionData) {
-    await db.excursion.create({ data: excursion });
+    await db.excursion.create({ data: { ...excursion, isTemplate: true } });
   }
   console.log(`✅ ${excursionData.length} excursions created`);
 
@@ -767,7 +768,7 @@ async function main() {
   ];
 
   for (const pkg of packageData) {
-    await db.travelPackage.create({ data: pkg });
+    await db.travelPackage.create({ data: { ...pkg, isTemplate: true } });
   }
   console.log(`✅ ${packageData.length} travel packages created`);
 

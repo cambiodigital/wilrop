@@ -3,7 +3,14 @@ import { db } from '@/lib/db';
 
 export async function GET() {
   try {
+    const realCount = await db.transportProvider.count({
+      where: { isTemplate: false },
+    });
+
     const providers = await db.transportProvider.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -54,6 +61,7 @@ export async function POST(request: NextRequest) {
         vehicleType: vehicleType ?? 'auto',
         capacity: capacity ?? 4,
         active: active ?? true,
+        isTemplate: false,
       },
     });
 

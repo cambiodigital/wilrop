@@ -18,7 +18,14 @@ function formatTransportService(service: any) {
 
 export async function GET() {
   try {
+    const realCount = await db.transportService.count({
+      where: { isTemplate: false },
+    });
+
     const services = await db.transportService.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         provider: {
@@ -92,6 +99,7 @@ export async function POST(request: NextRequest) {
         includes: JSON.stringify(includes || []),
         notes: notes ?? '',
         active: active ?? true,
+        isTemplate: false,
       },
       include: {
         provider: {

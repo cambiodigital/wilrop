@@ -8,7 +8,15 @@ import {
 
 export async function GET() {
   try {
-    const hotels = await db.hotel.findMany();
+    const realCount = await db.hotel.count({
+      where: { isTemplate: false },
+    });
+
+    const hotels = await db.hotel.findMany({
+      where: {
+        isTemplate: realCount > 0 ? false : true,
+      },
+    });
 
     const parsed = hotels.map(formatAdminHotel);
 
@@ -27,7 +35,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const hotel = await db.hotel.create({
-      data: buildHotelCreateData(body),
+      data: { ...buildHotelCreateData(body), isTemplate: false },
     });
 
     return NextResponse.json(

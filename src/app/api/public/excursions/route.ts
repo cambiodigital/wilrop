@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
     const cityId = searchParams.get('cityId');
     const category = searchParams.get('category');
 
+    const realCount = await db.excursion.count({
+      where: { active: true, isTemplate: false },
+    });
+
     const where: any = { active: true };
+    where.isTemplate = realCount > 0 ? false : true;
 
     if (destinationId) {
       where.destinationId = destinationId;

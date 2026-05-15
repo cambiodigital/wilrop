@@ -31,6 +31,7 @@ model Destination {
   reviewCount Int      @default(0)
   priceFrom   Int      @default(0)
   active      Boolean  @default(true)
+  isTemplate  Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -55,6 +56,7 @@ model Hotel {
   tags        String       @default("[]") // JSON array
   featured    Boolean      @default(false)
   active      Boolean      @default(true)
+  isTemplate  Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   
@@ -141,6 +143,7 @@ model TravelPackage {
   category        String   @default("Cultural")
   commission      Int      @default(10)
   active          Boolean  @default(true)
+  isTemplate      Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -168,6 +171,7 @@ model Excursion {
   rating          Float    @default(0)
   featured        Boolean  @default(false)
   active          Boolean  @default(true)
+  isTemplate      Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -251,6 +255,7 @@ model TransportProvider {
   vehicleType String             @default("")
   capacity    Int                @default(0)
   active      Boolean            @default(true)
+  isTemplate  Boolean            @default(true)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   
@@ -273,6 +278,7 @@ model TransportService {
   includes   String            @default("[]") // JSON array
   notes      String            @default("")
   active     Boolean           @default(true)
+  isTemplate Boolean           @default(true)
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
   

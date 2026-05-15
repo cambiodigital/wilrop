@@ -445,6 +445,12 @@ export default function AdminDestinations() {
                     src={form.image}
                     alt="Vista previa"
                     className="w-full h-36 object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.dataset.fallbackApplied === 'true') return
+                      img.dataset.fallbackApplied = 'true'
+                      img.src = '/images/hero.png'
+                    }}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button

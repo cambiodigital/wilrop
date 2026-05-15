@@ -7,9 +7,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const cityId = searchParams.get('cityId');
 
+    const realCount = await db.hotel.count({
+      where: { active: true, isTemplate: false },
+    });
+
     const hotels = await db.hotel.findMany({
       where: {
         active: true,
+        isTemplate: realCount > 0 ? false : true,
         ...(cityId ? { cityId } : {}),
       },
       orderBy: [{ featured: 'desc' }, { rating: 'desc' }, { name: 'asc' }],
