@@ -83,10 +83,16 @@ NODE
   fi
 }
 
+run_migration_status() {
+  step_label="${1:-[status]}"
+  echo "${step_label} Checking Prisma migration status..."
+  node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma --no-color
+}
+
 run_migrations() {
   step_label="${1:-[migrate]}"
   echo "${step_label} Applying Prisma migrations..."
-  node /app/node_modules/prisma/build/index.js migrate deploy
+  node /app/node_modules/prisma/build/index.js migrate deploy --schema=/app/prisma/schema.prisma
 }
 
 run_admin_bootstrap() {
@@ -103,19 +109,25 @@ run_web() {
 case "$MODE" in
   migrate)
     run_migration_repair
-    run_migrations "[1/2]"
-    run_admin_bootstrap "[2/2]"
+    run_migration_status "[1/3]"
+    run_migrations "[2/3]"
+    run_admin_bootstrap "[3/3]"
     echo "[done] Migrations/admin bootstrap completed."
     exit 0
     ;;
   web)
-    run_web
+    run_migration_repair
+    run_migration_status "[1/3]"
+    run_migrations "[2/3]"
+    echo "[3/3] Starting Next.js server on port ${PORT:-3000}..."
+    exec node /app/server.js
     ;;
   all)
     run_migration_repair
-    run_migrations "[1/3]"
-    run_admin_bootstrap "[2/3]"
-    echo "[3/3] Starting Next.js server on port ${PORT:-3000}..."
+    run_migration_status "[1/4]"
+    run_migrations "[2/4]"
+    run_admin_bootstrap "[3/4]"
+    echo "[4/4] Starting Next.js server on port ${PORT:-3000}..."
     exec node /app/server.js
     ;;
   *)
