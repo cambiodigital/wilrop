@@ -411,7 +411,7 @@ export default function AdminPackages() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Paquete' : 'Nuevo Paquete'}
@@ -728,7 +728,7 @@ export default function AdminPackages() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar paquete?</AlertDialogTitle>
             <AlertDialogDescription>

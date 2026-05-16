@@ -528,7 +528,7 @@ export default function AdminExcursions() {
 
       {/* ═══ CREATE / EDIT DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Excursión' : 'Nueva Excursión'}
@@ -844,7 +844,7 @@ export default function AdminExcursions() {
 
       {/* ═══ DELETE DIALOG ═══ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar excursión?</AlertDialogTitle>
             <AlertDialogDescription>

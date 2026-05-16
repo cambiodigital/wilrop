@@ -439,7 +439,7 @@ export default function AdminSubagents() {
 
       {/* ═══ CREATE / EDIT DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Subagente' : 'Nuevo Subagente'}
@@ -632,7 +632,7 @@ export default function AdminSubagents() {
 
       {/* ═══ DELETE DIALOG ═══ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar subagente?</AlertDialogTitle>
             <AlertDialogDescription>

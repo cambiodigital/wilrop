@@ -291,6 +291,36 @@
   box-shadow: var(--admin-shadow-lg);
 }
 
+/* ── Admin dialog: forces admin theme inside portaled dialogs ─
+ *  Dialog & AlertDialog render via Portal to <body>, so they sit
+ *  OUTSIDE .admin-theme.  This class resets all the variables to
+ *  the admin light palette so backgrounds stay white and text dark.
+ * ─────────────────────────────────────────────────────────────── */
+.admin-dialog {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #c8a96a;
+  --primary-foreground: #162a45;
+  --secondary: #eef2f7;
+  --secondary-foreground: #162a45;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  --accent: #eef2f7;
+  --accent-foreground: #162a45;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #b8964f;
+
+  background: #ffffff;
+  color: #0f172a;
+}
+
 .admin-theme [data-slot="dialog-header"] h2 {
   font-size: 1.25rem;
   font-weight: 700;

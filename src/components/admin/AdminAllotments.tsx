@@ -534,7 +534,7 @@ export default function AdminAllotments() {
 
       {/* ═══ CREATE DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>Nuevo Cupo</DialogTitle>
             <DialogDescription>
@@ -644,7 +644,7 @@ export default function AdminAllotments() {
 
       {/* ═══ DELETE DIALOG ═══ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar cupo?</AlertDialogTitle>
             <AlertDialogDescription>

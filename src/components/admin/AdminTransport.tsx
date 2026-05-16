@@ -717,7 +717,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ PROVIDER DIALOG ═══ */}
       <Dialog open={providerDialogOpen} onOpenChange={setProviderDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingProvider ? 'Editar Proveedor' : 'Nuevo Proveedor'}
@@ -845,7 +845,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ SERVICE DIALOG ═══ */}
       <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingService ? 'Editar Servicio' : 'Nuevo Servicio'}
@@ -1026,7 +1026,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ DELETE PROVIDER DIALOG ═══ */}
       <AlertDialog open={providerDeleteOpen} onOpenChange={setProviderDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar proveedor?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1048,7 +1048,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ DELETE SERVICE DIALOG ═══ */}
       <AlertDialog open={serviceDeleteOpen} onOpenChange={setServiceDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar servicio?</AlertDialogTitle>
             <AlertDialogDescription>
