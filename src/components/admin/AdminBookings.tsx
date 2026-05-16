@@ -234,12 +234,12 @@ export default function AdminBookings() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
+      <div className="page-header">
+        <h1 className="flex items-center gap-2">
           <CalendarCheck className="w-6 h-6 text-primary" />
           Reservas
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1">
           Vista de todas las reservas recibidas (B2C y B2B)
         </p>
       </div>

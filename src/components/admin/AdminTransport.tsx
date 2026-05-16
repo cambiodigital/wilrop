@@ -457,12 +457,12 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+      <div className="page-header">
+        <h1 className="flex items-center gap-2">
           <Car className="w-6 h-6 text-primary" />
           Transporte
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1">
           Gestiona proveedores y servicios de transporte
         </p>
       </div>
@@ -828,14 +828,14 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               <Label>Proveedor activo</Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="dialog-footer">
               <Button
                 variant="outline"
                 onClick={() => setProviderDialogOpen(false)}
               >
                 Cancelar
               </Button>
-              <Button onClick={handleProviderSave} disabled={providerSaving}>
+              <Button onClick={handleProviderSave} disabled={providerSaving} size="default">
                 {providerSaving ? 'Guardando...' : editingProvider ? 'Actualizar' : 'Crear'}
               </Button>
             </div>
@@ -1012,11 +1012,11 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
               <Label>Servicio activo</Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="dialog-footer">
               <Button variant="outline" onClick={() => setServiceDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleServiceSave} disabled={serviceSaving}>
+              <Button onClick={handleServiceSave} disabled={serviceSaving} size="default">
                 {serviceSaving ? 'Guardando...' : editingService ? 'Actualizar' : 'Crear'}
               </Button>
             </div>

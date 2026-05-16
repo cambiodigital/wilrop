@@ -375,17 +375,17 @@ export default function AdminExcursions() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Compass className="w-6 h-6 text-primary" />
             Excursiones
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona las excursiones y actividades disponibles
           </p>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
           Nueva Excursión
         </Button>
@@ -831,11 +831,11 @@ export default function AdminExcursions() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <div className="dialog-footer">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving} size="default">
               {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Excursión'}
             </Button>
           </div>

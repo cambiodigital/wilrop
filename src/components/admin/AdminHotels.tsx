@@ -490,7 +490,7 @@ function RoomEditorCard({
           {/* Room Name & Beds */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Nombre de la habitación</Label>
+              <Label className="label-muted">Nombre de la habitación</Label>
               <Input
                 value={room.name}
                 onChange={(e) => updateField('name', e.target.value)}
@@ -499,7 +499,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Camas</Label>
+              <Label className="label-muted">Camas</Label>
               <Input
                 value={room.beds}
                 onChange={(e) => updateField('beds', e.target.value)}
@@ -512,7 +512,7 @@ function RoomEditorCard({
           {/* Max Guests & Available */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Label className="label-muted flex items-center gap-1">
                 <Users className="w-3 h-3" /> Max. Huéspedes
               </Label>
               <Input
@@ -525,7 +525,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Disponibles</Label>
+              <Label className="label-muted">Disponibles</Label>
               <Input
                 type="number"
                 min="0"
@@ -539,7 +539,7 @@ function RoomEditorCard({
           {/* Prices */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Label className="label-muted flex items-center gap-1">
                 <DollarSign className="w-3 h-3" /> Precio (COP)
               </Label>
               <Input
@@ -552,7 +552,7 @@ function RoomEditorCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Precio Original (COP)</Label>
+              <Label className="label-muted">Precio Original (COP)</Label>
               <Input
                 type="number"
                 min="0"
@@ -573,7 +573,7 @@ function RoomEditorCard({
 
           {/* Includes (Tags) */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Servicios incluidos</Label>
+            <Label className="label-muted">Servicios incluidos</Label>
             <TagInput
               tags={room.includes}
               onChange={(includes) => updateField('includes', includes)}
@@ -870,17 +870,17 @@ export default function AdminHotels() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Building2 className="w-6 h-6 text-primary" />
             Hoteles
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona los hoteles asociados a WILROP Colombia Travel
           </p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Hotel
         </Button>
@@ -978,7 +978,7 @@ export default function AdminHotels() {
                         </TableCell>
                         <TableCell>
                           {hotel.featured ? (
-                            <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
+                            <Badge className="badge-featured text-xs">
                               Destacado
                             </Badge>
                           ) : (
@@ -1053,9 +1053,12 @@ export default function AdminHotels() {
 
             {/* Basic Info Tab */}
             <TabsContent value="basic" className="space-y-4 mt-4">
+              <div className="form-section-title">
+                Información principal
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hotel-name">Nombre *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hotel-name" className="label-required">Nombre</Label>
                   <Input
                     id="hotel-name"
                     value={form.name}
@@ -1063,7 +1066,7 @@ export default function AdminHotels() {
                     placeholder="Hotel Charleston Santa Teresa"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="hotel-slug">Slug</Label>
                   <Input
                     id="hotel-slug"
@@ -1075,8 +1078,8 @@ export default function AdminHotels() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hotel-city-id">City ID</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hotel-city-id" className="label-required">City ID</Label>
                   <Input
                     id="hotel-city-id"
                     value={form.cityId}
@@ -1084,8 +1087,8 @@ export default function AdminHotels() {
                     placeholder="cartagena"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hotel-city-name">Nombre Ciudad</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hotel-city-name" className="label-required">Nombre Ciudad</Label>
                   <Input
                     id="hotel-city-name"
                     value={form.cityName}
@@ -1095,8 +1098,11 @@ export default function AdminHotels() {
                 </div>
               </div>
 
+              <div className="form-section-title">
+                Datos del hotel
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="hotel-stars">Estrellas (1-5)</Label>
                   <Input
                     id="hotel-stars"
@@ -1107,7 +1113,7 @@ export default function AdminHotels() {
                     onChange={(e) => updateField('stars', Number(e.target.value))}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="hotel-rating">Rating (0-10)</Label>
                   <Input
                     id="hotel-rating"
@@ -1119,7 +1125,7 @@ export default function AdminHotels() {
                     onChange={(e) => updateField('rating', Number(e.target.value))}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="hotel-reviews">Reviews</Label>
                   <Input
                     id="hotel-reviews"
@@ -1132,7 +1138,7 @@ export default function AdminHotels() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="hotel-address">Dirección</Label>
                 <Input
                   id="hotel-address"
@@ -1142,7 +1148,7 @@ export default function AdminHotels() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="hotel-price">Precio Desde (COP)</Label>
                 <Input
                   id="hotel-price"
@@ -1155,7 +1161,7 @@ export default function AdminHotels() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="hotel-description">Descripción</Label>
                 <Textarea
                   id="hotel-description"
@@ -1457,11 +1463,11 @@ export default function AdminHotels() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+          <div className="dialog-footer">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving} size="default">
               {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
             </Button>
           </div>

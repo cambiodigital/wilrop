@@ -268,17 +268,17 @@ export default function AdminPackages() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Package className="w-6 h-6 text-primary" />
             Paquetes
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona los paquetes turísticos disponibles
           </p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Paquete
         </Button>
@@ -424,10 +424,10 @@ export default function AdminPackages() {
           <div className="space-y-5 pt-2">
             {/* Basic Info */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Información Básica</h3>
+              <div className="form-section-title">Información Básica</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pkg-title">Título *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pkg-title" className="label-required">Título</Label>
                   <Input
                     id="pkg-title"
                     value={form.title}
@@ -435,7 +435,7 @@ export default function AdminPackages() {
                     placeholder="Cartagena Romántica"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-slug">Slug</Label>
                   <Input
                     id="pkg-slug"
@@ -447,7 +447,7 @@ export default function AdminPackages() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-dest-id">ID Destino</Label>
                   <Input
                     id="pkg-dest-id"
@@ -456,7 +456,7 @@ export default function AdminPackages() {
                     placeholder="cartagena"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-dest-name">Nombre Destino</Label>
                   <Input
                     id="pkg-dest-name"
@@ -468,7 +468,7 @@ export default function AdminPackages() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-category">Categoría</Label>
                   <select
                     id="pkg-category"
@@ -481,7 +481,7 @@ export default function AdminPackages() {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-duration">Duración</Label>
                   <Input
                     id="pkg-duration"
@@ -490,7 +490,7 @@ export default function AdminPackages() {
                     placeholder="4 días / 3 noches"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-difficulty">Dificultad</Label>
                   <select
                     id="pkg-difficulty"
@@ -506,7 +506,7 @@ export default function AdminPackages() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-group">Tamaño Grupo</Label>
                   <Input
                     id="pkg-group"
@@ -515,7 +515,7 @@ export default function AdminPackages() {
                     placeholder="2 – 8 personas"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-rating">Rating</Label>
                   <Input
                     id="pkg-rating"
@@ -532,7 +532,7 @@ export default function AdminPackages() {
 
             {/* Description */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Descripción</h3>
+              <div className="form-section-title">Descripción</div>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
@@ -543,9 +543,9 @@ export default function AdminPackages() {
 
             {/* Pricing */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Precios y Comisión</h3>
+              <div className="form-section-title">Precios y Comisión</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-price">Precio (COP)</Label>
                   <Input
                     id="pkg-price"
@@ -555,7 +555,7 @@ export default function AdminPackages() {
                     placeholder="1250000"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-original-price">Precio Original (COP)</Label>
                   <Input
                     id="pkg-original-price"
@@ -567,7 +567,7 @@ export default function AdminPackages() {
                     placeholder="1480000 (opcional)"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="pkg-commission">Comisión (%)</Label>
                   <Input
                     id="pkg-commission"
@@ -583,7 +583,7 @@ export default function AdminPackages() {
 
             {/* Image */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Imagen</h3>
+              <div className="form-section-title">Imagen</div>
               {form.image ? (
                 <div className="relative group rounded-lg overflow-hidden border border-border">
                   <img
@@ -665,7 +665,7 @@ export default function AdminPackages() {
 
             {/* Includes */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Qué Incluye</h3>
+              <div className="form-section-title">Qué Incluye</div>
               <Textarea
                 value={form.includes.join('\n')}
                 onChange={(e) =>
@@ -682,7 +682,7 @@ export default function AdminPackages() {
 
             {/* Departure Dates */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Fechas de Salida</h3>
+              <div className="form-section-title">Fechas de Salida</div>
               <Input
                 value={form.departureDates.join(', ')}
                 onChange={(e) =>
@@ -714,11 +714,11 @@ export default function AdminPackages() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} size="default">
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
               </Button>
             </div>

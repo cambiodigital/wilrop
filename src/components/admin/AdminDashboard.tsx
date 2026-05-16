@@ -140,9 +140,9 @@ export default function AdminDashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+      <motion.div className="page-header" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+        <h1>Dashboard</h1>
+        <p className="mt-1">
           Resumen general de la plataforma WILROP Colombia Travel
         </p>
       </motion.div>

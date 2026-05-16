@@ -255,17 +255,17 @@ export default function AdminDestinations() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <MapPin className="w-6 h-6 text-primary" />
             Destinos
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona los destinos turísticos de Colombia
           </p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Destino
         </Button>
@@ -383,9 +383,10 @@ export default function AdminDestinations() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
+            <div className="form-section-title">Información principal</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="dest-name">Nombre *</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="dest-name" className="label-required">Nombre</Label>
                 <Input
                   id="dest-name"
                   value={form.name}
@@ -393,7 +394,7 @@ export default function AdminDestinations() {
                   placeholder="Ej: Cartagena de Indias"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dest-slug">Slug</Label>
                 <Input
                   id="dest-slug"
@@ -405,8 +406,8 @@ export default function AdminDestinations() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="dest-region">Región *</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="dest-region" className="label-required">Región</Label>
                 <Input
                   id="dest-region"
                   value={form.region}
@@ -414,7 +415,7 @@ export default function AdminDestinations() {
                   placeholder="Ej: Caribe, Andina"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dest-price">Precio Desde (COP)</Label>
                 <Input
                   id="dest-price"
@@ -426,8 +427,8 @@ export default function AdminDestinations() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="dest-description">Descripción *</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="dest-description" className="label-required">Descripción</Label>
               <Textarea
                 id="dest-description"
                 value={form.description}
@@ -437,8 +438,8 @@ export default function AdminDestinations() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Imagen *</Label>
+            <div className="space-y-1.5">
+              <Label className="label-required">Imagen</Label>
               {form.image ? (
                 <div className="relative group rounded-lg overflow-hidden border border-border">
                   <img
@@ -524,7 +525,7 @@ export default function AdminDestinations() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="dest-highlights">Highlights (separados por coma)</Label>
               <Input
                 id="dest-highlights"
@@ -540,7 +541,7 @@ export default function AdminDestinations() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dest-rating">Rating (1-5)</Label>
                 <Input
                   id="dest-rating"
@@ -552,7 +553,7 @@ export default function AdminDestinations() {
                   onChange={(e) => updateField('rating', Number(e.target.value))}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dest-reviews">Cantidad Reviews</Label>
                 <Input
                   id="dest-reviews"
@@ -561,7 +562,7 @@ export default function AdminDestinations() {
                   onChange={(e) => updateField('reviewCount', Number(e.target.value))}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dest-order">Orden</Label>
                 <Input
                   id="dest-order"
@@ -580,11 +581,11 @@ export default function AdminDestinations() {
               <Label>Activo</Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} size="default">
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
               </Button>
             </div>

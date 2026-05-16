@@ -249,14 +249,210 @@
   --sidebar-accent-foreground: #162a45;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: var(--brand-gold-hover);
+
+  /* ── Admin-specific design tokens ────────────────────────── */
+  --admin-table-header-bg: #f0f4f8;
+  --admin-table-stripe-bg: #fafcfd;
+  --admin-table-hover-bg: #e8f2ff;
+  --admin-input-error: #fef2f2;
+  --admin-input-error-border: #fecaca;
+  --admin-input-error-text: #b91c1c;
+  --admin-shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --admin-shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --admin-shadow-lg: 0 10px 30px rgba(0,0,0,.12);
 }
 
+/* ── Buttons: ensure primary text is legible ─────────────────── */
 .admin-theme [data-slot="button"].bg-primary {
   color: var(--primary-foreground);
+  font-weight: 600;
 }
 
 .admin-theme [data-slot="button"].bg-secondary {
   color: var(--secondary-foreground);
+}
+
+/* ── Outlined button (used as Cancel/secondary action) ────────── */
+.admin-theme [data-slot="button"][class*="border"] {
+  background: var(--card);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  font-weight: 500;
+}
+.admin-theme [data-slot="button"][class*="border"]:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* ── Dialog / Modal enhancements ─────────────────────────────── */
+.admin-theme [data-slot="dialog-content"] {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-theme [data-slot="dialog-header"] h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.admin-theme [data-slot="dialog-header"] p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ── Dialog footer: border + spacing ─────────────────────────── */
+.admin-theme .dialog-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+/* ── Table styling ───────────────────────────────────────────── */
+.admin-theme [data-slot="table-header"] tr {
+  background: var(--admin-table-header-bg);
+  border-bottom: 2px solid var(--border);
+}
+.admin-theme [data-slot="table-header"] th {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+}
+
+.admin-theme [data-slot="table-body"] tr:nth-child(even) {
+  background: var(--admin-table-stripe-bg);
+}
+.admin-theme [data-slot="table-body"] tr:hover {
+  background: var(--admin-table-hover-bg);
+}
+.admin-theme [data-slot="table-body"] tr {
+  transition: background-color .12s ease;
+}
+
+/* ── Card refinements (admin context) ────────────────────────── */
+.admin-theme [data-slot="card"] {
+  box-shadow: var(--admin-shadow-sm);
+  border: 1px solid var(--border);
+}
+
+/* ── Tabs: active tab emphasis ────────────────────────────────── */
+.admin-theme [data-slot="tabs-list"] {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: .625rem;
+  padding: 4px;
+}
+.admin-theme [data-slot="tabs-trigger"][data-state="active"] {
+  background: #ffffff;
+  color: var(--foreground);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  border-radius: .4375rem;
+}
+.admin-theme [data-slot="tabs-trigger"][data-state="inactive"] {
+  color: var(--muted-foreground);
+}
+.admin-theme [data-slot="tabs-trigger"][data-state="inactive"]:hover {
+  color: var(--foreground);
+  background: rgba(255,255,255,.5);
+}
+
+/* ── Input / Textarea: enhanced focus + error states ──────────── */
+.admin-theme [data-slot="input"]:focus-visible,
+.admin-theme [data-slot="textarea"]:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
+  outline: none;
+}
+
+.admin-theme [data-slot="input"]:hover:not(:disabled):not(:focus-visible),
+.admin-theme [data-slot="textarea"]:hover:not(:disabled):not(:focus-visible) {
+  border-color: #cbd5e1;
+}
+
+.admin-theme [data-slot="input"].input-error,
+.admin-theme [data-slot="textarea"].input-error {
+  border-color: var(--admin-input-error-border);
+  background: var(--admin-input-error);
+}
+.admin-theme [data-slot="input"].input-error:focus-visible,
+.admin-theme [data-slot="textarea"].input-error:focus-visible {
+  box-shadow: 0 0 0 3px rgba(220,38,38,.18);
+  border-color: var(--destructive);
+}
+.admin-theme .field-error-text {
+  color: var(--admin-input-error-text);
+  font-size: .8125rem;
+  font-weight: 500;
+  margin-top: .25rem;
+}
+
+/* ── Select trigger: match input styling ─────────────────────── */
+.admin-theme [data-slot="select-trigger"]:hover:not(:disabled):not(:focus-visible) {
+  border-color: #cbd5e1;
+}
+
+/* ── Labels: hierarchy ────────────────────────────────────────── */
+.admin-theme [data-slot="label"] {
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: .8125rem;
+}
+.admin-theme .label-required::after {
+  content: " *";
+  color: var(--destructive);
+  font-weight: 700;
+}
+.admin-theme .label-muted {
+  font-weight: 500;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}
+
+/* ── Section titles inside forms ─────────────────────────────── */
+.admin-theme .form-section-title {
+  font-size: .9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+/* ── Separator: softer ───────────────────────────────────────── */
+.admin-theme [data-slot="separator"] {
+  opacity: .6;
+}
+
+/* ── Badge: admin refinements ─────────────────────────────────── */
+.admin-theme [data-slot="badge"].badge-featured {
+  background: color-mix(in srgb, var(--brand-gold) 15%, transparent);
+  color: var(--brand-gold-hover);
+  border-color: color-mix(in srgb, var(--brand-gold) 30%, transparent);
+  font-weight: 600;
+}
+
+/* ── Page header: stronger hierarchy ─────────────────────────── */
+.admin-theme .page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+.admin-theme .page-header p {
+  color: var(--muted-foreground);
+  font-size: .875rem;
 }
 
 /* ── Base layer ──────────────────────────────────────────────── */

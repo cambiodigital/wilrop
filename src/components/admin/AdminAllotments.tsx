@@ -308,19 +308,20 @@ export default function AdminAllotments() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Warehouse className="w-6 h-6 text-primary" />
             Cupos (Allotments)
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona la disponibilidad de habitaciones por hotel
           </p>
         </div>
         <Button
           onClick={handleCreate}
           disabled={!selectedHotelId}
+          size="default"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Cupo
@@ -542,7 +543,7 @@ export default function AdminAllotments() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Hotel</Label>
               <Select value={form.hotelId} onValueChange={(v) => setForm((f) => ({ ...f, hotelId: v }))}>
                 <SelectTrigger>
@@ -558,8 +559,8 @@ export default function AdminAllotments() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Tipo de Habitación *</Label>
+            <div className="space-y-1.5">
+              <Label className="label-required">Tipo de Habitación</Label>
               <Select value={form.roomTypeId} onValueChange={(v) => setForm((f) => ({ ...f, roomTypeId: v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo de habitación" />
@@ -577,16 +578,16 @@ export default function AdminAllotments() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Fecha Desde *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Fecha Desde</Label>
                 <Input
                   type="date"
                   value={form.dateFrom}
                   onChange={(e) => setForm((f) => ({ ...f, dateFrom: e.target.value }))}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Fecha Hasta *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Fecha Hasta</Label>
                 <Input
                   type="date"
                   value={form.dateTo}
@@ -596,8 +597,8 @@ export default function AdminAllotments() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Total Habitaciones *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Total Habitaciones</Label>
                 <Input
                   type="number"
                   min="0"
@@ -605,7 +606,7 @@ export default function AdminAllotments() {
                   onChange={(e) => setForm((f) => ({ ...f, totalRooms: Number(e.target.value) }))}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Release (días)</Label>
                 <Input
                   type="number"
@@ -617,7 +618,7 @@ export default function AdminAllotments() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Precio Neto (COP/noche)</Label>
               <Input
                 type="number"
@@ -629,11 +630,11 @@ export default function AdminAllotments() {
               <p className="text-xs text-muted-foreground">Precio negociado con el hotel</p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} size="default">
                 {saving ? 'Creando...' : 'Crear Cupo'}
               </Button>
             </div>

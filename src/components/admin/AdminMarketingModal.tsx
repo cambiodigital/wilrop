@@ -189,14 +189,14 @@ export default function AdminMarketingModal() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Megaphone className="w-6 h-6 text-primary" />
             Modal de Marketing
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Configura el popup promocional que se muestra a los visitantes
           </p>
         </div>

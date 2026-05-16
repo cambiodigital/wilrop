@@ -1,5 +1,17 @@
 # AI Context
 
+## 2026-05-17
+- **Panel Admin - Diseño de color y jerarquía visual:** Se implementó un sistema de diseño completo en el scope `.admin-theme` de `globals.css`:
+  - **Tokens** nuevos: `--admin-table-header-bg`, `--admin-table-stripe-bg`, `--admin-table-hover-bg`, `--admin-input-error*`, `--admin-shadow-*`.
+  - **Jerarquía:** Clases utilitarias: `.page-header` (títulos con peso 800, color foreground), `.form-section-title` (subtítulos en formularios), `.dialog-footer` (borde + espaciado consistente), `.label-required` (asterisco rojo automático en labels), `.label-muted` (labels secundarios), `.badge-featured` (badge dorado), `.field-error-text` (texto de error), `.input-error` (input con borde/fondo rojo).
+  - **Tablas:** Headers con fondo `#f0f4f8` + uppercase + tracking, filas alternas `#fafcfd`, hover `#e8f2ff`.
+  - **Diálogos:** Shadow `0 10px 30px rgba(0,0,0,.12)`, título 700 weight, botón primario con `font-weight: 600`.
+  - **Tabs:** Pestaña activa con fondo blanco + shadow, inactiva gris con hover.
+  - **Inputs/Selects:** Focus ring dorado con box-shadow expandido, hover gris claro, estados de error visuales.
+  - **Botones:** `outline` (Cancel) con fondo blanco + texto muted, hover gris; primario con peso 600.
+  - **Componentes actualizados:** Todos los admin components (`AdminHotels`, `AdminPackages`, `AdminDestinations`, `AdminExcursions`, `AdminTransport`, `AdminAllotments`, `AdminSubagents`, `AdminBookings`, `AdminDashboard`, `AdminMarketingModal`) ahora usan `page-header`, `dialog-footer`, `label-required`, `label-muted`, `form-section-title` y `space-y-1.5` en forms.
+  - Las variables de diseño originales (`--brand-*`) se respetan; solo se añaden refinamientos para el contexto admin.
+
 ## 2026-05-06
 - La sección `WhyUsSection` mantiene dos bloques: equipo (fotos con `name`/`role`) y tarjetas de beneficios comerciales.
 - Los textos visibles de cada foto (`name`, `role`, `alt`) se centralizan en `src/lib/team.ts` para mantener una sola fuente de verdad.

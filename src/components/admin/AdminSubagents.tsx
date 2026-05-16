@@ -237,17 +237,17 @@ export default function AdminSubagents() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
             Subagentes
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1">
             Gestiona las agencias subagentes (canal B2B)
           </p>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Subagente
         </Button>
@@ -453,8 +453,8 @@ export default function AdminSubagents() {
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Código *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Código</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                     WIL-
@@ -468,8 +468,8 @@ export default function AdminSubagents() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Email *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -484,8 +484,8 @@ export default function AdminSubagents() {
             </div>
 
             {!editingId && (
-              <div className="space-y-2">
-                <Label>Contraseña *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Contraseña</Label>
                 <Input
                   type="password"
                   value={form.password}
@@ -495,7 +495,7 @@ export default function AdminSubagents() {
               </div>
             )}
             {editingId && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Nueva Contraseña (dejar vacío para no cambiar)</Label>
                 <Input
                   type="password"
@@ -507,8 +507,8 @@ export default function AdminSubagents() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nombre de Agencia *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Nombre de Agencia</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -519,8 +519,8 @@ export default function AdminSubagents() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Nombre de Contacto *</Label>
+              <div className="space-y-1.5">
+                <Label className="label-required">Nombre de Contacto</Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -534,7 +534,7 @@ export default function AdminSubagents() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>País</Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -546,7 +546,7 @@ export default function AdminSubagents() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Teléfono</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -560,7 +560,7 @@ export default function AdminSubagents() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Comisión (%)</Label>
               <Input
                 type="number"
@@ -576,7 +576,7 @@ export default function AdminSubagents() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Nivel de revendedor</Label>
                 <Select
                   value={form.sellerLevel}
@@ -618,11 +618,11 @@ export default function AdminSubagents() {
               <Label>Subagente activo</Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} size="default">
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Subagente'}
               </Button>
             </div>
