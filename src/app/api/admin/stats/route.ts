@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth';
 
+function isMissingDatabaseObjectError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = 'code' in error ? (error as { code?: unknown }).code : undefined;
+  if (code === 'P2021' || code === 'P2022') return true;
+  const message = 'message' in error ? (error as { message?: unknown }).message : undefined;
+  if (typeof message !== 'string') return false;
+  return (
+    message.includes('does not exist') ||
+    message.includes('no such table') ||
+    message.toLowerCase().includes('column') && message.toLowerCase().includes('does not exist')
+  );
+}
+
+async function safeDb<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (isMissingDatabaseObjectError(error)) return fallback;
+    throw error;
+  }
+}
+
+async function resolveActiveWhereWithTemplatesFallback(model: 'destination' | 'hotel' | 'travelPackage' | 'excursion' | 'transportService') {
+  try {
+    const realCount = await (db as any)[model].count({ where: { active: true, isTemplate: false } });
+    return { active: true, isTemplate: realCount > 0 ? false : true };
+  } catch (error) {
+    if (isMissingDatabaseObjectError(error)) return { active: true };
+    throw error;
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const sessionValue = request.cookies.get(getPanelSessionCookieName('admin'))?.value;
@@ -12,24 +44,18 @@ export async function GET(request: NextRequest) {
     }
 
     const [
-      destinationsRealCount,
-      hotelsRealCount,
-      packagesRealCount,
-      excursionsRealCount,
-      transportServicesRealCount,
+      destinationWhere,
+      hotelWhere,
+      packageWhere,
+      excursionWhere,
+      transportServiceWhere,
     ] = await Promise.all([
-      db.destination.count({ where: { active: true, isTemplate: false } }),
-      db.hotel.count({ where: { active: true, isTemplate: false } }),
-      db.travelPackage.count({ where: { active: true, isTemplate: false } }),
-      db.excursion.count({ where: { active: true, isTemplate: false } }),
-      db.transportService.count({ where: { active: true, isTemplate: false } }),
+      resolveActiveWhereWithTemplatesFallback('destination'),
+      resolveActiveWhereWithTemplatesFallback('hotel'),
+      resolveActiveWhereWithTemplatesFallback('travelPackage'),
+      resolveActiveWhereWithTemplatesFallback('excursion'),
+      resolveActiveWhereWithTemplatesFallback('transportService'),
     ]);
-
-    const destinationWhere = { active: true, isTemplate: destinationsRealCount > 0 ? false : true };
-    const hotelWhere = { active: true, isTemplate: hotelsRealCount > 0 ? false : true };
-    const packageWhere = { active: true, isTemplate: packagesRealCount > 0 ? false : true };
-    const excursionWhere = { active: true, isTemplate: excursionsRealCount > 0 ? false : true };
-    const transportServiceWhere = { active: true, isTemplate: transportServicesRealCount > 0 ? false : true };
 
     const [
       totalDestinations,
@@ -40,25 +66,33 @@ export async function GET(request: NextRequest) {
       featuredHotels,
       soldOutPackages,
     ] = await Promise.all([
-      db.destination.count({ where: destinationWhere }),
-      db.hotel.count({ where: hotelWhere }),
-      db.travelPackage.count({ where: packageWhere }),
-      db.excursion.count({ where: excursionWhere }),
-      db.transportService.count({ where: transportServiceWhere }),
-      db.hotel.count({ where: { ...hotelWhere, featured: true } }),
-      db.travelPackage.count({ where: { ...packageWhere, soldOut: true } }),
+      safeDb(() => db.destination.count({ where: destinationWhere as any }), 0),
+      safeDb(() => db.hotel.count({ where: hotelWhere as any }), 0),
+      safeDb(() => db.travelPackage.count({ where: packageWhere as any }), 0),
+      safeDb(() => db.excursion.count({ where: excursionWhere as any }), 0),
+      safeDb(() => db.transportService.count({ where: transportServiceWhere as any }), 0),
+      safeDb(() => db.hotel.count({ where: { ...(hotelWhere as any), featured: true } }), 0),
+      safeDb(() => db.travelPackage.count({ where: { ...(packageWhere as any), soldOut: true } }), 0),
     ]);
 
     // Calculate average rating across destinations and hotels
     const [destRatings, hotelRatings] = await Promise.all([
-      db.destination.findMany({
-        where: destinationWhere,
-        select: { rating: true },
-      }),
-      db.hotel.findMany({
-        where: hotelWhere,
-        select: { rating: true },
-      }),
+      safeDb(
+        () =>
+          db.destination.findMany({
+            where: destinationWhere as any,
+            select: { rating: true },
+          }),
+        [],
+      ),
+      safeDb(
+        () =>
+          db.hotel.findMany({
+            where: hotelWhere as any,
+            select: { rating: true },
+          }),
+        [],
+      ),
     ]);
 
     const allRatings = [
@@ -73,11 +107,15 @@ export async function GET(request: NextRequest) {
         : 0;
 
     // Get recent 5 packages by createdAt desc
-    const recentPackages = await db.travelPackage.findMany({
-      where: packageWhere,
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
+    const recentPackages = await safeDb(
+      () =>
+        db.travelPackage.findMany({
+          where: packageWhere as any,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+      [],
+    );
 
     return NextResponse.json({
       success: true,
