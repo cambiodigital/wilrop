@@ -83,9 +83,31 @@ NODE
   fi
 }
 
+print_database_target() {
+  node <<'NODE'
+const value = process.env.DATABASE_URL
+if (!value) {
+  console.log('[db] DATABASE_URL is not set.')
+  process.exit(0)
+}
+
+try {
+  const url = new URL(value)
+  const username = url.username || '(no-user)'
+  const hostname = url.hostname || '(no-host)'
+  const port = url.port || '(no-port)'
+  const database = (url.pathname || '').replace(/^\//, '') || '(no-db)'
+  console.log(`[db] Target: ${username}@${hostname}:${port}/${database}`)
+} catch {
+  console.log('[db] DATABASE_URL is set but not a valid URL.')
+}
+NODE
+}
+
 run_migration_status() {
   step_label="${1:-[status]}"
   echo "${step_label} Checking Prisma migration status..."
+  print_database_target
   NO_COLOR=1 FORCE_COLOR=0 node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma
 }
 
