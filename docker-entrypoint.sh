@@ -86,7 +86,7 @@ NODE
 run_migration_status() {
   step_label="${1:-[status]}"
   echo "${step_label} Checking Prisma migration status..."
-  node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma --no-color
+  NO_COLOR=1 FORCE_COLOR=0 node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma
 }
 
 run_migrations() {
