@@ -72,8 +72,10 @@ services:
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
 volumes:
   wilrop-db-data:
+    name: wilrop-db-data
     driver: local
   wilrop-uploads:
+    name: wilrop-uploads
     driver: local
 
 # ─── Redes ──────────────────────────────────────────────────────────────────
