@@ -146,6 +146,19 @@ export default function ResellerLogin() {
                 Volver al Portal
               </button>
             </div>
+
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-center text-sm text-muted-foreground mb-2">
+                ¿Aún no eres revendedor?
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                onClick={() => router.push('/reseller/register')}
+              >
+                Solicitar registro
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

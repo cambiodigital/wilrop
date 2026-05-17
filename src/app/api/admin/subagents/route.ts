@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         sellerLevel: normalizeResellerLevel(sellerLevel),
         whiteLabelEnabled: Boolean(whiteLabelEnabled),
         active: active ?? true,
+        approvalStatus: 'approved',
       },
     });
 

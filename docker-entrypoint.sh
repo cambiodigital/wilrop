@@ -9,52 +9,78 @@ echo " Wilrop - Docker Entrypoint (mode: ${MODE})"
 echo "----------------------------------------------"
 
 run_migration_repair() {
-  echo "[pre] Checking reseller migration repair..."
+  echo "[pre] Checking for failed migrations to repair..."
   set +e
   node <<'NODE'
 const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
-const migrationName = '20260504120000_add_reseller_capabilities'
+const migrationsToWatch = [
+  '20260504120000_add_reseller_capabilities',
+  '20260517000000_add_reseller_approval_fields',
+]
 
 async function main() {
   let rows = []
 
   try {
     rows = await prisma.$queryRawUnsafe(
-      'SELECT migration_name, finished_at, rolled_back_at FROM "_prisma_migrations" WHERE migration_name = $1',
-      migrationName,
+      'SELECT migration_name, finished_at, rolled_back_at FROM "_prisma_migrations" WHERE migration_name = ANY($1)',
+      migrationsToWatch,
     )
   } catch {
     console.log('No _prisma_migrations table yet; no repair needed.')
     return 0
   }
 
-  const failedMigration = rows.some((row) => row.finished_at === null && row.rolled_back_at === null)
+  const failedMigrations = rows.filter((row) => row.finished_at === null && row.rolled_back_at === null)
 
-  if (!failedMigration) {
-    console.log('No failed reseller migration pending.')
+  if (failedMigrations.length === 0) {
+    console.log('No failed migrations pending.')
     return 0
   }
 
-  const tableRows = await prisma.$queryRawUnsafe(
-    "SELECT to_regclass('public.\"Subagent\"') IS NOT NULL AS table_exists",
-  )
-  const subagentTableExists = tableRows.some((row) => row.table_exists === true)
+  for (const failed of failedMigrations) {
+    const migrationName = failed.migration_name
+    console.log(`Checking failed migration: ${migrationName}`)
 
-  if (!subagentTableExists) {
-    console.log('Subagent table does not exist; rolling back the failed reseller migration so Prisma can replay migrations.')
-    return 20
+    const tableRows = await prisma.$queryRawUnsafe(
+      "SELECT to_regclass('public.\"Subagent\"') IS NOT NULL AS table_exists",
+    )
+    const subagentTableExists = tableRows.some((row) => row.table_exists === true)
+
+    if (!subagentTableExists) {
+      console.log(`Subagent table does not exist; rolling back ${migrationName} so Prisma can replay.`)
+      return 20
+    }
+
+    if (migrationName === '20260504120000_add_reseller_capabilities') {
+      console.log(`Repairing migration ${migrationName}...`)
+      await prisma.$executeRawUnsafe(
+        'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "sellerLevel" TEXT NOT NULL DEFAULT \'standard\'',
+      )
+      await prisma.$executeRawUnsafe(
+        'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "whiteLabelEnabled" BOOLEAN NOT NULL DEFAULT false',
+      )
+      return 10
+    }
+
+    if (migrationName === '20260517000000_add_reseller_approval_fields') {
+      console.log(`Repairing migration ${migrationName}...`)
+      await prisma.$executeRawUnsafe(
+        'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "approvalStatus" TEXT NOT NULL DEFAULT \'approved\'',
+      )
+      await prisma.$executeRawUnsafe(
+        'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP',
+      )
+      await prisma.$executeRawUnsafe(
+        'ALTER TABLE "Subagent" ALTER COLUMN "active" SET DEFAULT false',
+      )
+      return 10
+    }
   }
 
-  console.log(`Repairing failed migration ${migrationName}...`)
-  await prisma.$executeRawUnsafe(
-    'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "sellerLevel" TEXT NOT NULL DEFAULT \'standard\'',
-  )
-  await prisma.$executeRawUnsafe(
-    'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "whiteLabelEnabled" BOOLEAN NOT NULL DEFAULT false',
-  )
-  return 10
+  return 0
 }
 
 main()
@@ -72,13 +98,17 @@ NODE
   set -e
 
   if [ "$repair_status" -eq 10 ]; then
-    echo "[pre] Marking reseller migration as applied after repair..."
-    node /app/node_modules/prisma/build/index.js migrate resolve --applied 20260504120000_add_reseller_capabilities
+    echo "[pre] Marking failed migration as applied after repair..."
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields; do
+      node /app/node_modules/prisma/build/index.js migrate resolve --applied "$m" 2>/dev/null || true
+    done
   elif [ "$repair_status" -eq 20 ]; then
-    echo "[pre] Marking reseller migration as rolled back so migrate deploy can apply it again..."
-    node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back 20260504120000_add_reseller_capabilities
+    echo "[pre] Rolling back failed migration so migrate deploy can retry..."
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields; do
+      node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back "$m" 2>/dev/null || true
+    done
   elif [ "$repair_status" -ne 0 ]; then
-    echo "[pre] Reseller migration repair failed."
+    echo "[pre] Migration repair failed."
     exit "$repair_status"
   fi
 }

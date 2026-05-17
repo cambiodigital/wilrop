@@ -108,6 +108,24 @@ export async function POST(request: NextRequest) {
         } catch {}
       }
 
+      const approvalStatus = (subagent as Record<string, unknown>).approvalStatus as string | undefined
+
+      if (approvalStatus === 'pending') {
+        console.log('[ResellerAuth] Subagent pending approval:', email)
+        return NextResponse.json(
+          { success: false, error: 'Tu cuenta está pendiente de aprobación. Recibirás un email cuando sea activada.' },
+          { status: 403 },
+        )
+      }
+
+      if (approvalStatus === 'rejected') {
+        console.log('[ResellerAuth] Subagent rejected:', email)
+        return NextResponse.json(
+          { success: false, error: 'Tu solicitud de registro fue rechazada. Contacta al administrador para más información.' },
+          { status: 403 },
+        )
+      }
+
       if (!subagent.active) {
         console.log('[ResellerAuth] Subagent inactive:', email)
         return NextResponse.json(

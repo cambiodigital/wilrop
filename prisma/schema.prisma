@@ -189,7 +189,9 @@ model Subagent {
   commission  Int       @default(0)
   sellerLevel String    @default("standard")
   whiteLabelEnabled Boolean @default(false)
-  active      Boolean   @default(true)
+  active      Boolean   @default(false)
+  approvalStatus String @default("pending")
+  registrationDate DateTime @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   

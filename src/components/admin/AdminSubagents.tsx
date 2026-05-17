@@ -51,6 +51,9 @@ import {
   Globe,
   Building,
   Palette,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getResellerLevelLabel, normalizeResellerLevel, type ResellerLevel } from '@/lib/reseller-access';
@@ -69,6 +72,8 @@ interface Subagent {
   sellerLevel: string;
   whiteLabelEnabled: boolean;
   active: boolean;
+  approvalStatus: string;
+  registrationDate?: string;
   _count?: { bookings: number };
 }
 
@@ -92,6 +97,7 @@ const emptySubagent = {
 
 export default function AdminSubagents() {
   const [subagents, setSubagents] = useState<Subagent[]>([]);
+  const [pendingSubagents, setPendingSubagents] = useState<Subagent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -100,6 +106,7 @@ export default function AdminSubagents() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptySubagent);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const fetchSubagents = useCallback(async () => {
     setLoading(true);
@@ -107,7 +114,11 @@ export default function AdminSubagents() {
       const res = await fetch('/api/admin/subagents');
       if (!res.ok) throw new Error('Error al cargar subagentes');
       const json = await res.json();
-      setSubagents(json.data || json);
+      const allSubagents = json.data || json;
+      setSubagents(allSubagents);
+      setPendingSubagents(
+        allSubagents.filter((s: Subagent) => s.approvalStatus === 'pending')
+      );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error';
       toast.error(msg);
@@ -122,9 +133,10 @@ export default function AdminSubagents() {
 
   const filtered = subagents.filter(
     (s) =>
-      s.agencyName.toLowerCase().includes(search.toLowerCase()) ||
+      s.approvalStatus !== 'pending' &&
+      (s.agencyName.toLowerCase().includes(search.toLowerCase()) ||
       s.contactName.toLowerCase().includes(search.toLowerCase()) ||
-      s.code.toLowerCase().includes(search.toLowerCase())
+      s.code.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleCreate = () => {
@@ -230,6 +242,29 @@ export default function AdminSubagents() {
     }
   };
 
+  const handleApproval = async (id: string, action: 'approve' | 'reject') => {
+    setApprovingId(id);
+    try {
+      const res = await fetch(`/api/admin/subagents/${id}/approval`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al procesar la solicitud');
+      }
+      const result = await res.json();
+      toast.success(result.message);
+      fetchSubagents();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error';
+      toast.error(msg);
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   // ── Summary ──
   const activeCount = subagents.filter((s) => s.active).length;
   const totalBookings = subagents.reduce((sum, s) => sum + (s._count?.bookings || 0), 0);
@@ -295,6 +330,61 @@ export default function AdminSubagents() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Requests */}
+      {pendingSubagents.length > 0 && (
+        <Card className="border-amber-300 dark:border-amber-800">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-5 h-5 text-amber-600" />
+              <h2 className="text-lg font-semibold">Solicitudes Pendientes ({pendingSubagents.length})</h2>
+            </div>
+            <div className="space-y-3">
+              {pendingSubagents.map((sub) => (
+                <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm">{sub.agencyName}</span>
+                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                        Pendiente
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {sub.contactName} · {sub.email}
+                      {sub.country && ` · ${sub.country}`}
+                      {sub.phone && ` · ${sub.phone}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Registrado: {sub.registrationDate ? new Date(sub.registrationDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => handleApproval(sub.id, 'reject')}
+                      disabled={approvingId === sub.id}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Rechazar
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => handleApproval(sub.id, 'approve')}
+                      disabled={approvingId === sub.id}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Aprobar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search */}
       <Card>
@@ -394,7 +484,15 @@ export default function AdminSubagents() {
                           {sub._count?.bookings || 0}
                         </TableCell>
                         <TableCell>
-                          {sub.active ? (
+                          {sub.approvalStatus === 'pending' ? (
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                              Pendiente
+                            </Badge>
+                          ) : sub.approvalStatus === 'rejected' ? (
+                            <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">
+                              Rechazado
+                            </Badge>
+                          ) : sub.active ? (
                             <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Activo
                             </Badge>
