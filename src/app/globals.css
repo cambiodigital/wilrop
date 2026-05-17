@@ -229,7 +229,7 @@
   --secondary-foreground: #162a45;
 
   --muted: #f1f5f9;
-  --muted-foreground: #475569;
+  --muted-foreground: #334155;
 
   --accent: #eef2f7;
   --accent-foreground: #162a45;
@@ -308,7 +308,7 @@
   --secondary: #eef2f7;
   --secondary-foreground: #162a45;
   --muted: #f1f5f9;
-  --muted-foreground: #475569;
+  --muted-foreground: #334155;
   --accent: #eef2f7;
   --accent-foreground: #162a45;
   --destructive: #dc2626;
@@ -319,6 +319,90 @@
 
   background: #ffffff;
   color: #0f172a;
+}
+
+/* ── Dialog header text inside admin-dialog ─────────────────── */
+.admin-dialog [data-slot="dialog-header"] h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+.admin-dialog [data-slot="dialog-header"] p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+/* ── Dialog footer inside admin-dialog ──────────────────────── */
+.admin-dialog .dialog-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+/* ── Tabs inside admin-dialog ───────────────────────────────── */
+.admin-dialog [data-slot="tabs-list"] {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: .625rem;
+  padding: 4px;
+}
+.admin-dialog [data-slot="tabs-trigger"][data-state="active"] {
+  background: #ffffff;
+  color: var(--foreground);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  border-radius: .4375rem;
+}
+.admin-dialog [data-slot="tabs-trigger"][data-state="inactive"] {
+  color: var(--muted-foreground);
+}
+.admin-dialog [data-slot="tabs-trigger"][data-state="inactive"]:hover {
+  color: var(--foreground);
+  background: rgba(255,255,255,.5);
+}
+
+/* ── Form section titles inside admin-dialog ────────────────── */
+.admin-dialog .form-section-title {
+  font-size: .9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+/* ── Labels inside admin-dialog ─────────────────────────────── */
+.admin-dialog [data-slot="label"] {
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: .8125rem;
+}
+.admin-dialog .label-required::after {
+  content: " *";
+  color: var(--destructive);
+  font-weight: 700;
+}
+.admin-dialog .label-muted {
+  font-weight: 500;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}
+
+/* ── Input/textarea inside admin-dialog ─────────────────────── */
+.admin-dialog [data-slot="input"]:focus-visible,
+.admin-dialog [data-slot="textarea"]:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #c8a96a 25%, transparent);
+  outline: none;
+}
+.admin-dialog [data-slot="input"]:hover:not(:disabled):not(:focus-visible),
+.admin-dialog [data-slot="textarea"]:hover:not(:disabled):not(:focus-visible) {
+  border-color: #cbd5e1;
 }
 
 .admin-theme [data-slot="dialog-header"] h2 {
