@@ -152,8 +152,7 @@ export default function ResellerLogin() {
                 ¿Aún no eres revendedor?
               </p>
               <Button
-                variant="outline"
-                className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold h-11 shadow-lg shadow-amber-500/25 transition-all duration-200"
                 onClick={() => router.push('/reseller/register')}
               >
                 Solicitar registro

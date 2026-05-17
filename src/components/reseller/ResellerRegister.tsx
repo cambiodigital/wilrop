@@ -202,7 +202,7 @@ export default function ResellerRegister() {
               <strong>Nota:</strong> Tu cuenta quedará pendiente de aprobación. El administrador revisará tu solicitud y habilitará el acceso.
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold h-11 shadow-lg shadow-amber-500/25 transition-all duration-200" disabled={loading}>
               {loading ? 'Registrando...' : 'Solicitar registro'}
             </Button>
           </form>
