@@ -71,10 +71,7 @@ export async function POST(request: NextRequest) {
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
     const password = typeof body.password === 'string' ? body.password : ''
 
-    console.log('[ResellerAuth] Request body received:', { emailProvided: !!body.email, email, passwordProvided: !!body.password })
-
     if (!email || !password) {
-      console.log('[ResellerAuth] Missing credentials - email:', !!email, 'password:', !!password)
       return NextResponse.json(
         { success: false, error: 'Correo y contraseña son obligatorios' },
         { status: 400 },
@@ -85,11 +82,8 @@ export async function POST(request: NextRequest) {
       where: { email },
     })
 
-    console.log('[ResellerAuth] DB lookup - subagent found:', !!subagent, 'for email:', email)
-
     if (subagent) {
       const passwordValid = await verifyPassword(subagent.password, password)
-      console.log('[ResellerAuth] DB subagent password valid:', passwordValid)
 
       if (!passwordValid) {
         return NextResponse.json(
@@ -111,7 +105,6 @@ export async function POST(request: NextRequest) {
       const approvalStatus = (subagent as Record<string, unknown>).approvalStatus as string | undefined
 
       if (approvalStatus === 'pending') {
-        console.log('[ResellerAuth] Subagent pending approval:', email)
         return NextResponse.json(
           { success: false, error: 'Tu cuenta está pendiente de aprobación. Recibirás un email cuando sea activada.' },
           { status: 403 },
@@ -119,7 +112,6 @@ export async function POST(request: NextRequest) {
       }
 
       if (approvalStatus === 'rejected') {
-        console.log('[ResellerAuth] Subagent rejected:', email)
         return NextResponse.json(
           { success: false, error: 'Tu solicitud de registro fue rechazada. Contacta al administrador para más información.' },
           { status: 403 },
@@ -127,7 +119,6 @@ export async function POST(request: NextRequest) {
       }
 
       if (!subagent.active) {
-        console.log('[ResellerAuth] Subagent inactive:', email)
         return NextResponse.json(
           { success: false, error: 'Tu cuenta está desactivada. Contacta al administrador.' },
           { status: 403 },
@@ -151,8 +142,6 @@ export async function POST(request: NextRequest) {
         whiteLabelEnabled: capabilities.canUseWhiteLabel,
       })
 
-      console.log('[ResellerAuth] DB login success - creating session for:', displayName)
-
       const response = NextResponse.json({
         success: true,
         reseller: {
@@ -172,21 +161,17 @@ export async function POST(request: NextRequest) {
     }
 
     const accounts = getResellerAccounts()
-    console.log('[ResellerAuth] ENV accounts available:', accounts.length)
 
     if (accounts.length === 0) {
-      console.log('[ResellerAuth] No reseller accounts configured')
       return NextResponse.json(
-        { success: false, error: 'No existe una cuenta revendedora activa con ese correo' },
+        { success: false, error: 'No existe una cuenta revendedora activa con ese correo. Si aún no te has registrado, usa el formulario de registro.' },
         { status: 401 },
       )
     }
 
     const reseller = accounts.find((account) => secureCompare(account.email, email))
-    console.log('[ResellerAuth] ENV account found:', !!reseller, 'for email:', email)
 
     if (!reseller) {
-      console.log('[ResellerAuth] No matching ENV account for:', email)
       return NextResponse.json(
         { success: false, error: 'Credenciales inválidas' },
         { status: 401 },
@@ -194,7 +179,6 @@ export async function POST(request: NextRequest) {
     }
 
     const envPasswordValid = await verifyPassword(reseller.password, password)
-    console.log('[ResellerAuth] ENV password valid:', envPasswordValid)
 
     if (!envPasswordValid) {
       return NextResponse.json(
@@ -212,8 +196,6 @@ export async function POST(request: NextRequest) {
       whiteLabelEnabled: false,
     })
 
-    console.log('[ResellerAuth] ENV login success - creating session for:', reseller.name)
-
     const response = NextResponse.json({
       success: true,
       reseller: {
@@ -226,7 +208,6 @@ export async function POST(request: NextRequest) {
     response.cookies.set(getPanelSessionCookie('reseller', sessionToken))
     return response
   } catch (error) {
-    console.error('[ResellerAuth] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'No se pudo iniciar sesión' },
       { status: 500 },

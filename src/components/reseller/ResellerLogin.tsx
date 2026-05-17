@@ -9,8 +9,44 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { BrandWordmark } from '@/components/brand/BrandWordmark';
-import { ArrowLeft, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, AlertCircle, AlertTriangle, Info, Clock, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface LoginError {
+  message: string;
+  type: 'error' | 'warning' | 'info';
+  action?: { label: string; href: string };
+}
+
+const ERROR_CONFIG: Record<string, LoginError> = {
+  pending: {
+    message: 'Tu cuenta está pendiente de aprobación por el administrador.',
+    type: 'warning',
+    action: { label: '¿Necesitas ayuda?', href: '/#contacto' },
+  },
+  rejected: {
+    message: 'Tu solicitud de registro fue rechazada. Contacta al administrador.',
+    type: 'error',
+    action: { label: 'Contactar soporte', href: '/#contacto' },
+  },
+  inactive: {
+    message: 'Tu cuenta ha sido desactivada. Contacta al administrador.',
+    type: 'error',
+  },
+  not_found: {
+    message: 'No existe una cuenta revendedora activa con ese correo.',
+    type: 'info',
+    action: { label: 'Solicitar registro', href: '/reseller/register' },
+  },
+};
+
+function classifyError(message: string): LoginError {
+  if (message.includes('pendiente de aprobación')) return ERROR_CONFIG.pending;
+  if (message.includes('rechazada') || message.includes('rechazó')) return ERROR_CONFIG.rejected;
+  if (message.includes('desactivada')) return ERROR_CONFIG.inactive;
+  if (message.includes('No existe una cuenta revendedora')) return ERROR_CONFIG.not_found;
+  return { message, type: 'error' };
+}
 
 export default function ResellerLogin() {
   const { loginReseller } = useNavigationStore();
@@ -18,6 +54,17 @@ export default function ResellerLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<LoginError | null>(null);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (error) setError(null);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,31 +73,28 @@ export default function ResellerLogin() {
       return;
     }
 
+    setError(null);
     setIsLoading(true);
 
     try {
-      console.log('[ResellerLogin] Attempting login for:', email);
-
       const response = await fetch('/api/reseller/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      console.log('[ResellerLogin] Response status:', response.status);
-
       const data = await response.json().catch(() => ({}));
-      console.log('[ResellerLogin] Response body:', data);
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Credenciales inválidas');
+        const classified = classifyError(data.error || 'Credenciales inválidas');
+        setError(classified);
+        throw new Error(classified.message);
       }
 
       loginReseller(data.reseller?.name || 'Socio');
       router.push('/reseller');
       toast.success(`Bienvenido, ${data.reseller?.name || 'Socio'}`);
     } catch (error) {
-      console.error('[ResellerLogin] Login failed:', error);
       const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión';
       toast.error(message);
     } finally {
@@ -92,7 +136,7 @@ export default function ResellerLogin() {
                     type="email"
                     placeholder="socio@wilrop.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
                     required
                   />
@@ -107,7 +151,7 @@ export default function ResellerLogin() {
                     type="password"
                     placeholder="........"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
                     required
                   />
@@ -136,6 +180,65 @@ export default function ResellerLogin() {
                 )}
               </Button>
             </form>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mt-4 rounded-lg border p-4 ${
+                  error.type === 'warning'
+                    ? 'bg-amber-50 border-amber-200'
+                    : error.type === 'info'
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {error.type === 'warning' ? (
+                    <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  ) : error.type === 'info' ? (
+                    <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  ) : error.message.includes('desactivada') ? (
+                    <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p
+                      className={`text-sm font-medium ${
+                        error.type === 'warning'
+                          ? 'text-amber-800'
+                          : error.type === 'info'
+                          ? 'text-blue-800'
+                          : 'text-red-800'
+                      }`}
+                    >
+                      {error.message}
+                    </p>
+                    {error.action && (
+                      <button
+                        onClick={() => router.push(error.action!.href)}
+                        className={`mt-2 text-sm font-medium underline underline-offset-2 ${
+                          error.type === 'warning'
+                            ? 'text-amber-700 hover:text-amber-900'
+                            : error.type === 'info'
+                            ? 'text-blue-700 hover:text-blue-900'
+                            : 'text-red-700 hover:text-red-900'
+                        }`}
+                      >
+                        {error.action.label}
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-muted-foreground hover:text-foreground flex-shrink-0"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             <div className="mt-6 pt-4 border-t border-border">
               <button

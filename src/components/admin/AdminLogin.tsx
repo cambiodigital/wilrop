@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { BrandWordmark } from '@/components/brand/BrandWordmark';
-import { ArrowLeft, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminLogin() {
@@ -18,6 +18,17 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (error) setError(null);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,29 +37,26 @@ export default function AdminLogin() {
       return;
     }
     setIsLoading(true);
+    setError(null);
     try {
-      console.log('[AdminLogin] Attempting login for:', email);
-
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      console.log('[AdminLogin] Response status:', res.status);
-
       const data = await res.json().catch(() => ({}));
-      console.log('[AdminLogin] Response body:', data);
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Credenciales incorrectas');
+        const message = data.error || 'Credenciales incorrectas';
+        setError(message);
+        throw new Error(message);
       }
 
       loginAdmin(data.admin?.name || 'Administrador');
       router.push('/admin');
       toast.success('Bienvenido al panel de administración');
     } catch (error: unknown) {
-      console.error('[AdminLogin] Login failed:', error);
       const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
       toast.error(message);
     } finally {
@@ -86,30 +94,30 @@ export default function AdminLogin() {
                 <Label htmlFor="admin-email">Correo electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@wilrop.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
-                    required
-                  />
+              <Input
+                id="admin-email"
+                type="email"
+                placeholder="admin@wilrop.com"
+                value={email}
+                onChange={handleEmailChange}
+                className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
+                required
+              />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="admin-password">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="admin-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
-                    required
-                  />
+              <Input
+                id="admin-password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={handlePasswordChange}
+                className="pl-10 border-amber-200 focus-visible:border-amber-400 focus-visible:ring-amber-400/30"
+                required
+              />
                 </div>
               </div>
 
@@ -135,6 +143,27 @@ export default function AdminLogin() {
                 )}
               </Button>
             </form>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                  </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-muted-foreground hover:text-foreground flex-shrink-0"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             <div className="mt-6 pt-4 border-t border-border">
               <button
