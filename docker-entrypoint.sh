@@ -139,15 +139,21 @@ run_migration_status() {
   echo "${step_label} Checking Prisma migration status..."
   print_database_target
   set +e
-  NO_COLOR=1 FORCE_COLOR=0 node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma
+  NO_COLOR=1 FORCE_COLOR=0 node /app/node_modules/prisma/build/index.js migrate status --schema=/app/prisma/schema.prisma 2>&1 | tee /tmp/migration_status.log
   status_code=$?
   set -e
 
   if [ "$status_code" -ne 0 ]; then
-    echo "[db] Prisma migrate status failed (exit: ${status_code})."
-    echo "[db] If this is P1000: verify DATABASE_URL credentials."
-    echo "[db] Note: in Postgres containers, POSTGRES_PASSWORD applies only at first init; changing env later won't change an existing volume's password."
-    exit "$status_code"
+    if grep -qi "Following migration have not yet been applied" /tmp/migration_status.log; then
+      echo "[db] Pending migrations detected. They will be applied in the next step."
+    else
+      echo "[db] Prisma migrate status failed (exit: ${status_code})."
+      echo "[db] If this is P1000: verify DATABASE_URL credentials."
+      echo "[db] Note: in Postgres containers, POSTGRES_PASSWORD applies only at first init; changing env later won't change an existing volume's password."
+      exit "$status_code"
+    fi
+  else
+    echo "[db] All migrations are up to date."
   fi
 }
 
