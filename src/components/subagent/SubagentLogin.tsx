@@ -24,28 +24,36 @@ export default function SubagentLogin() {
     setIsLoading(true)
 
     try {
+      console.log('[SubagentLogin] Attempting login for:', email)
+
       const res = await fetch('/api/subagent/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-      const json = await res.json()
 
-      if (json.success) {
-        const data = json.data
-        loginSubagent({
-          name: data.contactName || data.agencyName,
-          code: data.code,
-          id: data.id,
-          commission: data.commission,
-        })
-        router.push('/subagent')
-        toast.success(`Bienvenido, ${data.contactName || data.agencyName}!`)
-      } else {
+      console.log('[SubagentLogin] Response status:', res.status)
+
+      const json = await res.json().catch(() => ({}))
+      console.log('[SubagentLogin] Response body:', json)
+
+      if (!res.ok || !json.success) {
         toast.error(json.error || 'Credenciales inválidas')
+        setIsLoading(false)
+        return
       }
+
+      const data = json.data
+      loginSubagent({
+        name: data.contactName || data.agencyName,
+        code: data.code,
+        id: data.id,
+        commission: data.commission,
+      })
+      router.push('/subagent')
+      toast.success(`Bienvenido, ${data.contactName || data.agencyName}!`)
     } catch (err) {
-      console.error('Login error:', err)
+      console.error('[SubagentLogin] Login failed:', err)
       toast.error('Error de conexión. Intenta de nuevo.')
     } finally {
       setIsLoading(false)

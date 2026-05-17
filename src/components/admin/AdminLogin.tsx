@@ -27,20 +27,28 @@ export default function AdminLogin() {
     }
     setIsLoading(true);
     try {
+      console.log('[AdminLogin] Attempting login for:', email);
+
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+
+      console.log('[AdminLogin] Response status:', res.status);
+
+      const data = await res.json().catch(() => ({}));
+      console.log('[AdminLogin] Response body:', data);
+
+      if (!res.ok || !data.success) {
         throw new Error(data.error || 'Credenciales incorrectas');
       }
-      const data = await res.json();
+
       loginAdmin(data.admin?.name || 'Administrador');
       router.push('/admin');
       toast.success('Bienvenido al panel de administración');
     } catch (error: unknown) {
+      console.error('[AdminLogin] Login failed:', error);
       const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
       toast.error(message);
     } finally {

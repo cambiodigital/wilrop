@@ -29,13 +29,18 @@ export default function ResellerLogin() {
     setIsLoading(true);
 
     try {
+      console.log('[ResellerLogin] Attempting login for:', email);
+
       const response = await fetch('/api/reseller/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('[ResellerLogin] Response status:', response.status);
+
       const data = await response.json().catch(() => ({}));
+      console.log('[ResellerLogin] Response body:', data);
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Credenciales inválidas');
@@ -45,6 +50,7 @@ export default function ResellerLogin() {
       router.push('/reseller');
       toast.success(`Bienvenido, ${data.reseller?.name || 'Socio'}`);
     } catch (error) {
+      console.error('[ResellerLogin] Login failed:', error);
       const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión';
       toast.error(message);
     } finally {

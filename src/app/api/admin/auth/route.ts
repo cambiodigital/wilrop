@@ -9,7 +9,10 @@ export async function POST(request: NextRequest) {
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     const password = typeof body.password === 'string' ? body.password : '';
 
+    console.log('[AdminAuth] Request body received:', { emailProvided: !!body.email, email, passwordProvided: !!body.password });
+
     if (!email || !password) {
+      console.log('[AdminAuth] Missing credentials - email:', !!email, 'password:', !!password);
       return NextResponse.json(
         { success: false, error: 'Email y contrasena son obligatorios' },
         { status: 400 }
@@ -20,14 +23,20 @@ export async function POST(request: NextRequest) {
       where: { email },
     });
 
+    console.log('[AdminAuth] DB lookup - admin found:', !!admin, 'for email:', email);
+
     if (!admin) {
+      console.log('[AdminAuth] No admin found for email:', email);
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    if (!(await verifyPassword(admin.password, password))) {
+    const passwordValid = await verifyPassword(admin.password, password);
+    console.log('[AdminAuth] Password valid:', passwordValid);
+
+    if (!passwordValid) {
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
         { status: 401 }
@@ -43,6 +52,8 @@ export async function POST(request: NextRequest) {
         });
       } catch {}
     }
+
+    console.log('[AdminAuth] Login success - creating session for:', admin.name);
 
     const sessionValue = encodeAdminSession({
       id: admin.id,
@@ -64,7 +75,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set(getAdminSessionCookie(sessionValue));
     return response;
   } catch (error: any) {
-    console.error('Admin auth error:', error);
+    console.error('[AdminAuth] Unexpected error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
