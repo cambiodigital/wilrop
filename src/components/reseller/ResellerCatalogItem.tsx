@@ -105,7 +105,7 @@ export function ResellerCatalogItem({
   const basePrice = getSourceBasePrice(item.sourceType, item.sourceData)
   const displayPrice = item.customPrice ?? basePrice
 
-  const handleAction = async (action: string, fn: () => Promise<void>) => {
+  const handleAction = async (action: string, fn: () => void | Promise<void>) => {
     setLoading(action)
     try {
       await fn()
