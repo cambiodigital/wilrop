@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { BrandWordmark } from '@/components/brand/BrandWordmark';
-import { ArrowLeft, Lock, Mail, AlertCircle, AlertTriangle, Info, Clock, XCircle } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, AlertCircle, AlertTriangle, Info, Clock, XCircle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LoginError {
@@ -21,6 +21,11 @@ interface LoginError {
 const ERROR_CONFIG: Record<string, LoginError> = {
   pending: {
     message: 'Tu cuenta está pendiente de aprobación por el administrador.',
+    type: 'warning',
+    action: { label: '¿Necesitas ayuda?', href: '/#contacto' },
+  },
+  under_review: {
+    message: 'Tu cuenta está siendo revisada. Pronto recibirás una respuesta.',
     type: 'warning',
     action: { label: '¿Necesitas ayuda?', href: '/#contacto' },
   },
@@ -42,6 +47,7 @@ const ERROR_CONFIG: Record<string, LoginError> = {
 
 function classifyError(message: string): LoginError {
   if (message.includes('pendiente de aprobación')) return ERROR_CONFIG.pending;
+  if (message.includes('siendo revisada')) return ERROR_CONFIG.under_review;
   if (message.includes('rechazada') || message.includes('rechazó')) return ERROR_CONFIG.rejected;
   if (message.includes('desactivada')) return ERROR_CONFIG.inactive;
   if (message.includes('No existe una cuenta revendedora')) return ERROR_CONFIG.not_found;
@@ -194,7 +200,9 @@ export default function ResellerLogin() {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {error.type === 'warning' ? (
+                  {error.type === 'warning' && error.message.includes('revisada') ? (
+                    <Hourglass className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  ) : error.type === 'warning' ? (
                     <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                   ) : error.type === 'info' ? (
                     <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />

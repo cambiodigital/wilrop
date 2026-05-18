@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -13,27 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  TrendingUp,
-  DollarSign,
-  Users,
-  Clock,
-  ArrowRight,
-  Link2,
-  Eye,
-  UserPlus,
-} from 'lucide-react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from 'recharts';
+import { ArrowRight, Link2, Eye, UserPlus } from 'lucide-react';
+import { ResellerStatsCards } from './ResellerStatsCards';
+import { ResellerSalesChart } from './ResellerSalesChart';
+import type { DashboardData, RecentSaleData } from '@/lib/reseller/dashboard';
 
 const formatCOP = (value: number) => {
   return new Intl.NumberFormat('es-CO', {
@@ -44,125 +29,34 @@ const formatCOP = (value: number) => {
   }).format(value);
 };
 
-const monthlySalesData = [
-  { month: 'Ene', ventas: 8200000 },
-  { month: 'Feb', ventas: 9500000 },
-  { month: 'Mar', ventas: 10100000 },
-  { month: 'Abr', ventas: 9800000 },
-  { month: 'May', ventas: 11200000 },
-  { month: 'Jun', ventas: 12450000 },
-];
+const formatDate = (isoDate: string) => {
+  return new Date(isoDate).toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
 
-const topDestinationsData = [
-  { name: 'Cartagena', ventas: 42 },
-  { name: 'San Andrés', ventas: 28 },
-  { name: 'Medellín', ventas: 24 },
-  { name: 'Santa Marta', ventas: 18 },
-  { name: 'Bogotá', ventas: 12 },
-];
+const getStatusBadge = (status: string) => {
+  const styles: Record<string, string> = {
+    completed: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+    confirmed: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+    pending: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+    cancelled: 'bg-red-100 text-red-700 hover:bg-red-100',
+  };
+  return styles[status] ?? 'bg-gray-100 text-gray-600 hover:bg-gray-100';
+};
 
-const recentSales = [
-  {
-    id: 'V-1024',
-    cliente: 'María Fernanda López',
-    destino: 'Cartagena',
-    paquete: 'Escapada Romántica',
-    fecha: '15 Jun 2025',
-    total: 4900000,
-    comision: 735000,
-    estado: 'Completada',
-  },
-  {
-    id: 'V-1023',
-    cliente: 'Carlos Andrés Martínez',
-    destino: 'San Andrés',
-    paquete: 'All Inclusive',
-    fecha: '12 Jun 2025',
-    total: 6200000,
-    comision: 930000,
-    estado: 'Completada',
-  },
-  {
-    id: 'V-1022',
-    cliente: 'Ana Sofía Rodríguez',
-    destino: 'Medellín',
-    paquete: 'Experiencia Urbana',
-    fecha: '10 Jun 2025',
-    total: 3300000,
-    comision: 495000,
-    estado: 'Pendiente',
-  },
-  {
-    id: 'V-1021',
-    cliente: 'Juan Pablo Gómez',
-    destino: 'Santa Marta',
-    paquete: 'Aventura en Tayrona',
-    fecha: '08 Jun 2025',
-    total: 2760000,
-    comision: 386400,
-    estado: 'Completada',
-  },
-  {
-    id: 'V-1020',
-    cliente: 'Laura Valentina Pérez',
-    destino: 'Amazonas',
-    paquete: 'Expedición Amazónica',
-    fecha: '05 Jun 2025',
-    total: 7300000,
-    comision: 1022000,
-    estado: 'Pendiente',
-  },
-];
-
-const statsCards = [
-  {
-    title: 'Ventas del Mes',
-    value: '$12.450.000',
-    subtitle: 'COP',
-    change: '+15%',
-    changeType: 'positive' as const,
-    icon: <TrendingUp className="w-5 h-5" />,
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-  },
-  {
-    title: 'Comisiones Ganadas',
-    value: '$1.875.000',
-    subtitle: 'COP',
-    change: '+22%',
-    changeType: 'positive' as const,
-    icon: <DollarSign className="w-5 h-5" />,
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-  },
-  {
-    title: 'Clientes Activos',
-    value: '47',
-    subtitle: '',
-    change: '+8',
-    changeType: 'positive' as const,
-    icon: <Users className="w-5 h-5" />,
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-  },
-  {
-    title: 'Reservas Pendientes',
-    value: '8',
-    subtitle: '',
-    change: '-3',
-    changeType: 'neutral' as const,
-    icon: <Clock className="w-5 h-5" />,
-    iconBg: 'bg-orange-100',
-    iconColor: 'text-orange-600',
-  },
-];
+const statusLabels: Record<string, string> = {
+  completed: 'Completada',
+  confirmed: 'Confirmada',
+  pending: 'Pendiente',
+  cancelled: 'Cancelada',
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const itemVariants = {
@@ -170,20 +64,26 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-        <p className="text-sm font-medium text-gray-700">{label}</p>
-        <p className="text-sm font-semibold text-amber-600">{formatCOP(payload[0].value)}</p>
-      </div>
-    );
-  }
-  return null;
-}
-
 export default function ResellerDashboard() {
   const router = useRouter();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const res = await fetch('/api/reseller/dashboard');
+        const json = await res.json();
+        if (json.success) setData(json.data);
+      } catch {
+        console.error('Failed to fetch dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <motion.div
@@ -198,126 +98,59 @@ export default function ResellerDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Bienvenido de vuelta! Aquí está tu resumen.</p>
         </div>
-        <div className="flex items-center gap-2">
+        {data && data.stats.monthlySales > 0 && (
           <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs px-3 py-1">
-            📈 Mes en crecimiento
+            Mes en crecimiento
           </Badge>
-        </div>
+        )}
       </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((stat, index) => (
-          <motion.div key={stat.title} variants={itemVariants}>
-            <Card className="hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">{stat.title}</p>
-                    <div className="mt-1">
-                      <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
-                      {stat.subtitle && (
-                        <span className="text-sm text-gray-400 ml-1">{stat.subtitle}</span>
-                      )}
-                    </div>
-                    <div className="mt-2 flex items-center gap-1">
-                      <span
-                        className={`text-xs font-semibold ${
-                          stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
-                        }`}
-                      >
-                        {stat.change}
-                      </span>
-                      <span className="text-xs text-gray-400">vs mes anterior</span>
-                    </div>
-                  </div>
-                  <div className={`p-2.5 rounded-xl ${stat.iconBg}`}>
-                    <span className={stat.iconColor}>{stat.icon}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+      <ResellerStatsCards stats={data?.stats} loading={loading} />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Chart */}
         <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Ventas Mensuales</CardTitle>
-              <p className="text-xs text-gray-500 -mt-2">Últimos 6 meses</p>
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthlySalesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--brand-gold)" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="var(--brand-gold)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                    <YAxis
-                      tick={{ fontSize: 12, fill: '#9ca3af' }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v) => `${(v / 1000000).toFixed(0)}M`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey="ventas"
-                      stroke="var(--brand-gold)"
-                      strokeWidth={2.5}
-                      fill="url(#colorVentas)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <ResellerSalesChart data={data?.monthlySales} loading={loading} />
         </motion.div>
 
-        {/* Top Destinations */}
+        {/* Pending Sales */}
         <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Top Destinos</CardTitle>
-              <p className="text-xs text-gray-500 -mt-2">Ventas este mes</p>
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topDestinationsData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={75}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                      }}
-                    />
-                    <Bar dataKey="ventas" fill="var(--brand-gold)" radius={[0, 6, 6, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {loading ? (
+            <Skeleton className="h-80 rounded-lg" />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Reservas Pendientes</CardTitle>
+                <p className="text-xs text-gray-500 -mt-2">
+                  {data?.stats.pendingBookings ?? 0} pendientes
+                </p>
+              </CardHeader>
+              <CardContent>
+                {data?.stats.pendingBookings === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-8">
+                    No hay reservas pendientes.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {data?.recentSales
+                      .filter((s) => s.status === 'pending')
+                      .slice(0, 3)
+                      .map((sale) => (
+                        <div key={sale.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{sale.clientName}</p>
+                            <p className="text-xs text-gray-500">{formatDate(sale.saleDate)}</p>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-900">{formatCOP(sale.total)}</p>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
       </div>
 
@@ -340,44 +173,34 @@ export default function ResellerDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs font-semibold text-gray-500">Cliente</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500">Destino</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 hidden sm:table-cell">Paquete</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 hidden md:table-cell">Fecha</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 text-right">Total</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 text-right hidden sm:table-cell">Comisión</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 text-center">Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentSales.map((sale) => (
-                  <TableRow key={sale.id} className="cursor-pointer hover:bg-amber-50/50">
-                    <TableCell className="font-medium text-sm text-gray-900">{sale.cliente}</TableCell>
-                    <TableCell className="text-sm text-gray-600">{sale.destino}</TableCell>
-                    <TableCell className="text-sm text-gray-500 hidden sm:table-cell">{sale.paquete}</TableCell>
-                    <TableCell className="text-sm text-gray-500 hidden md:table-cell">{sale.fecha}</TableCell>
-                    <TableCell className="text-sm font-medium text-gray-900 text-right">{formatCOP(sale.total)}</TableCell>
-                    <TableCell className="text-sm font-medium text-emerald-600 text-right hidden sm:table-cell">
-                      {formatCOP(sale.comision)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge
-                        className={`text-[10px] px-2 py-0.5 ${
-                          sale.estado === 'Completada'
-                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                            : 'bg-amber-100 text-amber-700 hover:bg-amber-100'
-                        }`}
-                      >
-                        {sale.estado}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 rounded-lg" />
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            ) : !data?.recentSales.length ? (
+              <p className="text-sm text-gray-400 text-center py-8">
+                No hay ventas registradas aún.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs font-semibold text-gray-500">Cliente</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 hidden sm:table-cell">Fecha</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 text-right">Total</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 text-right hidden sm:table-cell">Comisión</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 text-center">Estado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.recentSales.map((sale) => (
+                    <RecentSaleRow key={sale.id} sale={sale} />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -419,5 +242,23 @@ export default function ResellerDashboard() {
         </Card>
       </motion.div>
     </motion.div>
+  );
+}
+
+function RecentSaleRow({ sale }: { sale: RecentSaleData }) {
+  return (
+    <TableRow className="cursor-pointer hover:bg-amber-50/50">
+      <TableCell className="font-medium text-sm text-gray-900">{sale.clientName}</TableCell>
+      <TableCell className="text-sm text-gray-500 hidden sm:table-cell">{formatDate(sale.saleDate)}</TableCell>
+      <TableCell className="text-sm font-medium text-gray-900 text-right">{formatCOP(sale.total)}</TableCell>
+      <TableCell className="text-sm font-medium text-emerald-600 text-right hidden sm:table-cell">
+        {formatCOP(sale.commission)}
+      </TableCell>
+      <TableCell className="text-center">
+        <Badge className={`text-[10px] px-2 py-0.5 ${getStatusBadge(sale.status)}`}>
+          {statusLabels[sale.status] ?? sale.status}
+        </Badge>
+      </TableCell>
+    </TableRow>
   );
 }

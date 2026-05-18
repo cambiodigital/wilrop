@@ -13,6 +13,8 @@ import {
   Package,
   LogOut,
   Menu,
+  Settings,
+  ListFilter,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -39,10 +41,12 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/reseller' },
   { id: 'products', label: 'Productos', icon: <Package className="w-5 h-5" />, href: '/reseller/productos' },
+  { id: 'catalog', label: 'Mi Catálogo', icon: <ListFilter className="w-5 h-5" />, href: '/reseller/catalog' },
   { id: 'sales', label: 'Mis Ventas', icon: <TrendingUp className="w-5 h-5" />, href: '/reseller/ventas' },
   { id: 'commissions', label: 'Comisiones', icon: <DollarSign className="w-5 h-5" />, href: '/reseller/comisiones' },
   { id: 'clients', label: 'Mis Clientes', icon: <Users className="w-5 h-5" />, href: '/reseller/clientes' },
   { id: 'whitelabel', label: 'Marca Blanca', icon: <Palette className="w-5 h-5" />, href: '/reseller/whitelabel', requiresWhiteLabel: true },
+  { id: 'settings', label: 'Configuración', icon: <Settings className="w-5 h-5" />, href: '/reseller/settings' },
 ];
 
 function SidebarNav({

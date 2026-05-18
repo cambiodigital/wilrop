@@ -218,11 +218,13 @@ model Booking {
   checkOut     DateTime?
   bookedBy     String         @default("b2c") // "b2c" | "b2b"
   subagentId   String?
+  resellerId   String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   
   items        BookingItem[]
   subagent     Subagent?      @relation(fields: [subagentId], references: [id], onDelete: SetNull)
+  reseller     Reseller?      @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 }
 
 // ─── Booking Items ────────────────────────────────────────────────
@@ -285,4 +287,120 @@ model TransportService {
   updatedAt  DateTime          @updatedAt
   
   provider   TransportProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Resellers ──────────────────────────────────────────────────────
+model Reseller {
+  id              String             @id @default(cuid())
+  code            String             @unique            // RES-0001
+  email           String             @unique
+  password        String
+  companyName     String             @default("")
+  contactName     String             @default("")
+  country         String             @default("")
+  phone           String             @default("")
+  website         String             @default("")
+  taxId           String             @default("")       // NIT/RUT/identificación fiscal
+  address         String             @default("")
+  logoUrl         String             @default("")
+  sellerLevel     String             @default("standard") // starter | standard | free_light
+  commission      Int                @default(0)         // % base de comisión
+  whiteLabelEnabled Boolean          @default(false)
+  active          Boolean            @default(false)
+  approvalStatus  String             @default("pending")  // pending | under_review | approved | rejected
+  rejectionReason String             @default("")
+  registrationDate DateTime          @default(now())
+  approvedAt      DateTime?
+  approvedBy      String?            // Admin ID que aprobó
+  lastLoginAt     DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  catalogs        ResellerCatalog[]
+  sales           ResellerSale[]
+  clients         ResellerClient[]
+  documents       ResellerDocument[]
+  bookings        Booking[]
+}
+
+// ─── Reseller Catalog (productos personalizados del revendedor) ────
+model ResellerCatalog {
+  id               String   @id @default(cuid())
+  resellerId       String
+  sourceType       String    // "hotel" | "excursion" | "package" | "transport" | "room" | "destination"
+  sourceId         String    // ID del modelo origen
+  customPrice      Int?      // Precio personalizado (null = usa precio base)
+  customName       String   @default("")  // "" = usa nombre original
+  customDescription String  @default("")  // "" = usa descripción original
+  active           Boolean  @default(true)
+  featured         Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  reseller         Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@unique([resellerId, sourceType, sourceId])
+  @@index([resellerId, sourceType])
+  @@index([resellerId, active])
+}
+
+// ─── Reseller Sales (ventas del revendedor) ────────────────────────
+model ResellerSale {
+  id            String   @id @default(cuid())
+  resellerId    String
+  bookingId     String?  // Enlace a Booking existente
+  clientName    String   @default("")
+  clientEmail   String   @default("")
+  totalAmount   Int      @default(0)
+  commissionAmt Int      @default(0)  // Monto de comisión ganado
+  netAmount     Int      @default(0)  // Lo que paga al operador
+  status        String   @default("pending")  // pending | confirmed | completed | cancelled
+  saleDate      DateTime @default(now())
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reseller      Reseller @relation(fields: [resellerId], references: [id], onDelete: SetNull)
+
+  @@index([resellerId, status])
+  @@index([resellerId, saleDate])
+}
+
+// ─── Reseller Clients (clientes del revendedor) ────────────────────
+model ResellerClient {
+  id            String   @id @default(cuid())
+  resellerId    String
+  name          String
+  email         String
+  phone         String   @default("")
+  country       String   @default("")
+  passport      String   @default("")
+  notes         String   @default("")
+  totalPurchases Int     @default(0)  // Count
+  totalSpent    Int      @default(0)  // Sum in cents
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reseller      Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, email])
+  @@index([resellerId, name])
+}
+
+// ─── Reseller Documents (documentos de verificación) ───────────────
+model ResellerDocument {
+  id            String   @id @default(cuid())
+  resellerId    String
+  docType       String    // "business_license" | "tax_id" | "id_card" | "other"
+  fileName      String
+  fileUrl       String
+  status        String   @default("pending")  // pending | approved | rejected
+  reviewerNotes String   @default("")
+  uploadedAt    DateTime @default(now())
+  reviewedAt    DateTime?
+
+  reseller      Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, status])
 }

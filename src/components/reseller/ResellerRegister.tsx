@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building, Mail, Lock, User, Phone, Globe, ArrowLeft } from 'lucide-react'
+import { Building, Mail, Lock, User, Phone, Globe, ArrowLeft, FileText, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function ResellerRegister() {
@@ -14,12 +14,15 @@ export default function ResellerRegister() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     contactName: '',
-    agencyName: '',
+    companyName: '',
     email: '',
     password: '',
     confirmPassword: '',
     country: '',
     phone: '',
+    website: '',
+    taxId: '',
+    address: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,16 +32,16 @@ export default function ResellerRegister() {
       toast.error('El nombre de contacto es obligatorio')
       return
     }
-    if (!form.agencyName.trim()) {
-      toast.error('El nombre de agencia es obligatorio')
+    if (!form.companyName.trim()) {
+      toast.error('El nombre de empresa es obligatorio')
       return
     }
     if (!form.email.trim()) {
       toast.error('El email es obligatorio')
       return
     }
-    if (form.password.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres')
+    if (form.password.length < 8) {
+      toast.error('La contraseña debe tener al menos 8 caracteres')
       return
     }
     if (form.password !== form.confirmPassword) {
@@ -53,11 +56,14 @@ export default function ResellerRegister() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contactName: form.contactName,
-          agencyName: form.agencyName,
+          companyName: form.companyName,
           email: form.email,
           password: form.password,
           country: form.country,
           phone: form.phone,
+          website: form.website,
+          taxId: form.taxId,
+          address: form.address,
         }),
       })
 
@@ -83,7 +89,7 @@ export default function ResellerRegister() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-1">
           <Button
             variant="ghost"
@@ -115,13 +121,13 @@ export default function ResellerRegister() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de agencia</Label>
+                <Label className="label-required">Nombre de empresa</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    value={form.agencyName}
-                    onChange={(e) => updateField('agencyName', e.target.value)}
-                    placeholder="Mi Agencia de Viajes"
+                    value={form.companyName}
+                    onChange={(e) => updateField('companyName', e.target.value)}
+                    placeholder="Mi Agencia de Viajes S.A."
                     className="pl-10"
                   />
                 </div>
@@ -151,7 +157,7 @@ export default function ResellerRegister() {
                     type="password"
                     value={form.password}
                     onChange={(e) => updateField('password', e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     className="pl-10"
                   />
                 </div>
@@ -195,6 +201,46 @@ export default function ResellerRegister() {
                     className="pl-10"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Sitio web</Label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={form.website}
+                    onChange={(e) => updateField('website', e.target.value)}
+                    placeholder="https://miagencia.com"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>NIT / RUT / ID Fiscal</Label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={form.taxId}
+                    onChange={(e) => updateField('taxId', e.target.value)}
+                    placeholder="12345678-9"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Dirección</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={form.address}
+                  onChange={(e) => updateField('address', e.target.value)}
+                  placeholder="Calle 123, Ciudad, País"
+                  className="pl-10"
+                />
               </div>
             </div>
 

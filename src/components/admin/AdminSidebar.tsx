@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   Megaphone,
+  Users,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,10 @@ const menuItems: MenuItem[] = [
   { id: 'destinations', label: 'Destinos', icon: <MapPin className="w-5 h-5" />, href: '/admin/destinos' },
   { id: 'hotels', label: 'Hoteles', icon: <Building2 className="w-5 h-5" />, href: '/admin/hoteles' },
   { id: 'packages', label: 'Paquetes', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes' },
+  { id: 'excursions', label: 'Excursiones', icon: <MapPin className="w-5 h-5" />, href: '/admin/excursiones' },
+  { id: 'bookings', label: 'Reservas', icon: <Users className="w-5 h-5" />, href: '/admin/reservas' },
+  { id: 'subagents', label: 'Subagentes', icon: <Users className="w-5 h-5" />, href: '/admin/subagentes' },
+  { id: 'resellers', label: 'Revendedores', icon: <Users className="w-5 h-5" />, href: '/admin/resellers' },
   { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/admin/transportes' },
   { id: 'marketing', label: 'Marketing', icon: <Megaphone className="w-5 h-5" />, href: '/admin/marketing-modal' },
 ];

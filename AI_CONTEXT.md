@@ -1,5 +1,15 @@
 # AI Context
 
+## 2026-05-18
+- **Módulo Reseller - Fase 7 (Clientes) completada:** CRUD completo de clientes con API real conectada al modelo `ResellerClient` de Prisma.
+  - **Server actions:** `src/lib/reseller/clients.ts` con `getResellerClients`, `getResellerClient`, `createResellerClient`, `updateResellerClient`, `deleteResellerClient`.
+  - **Validadores:** `src/lib/reseller/clients-validators.ts` con zod (clientSchema, updateClientSchema, clientFiltersSchema).
+  - **API routes:** `/api/reseller/clients` (GET/POST) y `/api/reseller/clients/[id]` (GET/PATCH/DELETE) con autenticación de sesión reseller.
+  - **Componentes extraídos:** `ResellerClientList.tsx` (tabla con búsqueda, paginación, badges de estado), `ResellerClientForm.tsx` (crear/editar con validación), `ResellerClientDetail.tsx` (detalle con info completa y confirmación de eliminación).
+  - **Componente principal:** `ResellerClients.tsx` refactorizado para usar datos reales de la API en lugar de mock data.
+  - **Modelo ResellerClient:** campos `name`, `email`, `phone`, `country`, `passport`, `notes`, `totalPurchases`, `totalSpent`, `createdAt`, `updatedAt`.
+  - **Estado dinámico:** badges "Nuevo"/"Activo"/"Inactivo" calculados según `totalPurchases` y días desde última actualización.
+
 ## 2026-05-17
 - **Panel Admin - Diseño de color y jerarquía visual:** Se implementó un sistema de diseño completo en el scope `.admin-theme` de `globals.css`:
   - **Tokens** nuevos: `--admin-table-header-bg`, `--admin-table-stripe-bg`, `--admin-table-hover-bg`, `--admin-input-error*`, `--admin-shadow-*`.
