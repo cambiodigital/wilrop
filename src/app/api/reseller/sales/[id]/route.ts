@@ -61,7 +61,7 @@ export async function PATCH(
       const validationResult = saleStatusSchema.safeParse(body)
       if (!validationResult.success) {
         return NextResponse.json(
-          { success: false, error: 'Estado inválido', details: validationResult.error.errors },
+          { success: false, error: 'Estado inválido', details: validationResult.error.issues },
           { status: 400 },
         )
       }
@@ -72,7 +72,7 @@ export async function PATCH(
     const validationResult = updateSaleSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
+        { success: false, error: 'Datos inválidos', details: validationResult.error.issues },
         { status: 400 },
       )
     }

@@ -59,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
+        { success: false, error: 'Datos inválidos', details: validationResult.error.issues },
         { status: 400 },
       )
     }
