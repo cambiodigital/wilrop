@@ -92,8 +92,16 @@ export async function GET(request: NextRequest) {
     if (!sourceType || sourceType === 'transport') {
       const transports = await db.transportService.findMany({
         where: baseWhere,
-        select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, providerId: true },
-        include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+        select: {
+          id: true,
+          name: true,
+          origin: true,
+          destination: true,
+          basePrice: true,
+          notes: true,
+          providerId: true,
+          provider: { select: { name: true, vehicleType: true, capacity: true } },
+        },
         orderBy: { name: 'asc' },
       })
       items.push(

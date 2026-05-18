@@ -202,8 +202,18 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'transport': {
         const transport = await db.transportService.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, active: true, isTemplate: true, providerId: true },
-          include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+          select: {
+            id: true,
+            name: true,
+            origin: true,
+            destination: true,
+            basePrice: true,
+            notes: true,
+            active: true,
+            isTemplate: true,
+            providerId: true,
+            provider: { select: { name: true, vehicleType: true, capacity: true } },
+          },
         })
         if (!transport || transport.isTemplate) return {}
         return { ...transport }
@@ -219,8 +229,16 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'room': {
         const room = await db.roomType.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, basePrice: true, maxGuests: true, beds: true, active: true, hotelId: true },
-          include: { hotel: { select: { name: true, cityName: true } } },
+          select: {
+            id: true,
+            name: true,
+            basePrice: true,
+            maxGuests: true,
+            beds: true,
+            active: true,
+            hotelId: true,
+            hotel: { select: { name: true, cityName: true } },
+          },
         })
         if (!room) return {}
         return { ...room }

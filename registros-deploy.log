@@ -7,1337 +7,831 @@ Find in logs
 
 
 
-2026-May-18 15:19:52.135997
+2026-May-18 15:43:08.103882
 Docker 27.0.3 with BuildKit and Buildx detected on deployment server (localhost).
-2026-May-18 15:19:52.144599
+2026-May-18 15:43:08.112242
 Starting deployment of <REDACTED>:cambiodigital/wilrop.git:main to localhost.
-2026-May-18 15:19:52.372077
+2026-May-18 15:43:08.888798
 Preparing container with helper image: ghcr.io/coollabsio/coolify-helper:1.0.13
-2026-May-18 15:19:52.506583
-[CMD]: docker stop -t 30 b7s4ofquzd3pie7vbwjm8i14
-2026-May-18 15:19:52.506583
-Error response from daemon: No such container: b7s4ofquzd3pie7vbwjm8i14
-2026-May-18 15:19:52.680764
-[CMD]: docker run -d --network 'coolify' --name b7s4ofquzd3pie7vbwjm8i14  --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/coollabsio/coolify-helper:1.0.13
-2026-May-18 15:19:52.680764
-21a07a9aaef55e59987eaa009d2632c014b2a8d3c90aa934a67a9bd10df73001
-2026-May-18 15:19:55.586396
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git ls-remote <REDACTED>:cambiodigital/wilrop.git refs/heads/main'
-2026-May-18 15:19:55.586396
-0e298226958ef62668ab4fefb89833ddd4e42469	refs/heads/main
-2026-May-18 15:19:55.729597
+2026-May-18 15:43:09.291757
+[CMD]: docker stop -t 30 lgcocqasbmk84hnohuq3904q
+2026-May-18 15:43:09.291757
+Error response from daemon: No such container: lgcocqasbmk84hnohuq3904q
+2026-May-18 15:43:09.743511
+[CMD]: docker run -d --network 'coolify' --name lgcocqasbmk84hnohuq3904q  --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/coollabsio/coolify-helper:1.0.13
+2026-May-18 15:43:09.743511
+8bb434db3a9a0f1c02abeba177a1c6c3d53540f6687a5e11223858f8890c715e
+2026-May-18 15:43:13.992795
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git ls-remote <REDACTED>:cambiodigital/wilrop.git refs/heads/main'
+2026-May-18 15:43:13.992795
+e4e3291c78ab91d403f8a33fed2530fd996ac77a	refs/heads/main
+2026-May-18 15:43:14.139959
 ----------------------------------------
-2026-May-18 15:19:55.735604
-Importing <REDACTED>:cambiodigital/wilrop.git:main (commit sha 0e298226958ef62668ab4fefb89833ddd4e42469) to /artifacts/b7s4ofquzd3pie7vbwjm8i14.
-2026-May-18 15:19:56.057338
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'mkdir -p /root/.ssh' && docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'echo '\''LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNBdGpRZmZmbDE4WndGNVpzUjdIbjdVd1k4b1JvQll0Vm96MjY3UmZYM1Zwd0FBQUpoRUF6OXNSQU0vCmJBQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQXRqUWZmZmwxOFp3RjVac1I3SG43VXdZOG9Sb0JZdFZvejI2N1JmWDNWcHcKQUFBRUNiSU04czdCd2FnM20wR1ZnNllDUWpLQ1VldDFxbjJVZUp2WGVXREJpTDJ5Mk5COTkrWFh4bkFYbG14SHNlZnRUQgpqeWhHZ0ZpMVdqUGJydEY5ZmRXbkFBQUFEbU52YjJ4cFpua3RkMmxzY205d0FRSURCQVVHQnc9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K'\'' | base64 -d | tee /root/.ssh/id_rsa > /dev/null' && docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'chmod 600 /root/.ssh/id_rsa' && docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git clone --depth=1 --recurse-submodules --shallow-submodules -b '\''main'\'' '\''<REDACTED>:cambiodigital/wilrop.git'\'' '\''/artifacts/b7s4ofquzd3pie7vbwjm8i14'\'' && cd '\''/artifacts/b7s4ofquzd3pie7vbwjm8i14'\'' && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git fetch --depth=1 origin '\''0e298226958ef62668ab4fefb89833ddd4e42469'\'' && git -c advice.detachedHead=false checkout '\''0e298226958ef62668ab4fefb89833ddd4e42469'\'' >/dev/null 2>&1 && cd '\''/artifacts/b7s4ofquzd3pie7vbwjm8i14'\'' && if [ -f .gitmodules ]; then git submodule sync && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git submodule update --init --recursive --depth=1; fi && cd '\''/artifacts/b7s4ofquzd3pie7vbwjm8i14'\'' && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git lfs pull'
-2026-May-18 15:19:56.057338
-Cloning into '/artifacts/b7s4ofquzd3pie7vbwjm8i14'...
-2026-May-18 15:20:00.773762
+2026-May-18 15:43:14.148484
+Importing <REDACTED>:cambiodigital/wilrop.git:main (commit sha e4e3291c78ab91d403f8a33fed2530fd996ac77a) to /artifacts/lgcocqasbmk84hnohuq3904q.
+2026-May-18 15:43:14.740115
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'mkdir -p /root/.ssh' && docker exec lgcocqasbmk84hnohuq3904q bash -c 'echo '\''LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNBdGpRZmZmbDE4WndGNVpzUjdIbjdVd1k4b1JvQll0Vm96MjY3UmZYM1Zwd0FBQUpoRUF6OXNSQU0vCmJBQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQXRqUWZmZmwxOFp3RjVac1I3SG43VXdZOG9Sb0JZdFZvejI2N1JmWDNWcHcKQUFBRUNiSU04czdCd2FnM20wR1ZnNllDUWpLQ1VldDFxbjJVZUp2WGVXREJpTDJ5Mk5COTkrWFh4bkFYbG14SHNlZnRUQgpqeWhHZ0ZpMVdqUGJydEY5ZmRXbkFBQUFEbU52YjJ4cFpua3RkMmxzY205d0FRSURCQVVHQnc9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K'\'' | base64 -d | tee /root/.ssh/id_rsa > /dev/null' && docker exec lgcocqasbmk84hnohuq3904q bash -c 'chmod 600 /root/.ssh/id_rsa' && docker exec lgcocqasbmk84hnohuq3904q bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git clone --depth=1 --recurse-submodules --shallow-submodules -b '\''main'\'' '\''<REDACTED>:cambiodigital/wilrop.git'\'' '\''/artifacts/lgcocqasbmk84hnohuq3904q'\'' && cd '\''/artifacts/lgcocqasbmk84hnohuq3904q'\'' && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git fetch --depth=1 origin '\''e4e3291c78ab91d403f8a33fed2530fd996ac77a'\'' && git -c advice.detachedHead=false checkout '\''e4e3291c78ab91d403f8a33fed2530fd996ac77a'\'' >/dev/null 2>&1 && cd '\''/artifacts/lgcocqasbmk84hnohuq3904q'\'' && if [ -f .gitmodules ]; then git submodule sync && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git submodule update --init --recursive --depth=1; fi && cd '\''/artifacts/lgcocqasbmk84hnohuq3904q'\'' && GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa" git lfs pull'
+2026-May-18 15:43:14.740115
+Cloning into '/artifacts/lgcocqasbmk84hnohuq3904q'...
+2026-May-18 15:43:19.354360
 From github.com:cambiodigital/wilrop
-2026-May-18 15:20:00.773762
-* branch            0e298226958ef62668ab4fefb89833ddd4e42469 -> FETCH_HEAD
-2026-May-18 15:20:02.936229
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'cd /artifacts/b7s4ofquzd3pie7vbwjm8i14 && git log -1 '\''0e298226958ef62668ab4fefb89833ddd4e42469'\'' --pretty=%B'
-2026-May-18 15:20:02.936229
-feat: add reseller catalog management with CRUD operations and source data fetching
-2026-May-18 15:20:02.936229
-2026-May-18 15:20:02.936229
-feat: implement client management with validation and CRUD operations
-2026-May-18 15:20:02.936229
-2026-May-18 15:20:02.936229
-feat: add commission tracking and reporting for resellers
-2026-May-18 15:20:02.936229
-2026-May-18 15:20:02.936229
-feat: create dashboard for reseller statistics and insights
-2026-May-18 15:20:02.936229
-2026-May-18 15:20:02.936229
-feat: implement reseller profile management including password change and document upload
-2026-May-18 15:20:02.936229
-2026-May-18 15:20:02.936229
-feat: add sales management with validation and status handling
-2026-May-18 15:20:03.149474
-Image not found (u3lniscxtfk1klnak223ta5d:0e298226958ef62668ab4fefb89833ddd4e42469). Building new image.
-2026-May-18 15:20:03.902095
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'cat /artifacts/b7s4ofquzd3pie7vbwjm8i14/Dockerfile'
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:19.354360
+* branch            e4e3291c78ab91d403f8a33fed2530fd996ac77a -> FETCH_HEAD
+2026-May-18 15:43:22.018915
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'cd /artifacts/lgcocqasbmk84hnohuq3904q && git log -1 '\''e4e3291c78ab91d403f8a33fed2530fd996ac77a'\'' --pretty=%B'
+2026-May-18 15:43:22.018915
+Refactor code structure for improved readability and maintainability
+2026-May-18 15:43:22.455542
+Image not found (u3lniscxtfk1klnak223ta5d:e4e3291c78ab91d403f8a33fed2530fd996ac77a). Building new image.
+2026-May-18 15:43:24.159231
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'cat /artifacts/lgcocqasbmk84hnohuq3904q/Dockerfile'
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Stage 1 — deps: instala dependencias con Bun (reproducible)
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 FROM oven/bun:1-alpine AS deps
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 WORKDIR /app
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 COPY package.json bun.lock ./
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # --frozen-lockfile garantiza reproducibilidad exacta del bun.lock
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 RUN bun install --frozen-lockfile
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Stage 2 — builder: genera el cliente Prisma y compila Next.js
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 FROM node:22-alpine AS builder
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 WORKDIR /app
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 COPY --from=deps /app/node_modules ./node_modules
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY . .
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 ENV NEXT_TELEMETRY_DISABLED=1
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # Genera el cliente Prisma para la plataforma linux-musl (Alpine)
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 RUN node /app/node_modules/prisma/build/index.js generate
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # Compila Next.js en modo standalone;
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # el script de build también copia static/ y public/ dentro de .next/standalone/
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 RUN node /app/node_modules/next/dist/bin/next build \
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 && cp -r .next/static .next/standalone/.next/ \
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 && cp -r public .next/standalone/
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Stage 3 — runner: imagen de producción mínima
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 FROM node:22-alpine AS runner
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 WORKDIR /app
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 ENV NODE_ENV=production
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 ENV NEXT_TELEMETRY_DISABLED=1
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 ENV PORT=3000
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 ENV HOSTNAME="0.0.0.0"
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 RUN apk add --no-cache curl
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # Usuario no-root para seguridad (OWASP)
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 RUN addgroup --system --gid 1001 nodejs \
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 && adduser  --system --uid 1001 nextjs
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # ── Next.js standalone ────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Incluye server.js + node_modules mínimos de Next.js
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Assets estáticos
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Archivos públicos
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # ── Prisma runtime ────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Copia node_modules completo para asegurar dependencias transitivas del CLI
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # (por ejemplo `effect`, requerido por @prisma/config en Prisma 6.x)
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./node_modules
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Schema + migraciones (necesarios en runtime para migrate deploy)
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 # Scripts operativos usados por el entrypoint
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/ensure-admin.mjs      ./scripts/ensure-admin.mjs
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/password.mjs         ./src/lib/password.mjs
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/secure-compare.mjs   ./src/lib/secure-compare.mjs
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 # ── Entrypoint ────────────────────────────────────────────────────────────────
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 RUN chmod +x docker-entrypoint.sh
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 USER nextjs
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 EXPOSE 3000
-2026-May-18 15:20:03.902095
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
+2026-May-18 15:43:24.159231
 ENTRYPOINT ["./docker-entrypoint.sh"]
-2026-May-18 15:20:03.902095
+2026-May-18 15:43:24.159231
 CMD ["web"]
-2026-May-18 15:20:04.196202
+2026-May-18 15:43:24.653886
 Creating build-time .env file in /artifacts (outside Docker context).
-2026-May-18 15:20:04.642794
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'cat /artifacts/b7s4ofquzd3pie7vbwjm8i14/Dockerfile'
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'cat /artifacts/lgcocqasbmk84hnohuq3904q/Dockerfile'
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Stage 1 — deps: instala dependencias con Bun (reproducible)
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 FROM oven/bun:1-alpine AS deps
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 WORKDIR /app
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 COPY package.json bun.lock ./
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # --frozen-lockfile garantiza reproducibilidad exacta del bun.lock
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 RUN bun install --frozen-lockfile
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Stage 2 — builder: genera el cliente Prisma y compila Next.js
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 FROM node:22-alpine AS builder
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 WORKDIR /app
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 COPY --from=deps /app/node_modules ./node_modules
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY . .
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 ENV NEXT_TELEMETRY_DISABLED=1
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # Genera el cliente Prisma para la plataforma linux-musl (Alpine)
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 RUN node /app/node_modules/prisma/build/index.js generate
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # Compila Next.js en modo standalone;
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # el script de build también copia static/ y public/ dentro de .next/standalone/
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 RUN node /app/node_modules/next/dist/bin/next build \
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 && cp -r .next/static .next/standalone/.next/ \
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 && cp -r public .next/standalone/
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Stage 3 — runner: imagen de producción mínima
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 FROM node:22-alpine AS runner
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 WORKDIR /app
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 ENV NODE_ENV=production
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 ENV NEXT_TELEMETRY_DISABLED=1
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 ENV PORT=3000
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 ENV HOSTNAME="0.0.0.0"
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 RUN apk add --no-cache curl
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # Usuario no-root para seguridad (OWASP)
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 RUN addgroup --system --gid 1001 nodejs \
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 && adduser  --system --uid 1001 nextjs
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # ── Next.js standalone ────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Incluye server.js + node_modules mínimos de Next.js
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Assets estáticos
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Archivos públicos
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # ── Prisma runtime ────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Copia node_modules completo para asegurar dependencias transitivas del CLI
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # (por ejemplo `effect`, requerido por @prisma/config en Prisma 6.x)
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./node_modules
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Schema + migraciones (necesarios en runtime para migrate deploy)
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 # Scripts operativos usados por el entrypoint
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/ensure-admin.mjs      ./scripts/ensure-admin.mjs
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/password.mjs         ./src/lib/password.mjs
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/secure-compare.mjs   ./src/lib/secure-compare.mjs
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 # ── Entrypoint ────────────────────────────────────────────────────────────────
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 RUN chmod +x docker-entrypoint.sh
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 USER nextjs
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 EXPOSE 3000
-2026-May-18 15:20:04.642794
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
+2026-May-18 15:43:25.596213
 ENTRYPOINT ["./docker-entrypoint.sh"]
-2026-May-18 15:20:04.642794
+2026-May-18 15:43:25.596213
 CMD ["web"]
-2026-May-18 15:20:04.714444
+2026-May-18 15:43:25.660683
 Final Dockerfile:
-2026-May-18 15:20:05.096646
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'cat /artifacts/b7s4ofquzd3pie7vbwjm8i14/Dockerfile'
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'cat /artifacts/lgcocqasbmk84hnohuq3904q/Dockerfile'
+2026-May-18 15:43:26.529824
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 # Stage 1 — deps: instala dependencias con Bun (reproducible)
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 # ─────────────────────────────────────────────────────────────────────────────
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 FROM oven/bun:1-alpine AS deps
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG WILROP_SESSION_SECRET=8vB2nM4lK6jH9gF7dS5aP3oI1uY0tR8eW6qQ4zX2cC1vB9nM7lK5jH3gF1dS8aP
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXTAUTH_SECRET=j5K8pL2mN9bV4xC7zQ1wS6eR3tY0uI8oA2sD5fG7hJ9kL1mN3bV5xC7zQ9wS1eR
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG DATABASE_URL=postgresql://postgres:BirVMRXvLsJbSY71A1ZYPuY@vegu2zz4l0jkzpozriu0qxku:5432/postgres?schema=public
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXTAUTH_URL=https://wilropgroup.com
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG WILROP_ADMIN_PASSWORD=admin123
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXT_PUBLIC_SITE_URL=https:<REDACTED>@vegu2zz4l0jkzpozriu0qxku:5432/postgres?schema=public
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXTAUTH_URL=https://wilropgroup.com
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG WILROP_ADMIN_PASSWORD=admin123
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXT_PUBLIC_SITE_URL=https:<REDACTED>@vegu2zz4l0jkzpozriu0qxku:5432/postgres?schema=public
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXTAUTH_URL=https://wilropgroup.com
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG WILROP_ADMIN_PASSWORD=admin123
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 ARG NEXT_PUBLIC_SITE_URL=https:<REDACTED>@prisma/config en Prisma 6.x)
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules                 ./node_modules
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 # Schema + migraciones (necesarios en runtime para migrate deploy)
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --from=builder --chown=nextjs:nodejs /app/prisma                       ./prisma
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 # Scripts operativos usados por el entrypoint
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/ensure-admin.mjs      ./scripts/ensure-admin.mjs
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/password.mjs         ./src/lib/password.mjs
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/secure-compare.mjs   ./src/lib/secure-compare.mjs
-2026-May-18 15:20:05.096646
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
+2026-May-18 15:43:26.529824
 # ── Entrypoint ────────────────────────────────────────────────────────────────
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 RUN chmod +x docker-entrypoint.sh
-2026-May-18 15:20:05.096646
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
+2026-May-18 15:43:26.529824
 USER nextjs
-2026-May-18 15:20:05.096646
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
+2026-May-18 15:43:26.529824
 EXPOSE 3000
-2026-May-18 15:20:05.096646
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
+2026-May-18 15:43:26.529824
 ENTRYPOINT ["./docker-entrypoint.sh"]
-2026-May-18 15:20:05.096646
+2026-May-18 15:43:26.529824
 CMD ["web"]
-2026-May-18 15:20:05.105320
+2026-May-18 15:43:26.538559
 ----------------------------------------
-2026-May-18 15:20:05.113789
+2026-May-18 15:43:26.547591
 Building docker image started.
-2026-May-18 15:20:05.121045
+2026-May-18 15:43:26.556468
 To check the current progress, click on Show Debug Logs.
-2026-May-18 15:20:05.485986
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'cat /artifacts/build.sh'
-2026-May-18 15:20:05.485986
-cd /artifacts/b7s4ofquzd3pie7vbwjm8i14 && set -a && source /artifacts/build-time.env && set +a && DOCKER_BUILDKIT=1 docker build  --add-host coolify:10.0.1.7 --add-host coolify-db:10.0.1.4 --add-host coolify-realtime:10.0.1.5 --add-host coolify-redis:10.0.1.8 --add-host supabase-db-bswkoogk4co0o0w8gkwkcsoo:10.0.1.3 --add-host supabase-db-ws4cwskgkwowo08c00kkoscg:10.0.1.2 --add-host vegu2zz4l0jkzpozriu0qxku:10.0.1.9 --network host -f /artifacts/b7s4ofquzd3pie7vbwjm8i14/Dockerfile --progress plain -t u3lniscxtfk1klnak223ta5d:0e298226958ef62668ab4fefb89833ddd4e42469 --build-arg COOLIFY_URL --build-arg COOLIFY_FQDN --build-arg COOLIFY_BRANCH --build-arg COOLIFY_RESOURCE_UUID --build-arg WILROP_SESSION_SECRET --build-arg NEXTAUTH_SECRET --build-arg DATABASE_URL --build-arg NEXTAUTH_URL --build-arg WILROP_ADMIN_PASSWORD --build-arg NEXT_PUBLIC_SITE_URL --build-arg PORT --build-arg WILROP_ADMIN_RESET_PASSWORD --build-arg NEXT_TELEMETRY_DISABLED --build-arg COOLIFY_BUILD_SECRETS_HASH=152485c08da00698db1eb2662bbcd7163af85f8575e74d643c51bde6803905dd --build-arg 'COOLIFY_URL' --build-arg 'COOLIFY_FQDN' --build-arg 'COOLIFY_BRANCH' --build-arg 'COOLIFY_RESOURCE_UUID' /artifacts/b7s4ofquzd3pie7vbwjm8i14
-2026-May-18 15:20:06.253355
-[CMD]: docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'bash /artifacts/build.sh'
-2026-May-18 15:20:06.253355
+2026-May-18 15:43:27.425465
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'cat /artifacts/build.sh'
+2026-May-18 15:43:27.425465
+cd /artifacts/lgcocqasbmk84hnohuq3904q && set -a && source /artifacts/build-time.env && set +a && DOCKER_BUILDKIT=1 docker build  --add-host coolify:10.0.1.7 --add-host coolify-db:10.0.1.4 --add-host coolify-realtime:10.0.1.5 --add-host coolify-redis:10.0.1.8 --add-host supabase-db-bswkoogk4co0o0w8gkwkcsoo:10.0.1.3 --add-host supabase-db-ws4cwskgkwowo08c00kkoscg:10.0.1.2 --add-host vegu2zz4l0jkzpozriu0qxku:10.0.1.9 --network host -f /artifacts/lgcocqasbmk84hnohuq3904q/Dockerfile --progress plain -t u3lniscxtfk1klnak223ta5d:e4e3291c78ab91d403f8a33fed2530fd996ac77a --build-arg COOLIFY_URL --build-arg COOLIFY_FQDN --build-arg COOLIFY_BRANCH --build-arg COOLIFY_RESOURCE_UUID --build-arg WILROP_SESSION_SECRET --build-arg NEXTAUTH_SECRET --build-arg DATABASE_URL --build-arg NEXTAUTH_URL --build-arg WILROP_ADMIN_PASSWORD --build-arg NEXT_PUBLIC_SITE_URL --build-arg PORT --build-arg WILROP_ADMIN_RESET_PASSWORD --build-arg NEXT_TELEMETRY_DISABLED --build-arg COOLIFY_BUILD_SECRETS_HASH=152485c08da00698db1eb2662bbcd7163af85f8575e74d643c51bde6803905dd --build-arg 'COOLIFY_URL' --build-arg 'COOLIFY_FQDN' --build-arg 'COOLIFY_BRANCH' --build-arg 'COOLIFY_RESOURCE_UUID' /artifacts/lgcocqasbmk84hnohuq3904q
+2026-May-18 15:43:28.282558
+[CMD]: docker exec lgcocqasbmk84hnohuq3904q bash -c 'bash /artifacts/build.sh'
+2026-May-18 15:43:28.282558
 #0 building with "default" instance using docker driver
-2026-May-18 15:20:06.253355
-2026-May-18 15:20:06.253355
+2026-May-18 15:43:28.282558
+2026-May-18 15:43:28.282558
 #1 [internal] load build definition from Dockerfile
-2026-May-18 15:20:06.253355
+2026-May-18 15:43:28.282558
 #1 transferring dockerfile: 6.38kB done
-2026-May-18 15:20:06.253355
+2026-May-18 15:43:28.282558
 #1 DONE 0.0s
-2026-May-18 15:20:06.253355
-2026-May-18 15:20:06.253355
+2026-May-18 15:43:28.282558
+2026-May-18 15:43:28.282558
 #2 [internal] load metadata for docker.io/library/node:22-alpine
-2026-May-18 15:20:07.570532
+2026-May-18 15:43:28.917743
 #2 ...
-2026-May-18 15:20:07.570532
-2026-May-18 15:20:07.570532
+2026-May-18 15:43:28.917743
+2026-May-18 15:43:28.917743
 #3 [internal] load metadata for docker.io/oven/bun:1-alpine
-2026-May-18 15:20:07.570532
-#3 DONE 1.5s
-2026-May-18 15:20:07.718250
+2026-May-18 15:43:28.917743
+#3 DONE 0.8s
+2026-May-18 15:43:29.041779
 #2 [internal] load metadata for docker.io/library/node:22-alpine
-2026-May-18 15:20:07.718250
-#2 DONE 1.6s
-2026-May-18 15:20:07.825012
+2026-May-18 15:43:29.041779
+#2 DONE 0.8s
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
 #4 [internal] load .dockerignore
-2026-May-18 15:20:07.825012
+2026-May-18 15:43:29.041779
 #4 transferring context: 1.12kB done
-2026-May-18 15:20:07.825012
+2026-May-18 15:43:29.041779
 #4 DONE 0.0s
-2026-May-18 15:20:07.825012
-2026-May-18 15:20:07.825012
-#5 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
-2026-May-18 15:20:07.825012
-#5 resolve docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 done
-2026-May-18 15:20:07.825012
-#5 sha256:dd720352b0690b8fd0bde339dd11a4ae650bfa79f8be316a7d632377781f6cdf 6.52kB / 6.52kB done
-2026-May-18 15:20:07.825012
-#5 sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 6.41kB / 6.41kB done
-2026-May-18 15:20:07.825012
-#5 sha256:757ec364de4d37cedf30871be2988927660834e656e9aa52aad9ac194814c30c 1.72kB / 1.72kB done
-2026-May-18 15:20:07.825012
-#5 DONE 0.1s
-2026-May-18 15:20:07.825012
-2026-May-18 15:20:07.825012
-#6 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
-2026-May-18 15:20:07.825012
-#6 resolve docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0 0.0s done
-2026-May-18 15:20:07.961343
-#6 ...
-2026-May-18 15:20:07.961343
-2026-May-18 15:20:07.961343
-#7 [internal] load build context
-2026-May-18 15:20:07.961343
-#7 transferring context: 5.12MB 0.1s done
-2026-May-18 15:20:07.961343
-#7 DONE 0.1s
-2026-May-18 15:20:07.961343
-2026-May-18 15:20:07.961343
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
+#5 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
+2026-May-18 15:43:29.041779
+#5 DONE 0.0s
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
+#6 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
+2026-May-18 15:43:29.041779
+#6 DONE 0.0s
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
+#7 [runner  3/14] RUN apk add --no-cache curl
+2026-May-18 15:43:29.041779
+#7 CACHED
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
 #8 [builder 2/6] WORKDIR /app
-2026-May-18 15:20:07.961343
-#8 DONE 0.1s
-2026-May-18 15:20:07.961343
-2026-May-18 15:20:07.961343
-#6 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
-2026-May-18 15:20:07.961343
-#6 sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0 1.61kB / 1.61kB done
-2026-May-18 15:20:07.961343
-#6 sha256:efc5e42c7bedc1661ab0b7272c74c3ebf794f054297f530a62055f2d1a0eb662 1.43kB / 1.43kB done
-2026-May-18 15:20:07.961343
-#6 sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0B / 3.81MB 0.2s
-2026-May-18 15:20:07.961343
-#6 sha256:c7b233855e038081984786c223bdcd7aa08ed8f974b40f8a9a444b4546e47756 4.04kB / 4.04kB done
-2026-May-18 15:20:07.961343
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0B / 35.39MB 0.2s
-2026-May-18 15:20:07.961343
-#6 sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 0B / 297B 0.2s
-2026-May-18 15:20:08.132545
-#6 sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 3.81MB / 3.81MB 0.3s done
-2026-May-18 15:20:08.132545
-#6 extracting sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0.1s
-2026-May-18 15:20:08.132545
-#6 sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 0B / 185B 0.3s
-2026-May-18 15:20:08.262368
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 24.12MB / 35.39MB 0.5s
-2026-May-18 15:20:08.262368
-#6 extracting sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0.1s done
-2026-May-18 15:20:08.460041
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 35.39MB / 35.39MB 0.7s done
-2026-May-18 15:20:08.460041
-#6 sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 297B / 297B 0.5s done
-2026-May-18 15:20:08.460041
-#6 sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 185B / 185B 0.6s done
-2026-May-18 15:20:08.460041
-#6 sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 0B / 140B 0.7s
-2026-May-18 15:20:08.460041
-#6 sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 0B / 3.66MB 0.7s
-2026-May-18 15:20:08.575070
-#6 sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 140B / 140B 0.8s done
-2026-May-18 15:20:08.575070
-#6 sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 3.66MB / 3.66MB 0.7s done
-2026-May-18 15:20:08.575070
-#6 extracting sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0.1s
-2026-May-18 15:20:09.100628
-#6 extracting sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0.6s done
-2026-May-18 15:20:09.100628
-#6 extracting sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 done
-2026-May-18 15:20:09.100628
-#6 extracting sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 done
-2026-May-18 15:20:09.100628
-#6 extracting sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 0.0s done
-2026-May-18 15:20:09.100628
-#6 extracting sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 done
-2026-May-18 15:20:09.300735
-#6 DONE 1.4s
-2026-May-18 15:20:09.300735
-2026-May-18 15:20:09.300735
-#9 [deps 2/4] WORKDIR /app
-2026-May-18 15:20:09.300735
-#9 DONE 0.2s
-2026-May-18 15:20:09.300735
-2026-May-18 15:20:09.300735
-#10 [runner  3/14] RUN apk add --no-cache curl
-2026-May-18 15:20:09.300735
-#10 0.873 (1/9) Installing brotli-libs (1.2.0-r0)
-2026-May-18 15:20:09.300735
-#10 0.915 (2/9) Installing c-ares (1.34.6-r0)
-2026-May-18 15:20:09.300735
-#10 0.950 (3/9) Installing libunistring (1.4.1-r0)
-2026-May-18 15:20:09.300735
-#10 0.996 (4/9) Installing libidn2 (2.3.8-r0)
-2026-May-18 15:20:09.300735
-#10 1.031 (5/9) Installing nghttp2-libs (1.69.0-r0)
-2026-May-18 15:20:09.300735
-#10 1.069 (6/9) Installing libpsl (0.21.5-r3)
-2026-May-18 15:20:09.300735
-#10 1.102 (7/9) Installing zstd-libs (1.5.7-r2)
-2026-May-18 15:20:09.300735
-#10 1.141 (8/9) Installing libcurl (8.19.0-r0)
-2026-May-18 15:20:09.300735
-#10 1.180 (9/9) Installing curl (8.19.0-r0)
-2026-May-18 15:20:09.300735
-#10 1.216 Executing busybox-1.37.0-r30.trigger
-2026-May-18 15:20:09.300735
-#10 1.233 OK: 15.9 MiB in 27 packages
-2026-May-18 15:20:09.456940
-#10 DONE 1.4s
-2026-May-18 15:20:09.456940
-2026-May-18 15:20:09.456940
-#11 [deps 3/4] COPY package.json bun.lock ./
-2026-May-18 15:20:09.456940
-#11 DONE 0.1s
-2026-May-18 15:20:09.456940
-2026-May-18 15:20:09.456940
-#12 [runner  4/14] RUN addgroup --system --gid 1001 nodejs  && adduser  --system --uid 1001 nextjs
-2026-May-18 15:20:09.456940
-#12 DONE 0.1s
-2026-May-18 15:20:09.456940
-2026-May-18 15:20:09.456940
-#13 [deps 4/4] RUN bun install --frozen-lockfile
-2026-May-18 15:20:09.633080
-#13 0.088 bun install v1.3.14 (0d9b296a)
-2026-May-18 15:20:18.558695
-#13 9.162
-2026-May-18 15:20:18.558695
-#13 9.162 + @tailwindcss/postcss@4.1.18
-2026-May-18 15:20:18.558695
-#13 9.162 + @types/react@19.2.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @types/react-dom@19.2.3
-2026-May-18 15:20:18.558695
-#13 9.162 + bun-types@1.3.6
-2026-May-18 15:20:18.558695
-#13 9.162 + eslint@9.39.2
-2026-May-18 15:20:18.558695
-#13 9.162 + eslint-config-next@16.1.3
-2026-May-18 15:20:18.558695
-#13 9.162 + tailwindcss@4.1.18
-2026-May-18 15:20:18.558695
-#13 9.162 + tw-animate-css@1.4.0
-2026-May-18 15:20:18.558695
-#13 9.162 + typescript@5.9.3
-2026-May-18 15:20:18.558695
-#13 9.162 + @dnd-kit/core@6.3.1
-2026-May-18 15:20:18.558695
-#13 9.162 + @dnd-kit/sortable@10.0.0
-2026-May-18 15:20:18.558695
-#13 9.162 + @dnd-kit/utilities@3.2.2
-2026-May-18 15:20:18.558695
-#13 9.162 + @hookform/resolvers@5.2.2
-2026-May-18 15:20:18.558695
-#13 9.162 + @mdxeditor/editor@3.52.3
-2026-May-18 15:20:18.558695
-#13 9.162 + @prisma/client@6.19.2
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-accordion@1.2.12
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-alert-dialog@1.1.15
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-aspect-ratio@1.1.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-avatar@1.1.11
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-checkbox@1.3.3
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-collapsible@1.1.12
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-context-menu@2.2.16
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-dialog@1.1.15
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-dropdown-menu@2.1.16
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-hover-card@1.1.15
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-label@2.1.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-menubar@1.1.16
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-navigation-menu@1.2.14
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-popover@1.1.15
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-progress@1.1.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-radio-group@1.3.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-scroll-area@1.2.10
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-select@2.2.6
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-separator@1.1.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-slider@1.3.6
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-slot@1.2.4
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-switch@1.2.6
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-tabs@1.1.13
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-toast@1.2.15
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-toggle@1.1.10
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-toggle-group@1.1.11
-2026-May-18 15:20:18.558695
-#13 9.162 + @radix-ui/react-tooltip@1.2.8
-2026-May-18 15:20:18.558695
-#13 9.162 + @reactuses/core@6.1.9
-2026-May-18 15:20:18.558695
-#13 9.162 + @tanstack/react-query@5.90.19
-2026-May-18 15:20:18.558695
-#13 9.162 + @tanstack/react-table@8.21.3
-2026-May-18 15:20:18.558695
-#13 9.162 + bcryptjs@3.0.3
-2026-May-18 15:20:18.558695
-#13 9.162 + class-variance-authority@0.7.1
-2026-May-18 15:20:18.558695
-#13 9.162 + clsx@2.1.1
-2026-May-18 15:20:18.558695
-#13 9.162 + cmdk@1.1.1
-2026-May-18 15:20:18.558695
-#13 9.162 + date-fns@4.1.0
-2026-May-18 15:20:18.558695
-#13 9.162 + embla-carousel-react@8.6.0
-2026-May-18 15:20:18.558695
-#13 9.162 + framer-motion@12.26.2
-2026-May-18 15:20:18.558695
-#13 9.162 + input-otp@1.4.2
-2026-May-18 15:20:18.558695
-#13 9.162 + lucide-react@0.525.0
-2026-May-18 15:20:18.558695
-#13 9.162 + next@16.1.3
-2026-May-18 15:20:18.558695
-#13 9.162 + next-auth@4.24.13
-2026-May-18 15:20:18.558695
-#13 9.162 + next-intl@4.7.0
-2026-May-18 15:20:18.558695
-#13 9.162 + next-themes@0.4.6
-2026-May-18 15:20:18.558695
-#13 9.162 + prisma@6.19.2
-2026-May-18 15:20:18.558695
-#13 9.162 + react@19.2.3
-2026-May-18 15:20:18.558695
-#13 9.162 + react-day-picker@9.13.0
-2026-May-18 15:20:18.558695
-#13 9.162 + react-dom@19.2.3
-2026-May-18 15:20:18.558695
-#13 9.162 + react-hook-form@7.71.1
-2026-May-18 15:20:18.558695
-#13 9.162 + react-markdown@10.1.0
-2026-May-18 15:20:18.558695
-#13 9.162 + react-resizable-panels@3.0.6
-2026-May-18 15:20:18.558695
-#13 9.162 + react-syntax-highlighter@15.6.6
-2026-May-18 15:20:18.558695
-#13 9.162 + recharts@2.15.4
-2026-May-18 15:20:18.558695
-#13 9.162 + sharp@0.34.5
-2026-May-18 15:20:18.558695
-#13 9.162 + socket.io@4.8.3
-2026-May-18 15:20:18.558695
-#13 9.162 + socket.io-client@4.8.3
-2026-May-18 15:20:18.558695
-#13 9.162 + sonner@2.0.7
-2026-May-18 15:20:18.558695
-#13 9.162 + tailwind-merge@3.4.0
-2026-May-18 15:20:18.558695
-#13 9.162 + tailwindcss-animate@1.0.7
-2026-May-18 15:20:18.558695
-#13 9.162 + uuid@11.1.0
-2026-May-18 15:20:18.558695
-#13 9.162 + vaul@1.1.2
-2026-May-18 15:20:18.558695
-#13 9.162 + z-ai-web-dev-sdk@0.0.17
-2026-May-18 15:20:18.558695
-#13 9.162 + zod@4.3.5
-2026-May-18 15:20:18.558695
-#13 9.162 + zustand@5.0.10
-2026-May-18 15:20:18.558695
-#13 9.162
-2026-May-18 15:20:18.558695
-#13 9.162 847 packages installed [9.07s]
-2026-May-18 15:20:18.684671
-#13 DONE 9.3s
-2026-May-18 15:20:33.533769
+2026-May-18 15:43:29.041779
+#8 CACHED
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
+#9 [runner  4/14] RUN addgroup --system --gid 1001 nodejs  && adduser  --system --uid 1001 nextjs
+2026-May-18 15:43:29.041779
+#9 CACHED
+2026-May-18 15:43:29.041779
+2026-May-18 15:43:29.041779
+#10 [internal] load build context
+2026-May-18 15:43:29.041779
+#10 transferring context: 5.12MB 0.1s done
+2026-May-18 15:43:29.193492
+#10 DONE 0.1s
+2026-May-18 15:43:29.193492
+2026-May-18 15:43:29.193492
+#11 [deps 4/4] RUN bun install --frozen-lockfile
+2026-May-18 15:43:29.193492
+#11 CACHED
+2026-May-18 15:43:29.193492
+2026-May-18 15:43:29.193492
+#12 [deps 2/4] WORKDIR /app
+2026-May-18 15:43:29.193492
+#12 CACHED
+2026-May-18 15:43:29.193492
+2026-May-18 15:43:29.193492
+#13 [deps 3/4] COPY package.json bun.lock ./
+2026-May-18 15:43:29.193492
+#13 CACHED
+2026-May-18 15:43:29.193492
+2026-May-18 15:43:29.193492
 #14 [builder 3/6] COPY --from=deps /app/node_modules ./node_modules
-2026-May-18 15:20:51.665308
-#14 DONE 18.1s
-2026-May-18 15:20:51.818653
+2026-May-18 15:43:29.193492
+#14 CACHED
+2026-May-18 15:43:29.193492
+2026-May-18 15:43:29.193492
 #15 [builder 4/6] COPY . .
-2026-May-18 15:20:51.856395
-#15 DONE 0.2s
-2026-May-18 15:20:52.009310
+2026-May-18 15:43:29.193492
+#15 DONE 0.1s
+2026-May-18 15:43:29.346735
 #16 [builder 5/6] RUN node /app/node_modules/prisma/build/index.js generate
-2026-May-18 15:20:53.346155
-#16 1.487 Prisma schema loaded from prisma/schema.prisma
-2026-May-18 15:20:54.211835
-#16 2.353
-2026-May-18 15:20:54.211835
-#16 2.353 ✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 246ms
-2026-May-18 15:20:54.211835
-#16 2.353
-2026-May-18 15:20:54.211835
-#16 2.353 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-2026-May-18 15:20:54.211835
-#16 2.353
-2026-May-18 15:20:54.211835
-#16 2.353 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
-2026-May-18 15:20:54.211835
-#16 2.353
-2026-May-18 15:20:54.411103
-#16 DONE 2.4s
-2026-May-18 15:20:54.411103
-2026-May-18 15:20:54.411103
+2026-May-18 15:43:30.796614
+#16 1.601 Prisma schema loaded from prisma/schema.prisma
+2026-May-18 15:43:31.694641
+#16 2.499
+2026-May-18 15:43:31.694641
+#16 2.499 ✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 233ms
+2026-May-18 15:43:31.694641
+#16 2.499
+2026-May-18 15:43:31.694641
+#16 2.499 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+2026-May-18 15:43:31.694641
+#16 2.499
+2026-May-18 15:43:31.694641
+#16 2.499 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+2026-May-18 15:43:31.694641
+#16 2.499
+2026-May-18 15:43:31.889355
+#16 DONE 2.5s
+2026-May-18 15:43:31.889355
+2026-May-18 15:43:31.889355
 #17 [builder 6/6] RUN node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/
-2026-May-18 15:20:55.678574
-#17 1.418 ▲ Next.js 16.1.3 (Turbopack)
-2026-May-18 15:20:55.896647
-#17 1.419
-2026-May-18 15:20:55.896647
-#17 1.486   Creating an optimized production build ...
-2026-May-18 15:21:13.567526
-#17 19.28 ✓ Compiled successfully in 17.1s
-2026-May-18 15:21:13.716910
-#17 19.28   Running TypeScript ...
-2026-May-18 15:21:32.960531
-#17 38.68 Failed to compile.
-2026-May-18 15:21:32.960531
-#17 38.68
-2026-May-18 15:21:32.960531
-#17 38.68 ./src/app/api/reseller/catalog/[id]/route.ts:62:85
-2026-May-18 15:21:32.960531
-#17 38.68 Type error: Property 'errors' does not exist on type 'ZodError<{ customPrice?: number | null | undefined; customName?: string | undefined; customDescription?: string | undefined; active?: boolean | undefined; featured?: boolean | undefined; sortOrder?: number | undefined; }>'.
-2026-May-18 15:21:32.960531
-#17 38.68
-2026-May-18 15:21:32.960531
-#17 38.68   60 |     if (!validationResult.success) {
-2026-May-18 15:21:32.960531
-#17 38.68   61 |       return NextResponse.json(
-2026-May-18 15:21:32.960531
-#17 38.68 > 62 |         { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
-2026-May-18 15:21:32.960531
-#17 38.68      |                                                                                     ^
-2026-May-18 15:21:32.960531
-#17 38.68   63 |         { status: 400 },
-2026-May-18 15:21:32.960531
-#17 38.68   64 |       )
-2026-May-18 15:21:32.960531
-#17 38.68   65 |     }
-2026-May-18 15:21:33.131480
-#17 38.87 Next.js build worker exited with code: 1 and signal: null
-2026-May-18 15:21:33.358528
+2026-May-18 15:43:33.110511
+#17 1.372 ▲ Next.js 16.1.3 (Turbopack)
+2026-May-18 15:43:33.352245
+#17 1.372
+2026-May-18 15:43:33.352245
+#17 1.463   Creating an optimized production build ...
+2026-May-18 15:43:49.213989
+#17 17.45 ✓ Compiled successfully in 15.2s
+2026-May-18 15:43:49.358673
+#17 17.45   Running TypeScript ...
+2026-May-18 15:44:09.858953
+#17 38.10 Failed to compile.
+2026-May-18 15:44:09.858953
+#17 38.10
+2026-May-18 15:44:09.858953
+#17 38.10 ./src/app/api/reseller/catalog/available/route.ts:93:61
+2026-May-18 15:44:09.858953
+#17 38.10 Type error: Argument of type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to parameter of type 'SelectSubset<{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }, TransportServiceFindManyA...'.
+2026-May-18 15:44:09.858953
+#17 38.10   Type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to type '"Please either choose `select` or `include`."'.
+2026-May-18 15:44:09.858953
+#17 38.10
+2026-May-18 15:44:09.858953
+#17 38.10   91 |
+2026-May-18 15:44:09.858953
+#17 38.10   92 |     if (!sourceType || sourceType === 'transport') {
+2026-May-18 15:44:09.858953
+#17 38.10 > 93 |       const transports = await db.transportService.findMany({
+2026-May-18 15:44:09.858953
+#17 38.10      |                                                             ^
+2026-May-18 15:44:09.858953
+#17 38.10   94 |         where: baseWhere,
+2026-May-18 15:44:09.858953
+#17 38.10   95 |         select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, providerId: true },
+2026-May-18 15:44:09.858953
+#17 38.10   96 |         include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+2026-May-18 15:44:10.046799
+#17 38.31 Next.js build worker exited with code: 1 and signal: null
+2026-May-18 15:44:10.265392
 #17 ERROR: process "/bin/sh -c node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/" did not complete successfully: exit code: 1
-2026-May-18 15:21:33.404818
+2026-May-18 15:44:10.315704
 ------
-2026-May-18 15:21:33.404818
+2026-May-18 15:44:10.315704
 > [builder 6/6] RUN node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/:
-2026-May-18 15:21:33.404818
-38.68 Type error: Property 'errors' does not exist on type 'ZodError<{ customPrice?: number | null | undefined; customName?: string | undefined; customDescription?: string | undefined; active?: boolean | undefined; featured?: boolean | undefined; sortOrder?: number | undefined; }>'.
-2026-May-18 15:21:33.404818
-38.68
-2026-May-18 15:21:33.404818
-38.68   60 |     if (!validationResult.success) {
-2026-May-18 15:21:33.404818
-38.68   61 |       return NextResponse.json(
-2026-May-18 15:21:33.404818
-38.68 > 62 |         { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
-2026-May-18 15:21:33.404818
-38.68      |                                                                                     ^
-2026-May-18 15:21:33.404818
-38.68   63 |         { status: 400 },
-2026-May-18 15:21:33.404818
-38.68   64 |       )
-2026-May-18 15:21:33.404818
-38.68   65 |     }
-2026-May-18 15:21:33.404818
-38.87 Next.js build worker exited with code: 1 and signal: null
-2026-May-18 15:21:33.404818
+2026-May-18 15:44:10.315704
+38.10   Type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to type '"Please either choose `select` or `include`."'.
+2026-May-18 15:44:10.315704
+38.10
+2026-May-18 15:44:10.315704
+38.10   91 |
+2026-May-18 15:44:10.315704
+38.10   92 |     if (!sourceType || sourceType === 'transport') {
+2026-May-18 15:44:10.315704
+38.10 > 93 |       const transports = await db.transportService.findMany({
+2026-May-18 15:44:10.319908
+38.10      |                                                             ^
+2026-May-18 15:44:10.319908
+38.10   94 |         where: baseWhere,
+2026-May-18 15:44:10.319908
+38.10   95 |         select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, providerId: true },
+2026-May-18 15:44:10.319908
+38.10   96 |         include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+2026-May-18 15:44:10.319908
+38.31 Next.js build worker exited with code: 1 and signal: null
+2026-May-18 15:44:10.319908
 ------
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 Dockerfile:56
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 --------------------
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 55 |     # el script de build también copia static/ y public/ dentro de .next/standalone/
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 56 | >>> RUN node /app/node_modules/next/dist/bin/next build \
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 57 | >>>  && cp -r .next/static .next/standalone/.next/ \
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 58 | >>>  && cp -r public .next/standalone/
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 59 |
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 --------------------
-2026-May-18 15:21:33.416572
+2026-May-18 15:44:10.330143
 ERROR: failed to build: failed to solve: process "/bin/sh -c node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/" did not complete successfully: exit code: 1
-2026-May-18 15:21:33.434767
+2026-May-18 15:44:10.349759
 exit status 1
-2026-May-18 15:21:33.549228
+2026-May-18 15:44:10.473349
 ========================================
-2026-May-18 15:21:33.559325
-Deployment failed: Command execution failed (exit code 1): docker exec b7s4ofquzd3pie7vbwjm8i14 bash -c 'bash /artifacts/build.sh'
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+Deployment failed: Command execution failed (exit code 1): docker exec lgcocqasbmk84hnohuq3904q bash -c 'bash /artifacts/build.sh'
+2026-May-18 15:44:10.484009
 Error: #0 building with "default" instance using docker driver
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #1 [internal] load build definition from Dockerfile
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 #1 transferring dockerfile: 6.38kB done
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 #1 DONE 0.0s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #2 [internal] load metadata for docker.io/library/node:22-alpine
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 #2 ...
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #3 [internal] load metadata for docker.io/oven/bun:1-alpine
-2026-May-18 15:21:33.559325
-#3 DONE 1.5s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#3 DONE 0.8s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #2 [internal] load metadata for docker.io/library/node:22-alpine
-2026-May-18 15:21:33.559325
-#2 DONE 1.6s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#2 DONE 0.8s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #4 [internal] load .dockerignore
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 #4 transferring context: 1.12kB done
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 #4 DONE 0.0s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#5 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
-2026-May-18 15:21:33.559325
-#5 resolve docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 done
-2026-May-18 15:21:33.559325
-#5 sha256:dd720352b0690b8fd0bde339dd11a4ae650bfa79f8be316a7d632377781f6cdf 6.52kB / 6.52kB done
-2026-May-18 15:21:33.559325
-#5 sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 6.41kB / 6.41kB done
-2026-May-18 15:21:33.559325
-#5 sha256:757ec364de4d37cedf30871be2988927660834e656e9aa52aad9ac194814c30c 1.72kB / 1.72kB done
-2026-May-18 15:21:33.559325
-#5 DONE 0.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#6 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
-2026-May-18 15:21:33.559325
-#6 resolve docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0 0.0s done
-2026-May-18 15:21:33.559325
-#6 ...
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#7 [internal] load build context
-2026-May-18 15:21:33.559325
-#7 transferring context: 5.12MB 0.1s done
-2026-May-18 15:21:33.559325
-#7 DONE 0.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#5 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
+2026-May-18 15:44:10.484009
+#5 DONE 0.0s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#6 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
+2026-May-18 15:44:10.484009
+#6 DONE 0.0s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#7 [runner  3/14] RUN apk add --no-cache curl
+2026-May-18 15:44:10.484009
+#7 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #8 [builder 2/6] WORKDIR /app
-2026-May-18 15:21:33.559325
-#8 DONE 0.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#6 [deps 1/4] FROM docker.io/oven/bun:1-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
-2026-May-18 15:21:33.559325
-#6 sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0 1.61kB / 1.61kB done
-2026-May-18 15:21:33.559325
-#6 sha256:efc5e42c7bedc1661ab0b7272c74c3ebf794f054297f530a62055f2d1a0eb662 1.43kB / 1.43kB done
-2026-May-18 15:21:33.559325
-#6 sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0B / 3.81MB 0.2s
-2026-May-18 15:21:33.559325
-#6 sha256:c7b233855e038081984786c223bdcd7aa08ed8f974b40f8a9a444b4546e47756 4.04kB / 4.04kB done
-2026-May-18 15:21:33.559325
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0B / 35.39MB 0.2s
-2026-May-18 15:21:33.559325
-#6 sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 0B / 297B 0.2s
-2026-May-18 15:21:33.559325
-#6 sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 3.81MB / 3.81MB 0.3s done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0.1s
-2026-May-18 15:21:33.559325
-#6 sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 0B / 185B 0.3s
-2026-May-18 15:21:33.559325
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 24.12MB / 35.39MB 0.5s
-2026-May-18 15:21:33.559325
-#6 extracting sha256:84f5eff04246b56d48d1ed6cbd82d6bc7e53f7e790db6a467f92571c69f3289e 0.1s done
-2026-May-18 15:21:33.559325
-#6 sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 35.39MB / 35.39MB 0.7s done
-2026-May-18 15:21:33.559325
-#6 sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 297B / 297B 0.5s done
-2026-May-18 15:21:33.559325
-#6 sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 185B / 185B 0.6s done
-2026-May-18 15:21:33.559325
-#6 sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 0B / 140B 0.7s
-2026-May-18 15:21:33.559325
-#6 sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 0B / 3.66MB 0.7s
-2026-May-18 15:21:33.559325
-#6 sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 140B / 140B 0.8s done
-2026-May-18 15:21:33.559325
-#6 sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 3.66MB / 3.66MB 0.7s done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0.1s
-2026-May-18 15:21:33.559325
-#6 extracting sha256:dcf061af8c01e1f1f25f674a31deb3a3b06fba9cee22f1915d5c8696773185c8 0.6s done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:2f325d21eb3a45d41dab236a207a03a064598cf43a96271ce5306191add522f9 done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:0d0b2b34a3453dedf85b39d8c100eadf6838fc467d9acafbf3ab31459ed51af6 done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:cf34dbd5e0ab03f713e02ef49ab5525718e0381241fe29bae7897cd0be7081f7 0.0s done
-2026-May-18 15:21:33.559325
-#6 extracting sha256:cce26e891611b83efb72188a1b88da1afb85f293a070b53c6259b1dbfc922cf3 done
-2026-May-18 15:21:33.559325
-#6 DONE 1.4s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#9 [deps 2/4] WORKDIR /app
-2026-May-18 15:21:33.559325
-#9 DONE 0.2s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#10 [runner  3/14] RUN apk add --no-cache curl
-2026-May-18 15:21:33.559325
-#10 0.873 (1/9) Installing brotli-libs (1.2.0-r0)
-2026-May-18 15:21:33.559325
-#10 0.915 (2/9) Installing c-ares (1.34.6-r0)
-2026-May-18 15:21:33.559325
-#10 0.950 (3/9) Installing libunistring (1.4.1-r0)
-2026-May-18 15:21:33.559325
-#10 0.996 (4/9) Installing libidn2 (2.3.8-r0)
-2026-May-18 15:21:33.559325
-#10 1.031 (5/9) Installing nghttp2-libs (1.69.0-r0)
-2026-May-18 15:21:33.559325
-#10 1.069 (6/9) Installing libpsl (0.21.5-r3)
-2026-May-18 15:21:33.559325
-#10 1.102 (7/9) Installing zstd-libs (1.5.7-r2)
-2026-May-18 15:21:33.559325
-#10 1.141 (8/9) Installing libcurl (8.19.0-r0)
-2026-May-18 15:21:33.559325
-#10 1.180 (9/9) Installing curl (8.19.0-r0)
-2026-May-18 15:21:33.559325
-#10 1.216 Executing busybox-1.37.0-r30.trigger
-2026-May-18 15:21:33.559325
-#10 1.233 OK: 15.9 MiB in 27 packages
-2026-May-18 15:21:33.559325
-#10 DONE 1.4s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#11 [deps 3/4] COPY package.json bun.lock ./
-2026-May-18 15:21:33.559325
-#11 DONE 0.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#12 [runner  4/14] RUN addgroup --system --gid 1001 nodejs  && adduser  --system --uid 1001 nextjs
-2026-May-18 15:21:33.559325
-#12 DONE 0.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
-#13 [deps 4/4] RUN bun install --frozen-lockfile
-2026-May-18 15:21:33.559325
-#13 0.088 bun install v1.3.14 (0d9b296a)
-2026-May-18 15:21:33.559325
-#13 9.162
-2026-May-18 15:21:33.559325
-#13 9.162 + @tailwindcss/postcss@4.1.18
-2026-May-18 15:21:33.559325
-#13 9.162 + @types/react@19.2.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @types/react-dom@19.2.3
-2026-May-18 15:21:33.559325
-#13 9.162 + bun-types@1.3.6
-2026-May-18 15:21:33.559325
-#13 9.162 + eslint@9.39.2
-2026-May-18 15:21:33.559325
-#13 9.162 + eslint-config-next@16.1.3
-2026-May-18 15:21:33.559325
-#13 9.162 + tailwindcss@4.1.18
-2026-May-18 15:21:33.559325
-#13 9.162 + tw-animate-css@1.4.0
-2026-May-18 15:21:33.559325
-#13 9.162 + typescript@5.9.3
-2026-May-18 15:21:33.559325
-#13 9.162 + @dnd-kit/core@6.3.1
-2026-May-18 15:21:33.559325
-#13 9.162 + @dnd-kit/sortable@10.0.0
-2026-May-18 15:21:33.559325
-#13 9.162 + @dnd-kit/utilities@3.2.2
-2026-May-18 15:21:33.559325
-#13 9.162 + @hookform/resolvers@5.2.2
-2026-May-18 15:21:33.559325
-#13 9.162 + @mdxeditor/editor@3.52.3
-2026-May-18 15:21:33.559325
-#13 9.162 + @prisma/client@6.19.2
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-accordion@1.2.12
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-alert-dialog@1.1.15
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-aspect-ratio@1.1.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-avatar@1.1.11
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-checkbox@1.3.3
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-collapsible@1.1.12
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-context-menu@2.2.16
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-dialog@1.1.15
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-dropdown-menu@2.1.16
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-hover-card@1.1.15
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-label@2.1.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-menubar@1.1.16
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-navigation-menu@1.2.14
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-popover@1.1.15
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-progress@1.1.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-radio-group@1.3.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-scroll-area@1.2.10
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-select@2.2.6
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-separator@1.1.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-slider@1.3.6
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-slot@1.2.4
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-switch@1.2.6
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-tabs@1.1.13
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-toast@1.2.15
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-toggle@1.1.10
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-toggle-group@1.1.11
-2026-May-18 15:21:33.559325
-#13 9.162 + @radix-ui/react-tooltip@1.2.8
-2026-May-18 15:21:33.559325
-#13 9.162 + @reactuses/core@6.1.9
-2026-May-18 15:21:33.559325
-#13 9.162 + @tanstack/react-query@5.90.19
-2026-May-18 15:21:33.559325
-#13 9.162 + @tanstack/react-table@8.21.3
-2026-May-18 15:21:33.559325
-#13 9.162 + bcryptjs@3.0.3
-2026-May-18 15:21:33.559325
-#13 9.162 + class-variance-authority@0.7.1
-2026-May-18 15:21:33.559325
-#13 9.162 + clsx@2.1.1
-2026-May-18 15:21:33.559325
-#13 9.162 + cmdk@1.1.1
-2026-May-18 15:21:33.559325
-#13 9.162 + date-fns@4.1.0
-2026-May-18 15:21:33.559325
-#13 9.162 + embla-carousel-react@8.6.0
-2026-May-18 15:21:33.559325
-#13 9.162 + framer-motion@12.26.2
-2026-May-18 15:21:33.559325
-#13 9.162 + input-otp@1.4.2
-2026-May-18 15:21:33.559325
-#13 9.162 + lucide-react@0.525.0
-2026-May-18 15:21:33.559325
-#13 9.162 + next@16.1.3
-2026-May-18 15:21:33.559325
-#13 9.162 + next-auth@4.24.13
-2026-May-18 15:21:33.559325
-#13 9.162 + next-intl@4.7.0
-2026-May-18 15:21:33.559325
-#13 9.162 + next-themes@0.4.6
-2026-May-18 15:21:33.559325
-#13 9.162 + prisma@6.19.2
-2026-May-18 15:21:33.559325
-#13 9.162 + react@19.2.3
-2026-May-18 15:21:33.559325
-#13 9.162 + react-day-picker@9.13.0
-2026-May-18 15:21:33.559325
-#13 9.162 + react-dom@19.2.3
-2026-May-18 15:21:33.559325
-#13 9.162 + react-hook-form@7.71.1
-2026-May-18 15:21:33.559325
-#13 9.162 + react-markdown@10.1.0
-2026-May-18 15:21:33.559325
-#13 9.162 + react-resizable-panels@3.0.6
-2026-May-18 15:21:33.559325
-#13 9.162 + react-syntax-highlighter@15.6.6
-2026-May-18 15:21:33.559325
-#13 9.162 + recharts@2.15.4
-2026-May-18 15:21:33.559325
-#13 9.162 + sharp@0.34.5
-2026-May-18 15:21:33.559325
-#13 9.162 + socket.io@4.8.3
-2026-May-18 15:21:33.559325
-#13 9.162 + socket.io-client@4.8.3
-2026-May-18 15:21:33.559325
-#13 9.162 + sonner@2.0.7
-2026-May-18 15:21:33.559325
-#13 9.162 + tailwind-merge@3.4.0
-2026-May-18 15:21:33.559325
-#13 9.162 + tailwindcss-animate@1.0.7
-2026-May-18 15:21:33.559325
-#13 9.162 + uuid@11.1.0
-2026-May-18 15:21:33.559325
-#13 9.162 + vaul@1.1.2
-2026-May-18 15:21:33.559325
-#13 9.162 + z-ai-web-dev-sdk@0.0.17
-2026-May-18 15:21:33.559325
-#13 9.162 + zod@4.3.5
-2026-May-18 15:21:33.559325
-#13 9.162 + zustand@5.0.10
-2026-May-18 15:21:33.559325
-#13 9.162
-2026-May-18 15:21:33.559325
-#13 9.162 847 packages installed [9.07s]
-2026-May-18 15:21:33.559325
-#13 DONE 9.3s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#8 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#9 [runner  4/14] RUN addgroup --system --gid 1001 nodejs  && adduser  --system --uid 1001 nextjs
+2026-May-18 15:44:10.484009
+#9 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#10 [internal] load build context
+2026-May-18 15:44:10.484009
+#10 transferring context: 5.12MB 0.1s done
+2026-May-18 15:44:10.484009
+#10 DONE 0.1s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#11 [deps 4/4] RUN bun install --frozen-lockfile
+2026-May-18 15:44:10.484009
+#11 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#12 [deps 2/4] WORKDIR /app
+2026-May-18 15:44:10.484009
+#12 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
+#13 [deps 3/4] COPY package.json bun.lock ./
+2026-May-18 15:44:10.484009
+#13 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #14 [builder 3/6] COPY --from=deps /app/node_modules ./node_modules
-2026-May-18 15:21:33.559325
-#14 DONE 18.1s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#14 CACHED
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #15 [builder 4/6] COPY . .
-2026-May-18 15:21:33.559325
-#15 DONE 0.2s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#15 DONE 0.1s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #16 [builder 5/6] RUN node /app/node_modules/prisma/build/index.js generate
-2026-May-18 15:21:33.559325
-#16 1.487 Prisma schema loaded from prisma/schema.prisma
-2026-May-18 15:21:33.559325
-#16 2.353
-2026-May-18 15:21:33.559325
-#16 2.353 ✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 246ms
-2026-May-18 15:21:33.559325
-#16 2.353
-2026-May-18 15:21:33.559325
-#16 2.353 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-2026-May-18 15:21:33.559325
-#16 2.353
-2026-May-18 15:21:33.559325
-#16 2.353 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
-2026-May-18 15:21:33.559325
-#16 2.353
-2026-May-18 15:21:33.559325
-#16 DONE 2.4s
-2026-May-18 15:21:33.559325
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#16 1.601 Prisma schema loaded from prisma/schema.prisma
+2026-May-18 15:44:10.484009
+#16 2.499
+2026-May-18 15:44:10.484009
+#16 2.499 ✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 233ms
+2026-May-18 15:44:10.484009
+#16 2.499
+2026-May-18 15:44:10.484009
+#16 2.499 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+2026-May-18 15:44:10.484009
+#16 2.499
+2026-May-18 15:44:10.484009
+#16 2.499 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+2026-May-18 15:44:10.484009
+#16 2.499
+2026-May-18 15:44:10.484009
+#16 DONE 2.5s
+2026-May-18 15:44:10.484009
+2026-May-18 15:44:10.484009
 #17 [builder 6/6] RUN node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/
-2026-May-18 15:21:33.559325
-#17 1.418 ▲ Next.js 16.1.3 (Turbopack)
-2026-May-18 15:21:33.559325
-#17 1.419
-2026-May-18 15:21:33.559325
-#17 1.486   Creating an optimized production build ...
-2026-May-18 15:21:33.559325
-#17 19.28 ✓ Compiled successfully in 17.1s
-2026-May-18 15:21:33.559325
-#17 19.28   Running TypeScript ...
-2026-May-18 15:21:33.559325
-#17 38.68 Failed to compile.
-2026-May-18 15:21:33.559325
-#17 38.68
-2026-May-18 15:21:33.559325
-#17 38.68 ./src/app/api/reseller/catalog/[id]/route.ts:62:85
-2026-May-18 15:21:33.559325
-#17 38.68 Type error: Property 'errors' does not exist on type 'ZodError<{ customPrice?: number | null | undefined; customName?: string | undefined; customDescription?: string | undefined; active?: boolean | undefined; featured?: boolean | undefined; sortOrder?: number | undefined; }>'.
-2026-May-18 15:21:33.559325
-#17 38.68
-2026-May-18 15:21:33.559325
-#17 38.68   60 |     if (!validationResult.success) {
-2026-May-18 15:21:33.559325
-#17 38.68   61 |       return NextResponse.json(
-2026-May-18 15:21:33.559325
-#17 38.68 > 62 |         { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
-2026-May-18 15:21:33.559325
-#17 38.68      |                                                                                     ^
-2026-May-18 15:21:33.559325
-#17 38.68   63 |         { status: 400 },
-2026-May-18 15:21:33.559325
-#17 38.68   64 |       )
-2026-May-18 15:21:33.559325
-#17 38.68   65 |     }
-2026-May-18 15:21:33.559325
-#17 38.87 Next.js build worker exited with code: 1 and signal: null
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+#17 1.372 ▲ Next.js 16.1.3 (Turbopack)
+2026-May-18 15:44:10.484009
+#17 1.372
+2026-May-18 15:44:10.484009
+#17 1.463   Creating an optimized production build ...
+2026-May-18 15:44:10.484009
+#17 17.45 ✓ Compiled successfully in 15.2s
+2026-May-18 15:44:10.484009
+#17 17.45   Running TypeScript ...
+2026-May-18 15:44:10.484009
+#17 38.10 Failed to compile.
+2026-May-18 15:44:10.484009
+#17 38.10
+2026-May-18 15:44:10.484009
+#17 38.10 ./src/app/api/reseller/catalog/available/route.ts:93:61
+2026-May-18 15:44:10.484009
+#17 38.10 Type error: Argument of type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to parameter of type 'SelectSubset<{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }, TransportServiceFindManyA...'.
+2026-May-18 15:44:10.484009
+#17 38.10   Type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to type '"Please either choose `select` or `include`."'.
+2026-May-18 15:44:10.484009
+#17 38.10
+2026-May-18 15:44:10.484009
+#17 38.10   91 |
+2026-May-18 15:44:10.484009
+#17 38.10   92 |     if (!sourceType || sourceType === 'transport') {
+2026-May-18 15:44:10.484009
+#17 38.10 > 93 |       const transports = await db.transportService.findMany({
+2026-May-18 15:44:10.484009
+#17 38.10      |                                                             ^
+2026-May-18 15:44:10.484009
+#17 38.10   94 |         where: baseWhere,
+2026-May-18 15:44:10.484009
+#17 38.10   95 |         select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, providerId: true },
+2026-May-18 15:44:10.484009
+#17 38.10   96 |         include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+2026-May-18 15:44:10.484009
+#17 38.31 Next.js build worker exited with code: 1 and signal: null
+2026-May-18 15:44:10.484009
 #17 ERROR: process "/bin/sh -c node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/" did not complete successfully: exit code: 1
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 ------
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 > [builder 6/6] RUN node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/:
-2026-May-18 15:21:33.559325
-38.68 Type error: Property 'errors' does not exist on type 'ZodError<{ customPrice?: number | null | undefined; customName?: string | undefined; customDescription?: string | undefined; active?: boolean | undefined; featured?: boolean | undefined; sortOrder?: number | undefined; }>'.
-2026-May-18 15:21:33.559325
-38.68
-2026-May-18 15:21:33.559325
-38.68   60 |     if (!validationResult.success) {
-2026-May-18 15:21:33.559325
-38.68   61 |       return NextResponse.json(
-2026-May-18 15:21:33.559325
-38.68 > 62 |         { success: false, error: 'Datos inválidos', details: validationResult.error.errors },
-2026-May-18 15:21:33.559325
-38.68      |                                                                                     ^
-2026-May-18 15:21:33.559325
-38.68   63 |         { status: 400 },
-2026-May-18 15:21:33.559325
-38.68   64 |       )
-2026-May-18 15:21:33.559325
-38.68   65 |     }
-2026-May-18 15:21:33.559325
-38.87 Next.js build worker exited with code: 1 and signal: null
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
+38.10   Type '{ where: { active: boolean; isTemplate: boolean; }; select: { id: true; name: true; origin: true; destination: true; basePrice: true; notes: true; providerId: true; }; include: { provider: { select: { name: true; vehicleType: true; capacity: true; }; }; }; orderBy: { ...; }; }' is not assignable to type '"Please either choose `select` or `include`."'.
+2026-May-18 15:44:10.484009
+38.10
+2026-May-18 15:44:10.484009
+38.10   91 |
+2026-May-18 15:44:10.484009
+38.10   92 |     if (!sourceType || sourceType === 'transport') {
+2026-May-18 15:44:10.484009
+38.10 > 93 |       const transports = await db.transportService.findMany({
+2026-May-18 15:44:10.484009
+38.10      |                                                             ^
+2026-May-18 15:44:10.484009
+38.10   94 |         where: baseWhere,
+2026-May-18 15:44:10.484009
+38.10   95 |         select: { id: true, name: true, origin: true, destination: true, basePrice: true, notes: true, providerId: true },
+2026-May-18 15:44:10.484009
+38.10   96 |         include: { provider: { select: { name: true, vehicleType: true, capacity: true } } },
+2026-May-18 15:44:10.484009
+38.31 Next.js build worker exited with code: 1 and signal: null
+2026-May-18 15:44:10.484009
 ------
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 Dockerfile:56
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 --------------------
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 55 |     # el script de build también copia static/ y public/ dentro de .next/standalone/
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 56 | >>> RUN node /app/node_modules/next/dist/bin/next build \
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 57 | >>>  && cp -r .next/static .next/standalone/.next/ \
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 58 | >>>  && cp -r public .next/standalone/
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 59 |
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 --------------------
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 ERROR: failed to build: failed to solve: process "/bin/sh -c node /app/node_modules/next/dist/bin/next build  && cp -r .next/static .next/standalone/.next/  && cp -r public .next/standalone/" did not complete successfully: exit code: 1
-2026-May-18 15:21:33.559325
+2026-May-18 15:44:10.484009
 exit status 1
-2026-May-18 15:21:33.569902
+2026-May-18 15:44:10.494030
 Error type: App\Exceptions\DeploymentException
-2026-May-18 15:21:33.580061
+2026-May-18 15:44:10.504220
 Error code: 0
-2026-May-18 15:21:33.588784
+2026-May-18 15:44:10.514288
 Location: /var/www/html/app/Traits/ExecuteRemoteCommand.php:242
-2026-May-18 15:21:33.597933
+2026-May-18 15:44:10.524040
 Stack trace (first 5 lines):
-2026-May-18 15:21:33.606974
+2026-May-18 15:44:10.533309
 #0 /var/www/html/app/Traits/ExecuteRemoteCommand.php(106): App\Jobs\ApplicationDeploymentJob->executeCommandWithProcess()
-2026-May-18 15:21:33.629293
+2026-May-18 15:44:10.542817
 #1 /var/www/html/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(275): App\Jobs\ApplicationDeploymentJob->{closure:App\Traits\ExecuteRemoteCommand::execute_remote_command():72}()
-2026-May-18 15:21:33.638785
+2026-May-18 15:44:10.552038
 #2 /var/www/html/app/Traits/ExecuteRemoteCommand.php(72): Illuminate\Support\Collection->each()
-2026-May-18 15:21:33.650180
+2026-May-18 15:44:10.561155
 #3 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(3290): App\Jobs\ApplicationDeploymentJob->execute_remote_command()
-2026-May-18 15:21:33.658781
+2026-May-18 15:44:10.568799
 #4 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(898): App\Jobs\ApplicationDeploymentJob->build_image()
-2026-May-18 15:21:33.668256
+2026-May-18 15:44:10.577988
 ========================================
-2026-May-18 15:21:33.677773
+2026-May-18 15:44:10.586885
 Deployment failed. Removing the new version of your application.
-2026-May-18 15:21:34.228770
-Gracefully shutting down build container: b7s4ofquzd3pie7vbwjm8i14
-2026-May-18 15:21:34.528022
-[CMD]: docker stop -t 30 b7s4ofquzd3pie7vbwjm8i14
-2026-May-18 15:21:34.528022
-b7s4ofquzd3pie7vbwjm8i14
+2026-May-18 15:44:12.380161
+Gracefully shutting down build container: lgcocqasbmk84hnohuq3904q
+2026-May-18 15:44:12.974395
+[CMD]: docker stop -t 30 lgcocqasbmk84hnohuq3904q
+2026-May-18 15:44:12.974395
+lgcocqasbmk84hnohuq3904q
