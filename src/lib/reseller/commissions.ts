@@ -116,7 +116,7 @@ function getCommissionStatus(saleStatus: string): 'available' | 'pending' | 'wit
   }
 }
 
-function getDestinationFromSale(sale: { clientName: string; notes: string }): string {
+function getDestinationFromSale(sale: { clientName?: string; notes?: string }): string {
   if (sale.notes) {
     const match = sale.notes.match(/destino:\s*(.+)/i)
     if (match) return match[1].trim()
