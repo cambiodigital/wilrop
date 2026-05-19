@@ -18,7 +18,25 @@ const prisma = new PrismaClient()
 const migrationsToWatch = [
   '20260504120000_add_reseller_capabilities',
   '20260517000000_add_reseller_approval_fields',
+  '20260518093439_agregar_modelos_reseller',
 ]
+
+function tableExistsQuery(name) {
+  return `SELECT to_regclass('public."${name}"') IS NOT NULL AS table_exists`
+}
+
+async function checkTableExists(name) {
+  const rows = await prisma.$queryRawUnsafe(tableExistsQuery(name))
+  return rows.some((row) => row.table_exists === true)
+}
+
+async function columnExists(table, column) {
+  const [row] = await prisma.$queryRawUnsafe(
+    `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2) AS exists`,
+    table, column,
+  )
+  return row.exists
+}
 
 async function main() {
   let rows = []
@@ -44,17 +62,15 @@ async function main() {
     const migrationName = failed.migration_name
     console.log(`Checking failed migration: ${migrationName}`)
 
-    const tableRows = await prisma.$queryRawUnsafe(
-      "SELECT to_regclass('public.\"Subagent\"') IS NOT NULL AS table_exists",
-    )
-    const subagentTableExists = tableRows.some((row) => row.table_exists === true)
-
-    if (!subagentTableExists) {
-      console.log(`Subagent table does not exist; rolling back ${migrationName} so Prisma can replay.`)
-      return 20
-    }
-
     if (migrationName === '20260504120000_add_reseller_capabilities') {
+      const tableRows = await prisma.$queryRawUnsafe(tableExistsQuery('Subagent'))
+      const subagentTableExists = tableRows.some((row) => row.table_exists === true)
+
+      if (!subagentTableExists) {
+        console.log(`Subagent table does not exist; rolling back ${migrationName} so Prisma can replay.`)
+        return 20
+      }
+
       console.log(`Repairing migration ${migrationName}...`)
       await prisma.$executeRawUnsafe(
         'ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "sellerLevel" TEXT NOT NULL DEFAULT \'standard\'',
@@ -78,6 +94,48 @@ async function main() {
       )
       return 10
     }
+
+    if (migrationName === '20260518093439_agregar_modelos_reseller') {
+      const resellerTable = await checkTableExists('Reseller')
+      const catalogTable = await checkTableExists('ResellerCatalog')
+      const saleTable = await checkTableExists('ResellerSale')
+      const clientTable = await checkTableExists('ResellerClient')
+      const docTable = await checkTableExists('ResellerDocument')
+      const bookingCol = await columnExists('Booking', 'resellerId')
+
+      const allExist = resellerTable && catalogTable && saleTable && clientTable && docTable && bookingCol
+
+      if (allExist) {
+        console.log('All Reseller migration artifacts exist; marking as applied.')
+        return 10
+      }
+
+      console.log('Partial or missing Reseller migration artifacts; cleaning up and marking as rolled-back.')
+
+      // Drop partial tables in reverse dependency order so FK constraints don't block
+      const partialTables = [
+        { name: 'ResellerDocument', needed: docTable },
+        { name: 'ResellerClient', needed: clientTable },
+        { name: 'ResellerSale', needed: saleTable },
+        { name: 'ResellerCatalog', needed: catalogTable },
+        { name: 'Reseller', needed: resellerTable },
+      ]
+
+      for (const t of partialTables) {
+        if (t.needed) {
+          console.log(`Dropping partial table: ${t.name}`)
+          await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "${t.name}" CASCADE`)
+        }
+      }
+
+      // Remove the resellerId column from Booking if it was partially added
+      if (bookingCol) {
+        console.log('Dropping partial column: Booking.resellerId')
+        await prisma.$executeRawUnsafe('ALTER TABLE "Booking" DROP COLUMN IF EXISTS "resellerId"')
+      }
+
+      return 20
+    }
   }
 
   return 0
@@ -99,12 +157,12 @@ NODE
 
   if [ "$repair_status" -eq 10 ]; then
     echo "[pre] Marking failed migration as applied after repair..."
-    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields; do
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260518093439_agregar_modelos_reseller; do
       node /app/node_modules/prisma/build/index.js migrate resolve --applied "$m" 2>/dev/null || true
     done
   elif [ "$repair_status" -eq 20 ]; then
     echo "[pre] Rolling back failed migration so migrate deploy can retry..."
-    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields; do
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260518093439_agregar_modelos_reseller; do
       node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back "$m" 2>/dev/null || true
     done
   elif [ "$repair_status" -ne 0 ]; then
