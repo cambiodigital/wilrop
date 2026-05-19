@@ -99,11 +99,14 @@ async function main() {
   }
 
   if (!initApplied) {
-    console.log('[schema] 0_init not applied yet; Prisma will handle it.')
-    return 0
+    // 0_init is NOT in _prisma_migrations — but the database might still be missing tables
+    // (e.g. entry was deleted, or migrations were applied out of band).
+    // Check core tables regardless; if they're missing, Prisma's migrate deploy
+    // will try to apply 0_init but may hit ordering issues with later migrations.
+    console.log('[schema] 0_init not recorded in _prisma_migrations; checking core tables anyway.')
   }
 
-  // 0_init is applied — verify core tables exist
+  // Verify core tables exist
   const coreTables = [
     'Admin', 'Destination', 'Hotel', 'RoomType', 'Allotment',
     'MarketingModal', 'TravelPackage', 'Excursion', 'Subagent',
@@ -117,13 +120,11 @@ async function main() {
 
   if (missing.length === 0) {
     console.log('[schema] All core tables present.')
-    return 0
-  }
+  } else {
+    console.log(`[schema] WARNING: ${missing.length} core table(s) missing: ${missing.join(', ')}`)
+    console.log('[schema] Repairing missing tables from 0_init schema...')
 
-  console.log(`[schema] WARNING: ${missing.length} core table(s) missing despite 0_init being applied: ${missing.join(', ')}`)
-  console.log('[schema] Repairing missing tables from 0_init schema...')
-
-  // Create missing tables (IF NOT EXISTS for safety)
+    // Create missing tables (IF NOT EXISTS for safety)
   if (missing.includes('Admin')) {
     await ensureTable('Admin', `CREATE TABLE IF NOT EXISTS "Admin" (
       "id" TEXT NOT NULL,
@@ -455,6 +456,29 @@ async function main() {
     `ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "approvalStatus" TEXT NOT NULL DEFAULT 'pending'`)
   await ensureColumn('Subagent', 'registrationDate',
     `ALTER TABLE "Subagent" ADD COLUMN IF NOT EXISTS "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`)
+  }
+
+  // If 0_init was not recorded in _prisma_migrations, register it now so
+  // migrate deploy won't try to re-apply it (and fail on CREATE TABLE).
+  if (!initApplied) {
+    try {
+      const fs = require('fs')
+      const crypto = require('crypto')
+      const migrationPath = '/app/prisma/migrations/0_init/migration.sql'
+      const content = fs.readFileSync(migrationPath, 'utf8')
+      const checksum = crypto.createHash('sha256').update(content).digest('hex')
+
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "_prisma_migrations" (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
+         VALUES ($1, $2, NOW(), '0_init', NULL, NULL, NOW(), 1)
+         ON CONFLICT (migration_name) DO NOTHING`,
+        '0_init', checksum,
+      )
+      console.log('[schema] Registered 0_init in _prisma_migrations to prevent re-application.')
+    } catch (err) {
+      console.log('[schema] Could not register 0_init in _prisma_migrations:', err.message)
+    }
+  }
 
   console.log('[schema] Schema repair complete.')
   return 0
