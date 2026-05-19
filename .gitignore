@@ -50,6 +50,10 @@ test
 prompt
 
 server.log
+# Logs de deploy/revision — contienen secretos efímeros
+registros-deploy.log
+registros-revision.log
+
 # Skills directory
 /skills/
 
