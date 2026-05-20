@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import PortalShell from '@/components/portal/PortalShell'
 import PortalBreadcrumbs from '@/components/portal/PortalBreadcrumbs'
 import HotelDetailPage from '@/components/portal/HotelDetailPage'
-import { getHotelById } from '@/data/hotels'
+import { db } from '@/lib/db'
+import { formatAdminHotel } from '@/lib/admin/hotels'
 import { buildPublicMetadata } from '@/lib/seo'
 
 interface HotelDetailRouteProps {
@@ -12,9 +13,27 @@ interface HotelDetailRouteProps {
   }>
 }
 
+async function getHotelData(hotelId: string) {
+  const realCount = await db.hotel.count({
+    where: { active: true, isTemplate: false },
+  })
+  const isTemplateQuery = realCount > 0 ? false : true
+
+  const hotel = await db.hotel.findFirst({
+    where: {
+      id: hotelId,
+      active: true,
+      isTemplate: isTemplateQuery,
+    },
+  })
+
+  if (!hotel) return null
+  return formatAdminHotel(hotel)
+}
+
 export async function generateMetadata({ params }: HotelDetailRouteProps): Promise<Metadata> {
   const { hotelId } = await params
-  const hotel = getHotelById(hotelId)
+  const hotel = await getHotelData(hotelId)
 
   if (!hotel) {
     return buildPublicMetadata({
@@ -35,7 +54,7 @@ export async function generateMetadata({ params }: HotelDetailRouteProps): Promi
 
 export default async function HotelDetailRoutePage({ params }: HotelDetailRouteProps) {
   const { hotelId } = await params
-  const hotel = getHotelById(hotelId)
+  const hotel = await getHotelData(hotelId)
 
   if (!hotel) {
     notFound()
@@ -52,7 +71,7 @@ export default async function HotelDetailRoutePage({ params }: HotelDetailRouteP
           ]}
         />
       </div>
-      <HotelDetailPage hotel={hotel} />
+      <HotelDetailPage hotel={hotel as any} />
     </PortalShell>
   )
 }

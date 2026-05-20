@@ -4,12 +4,13 @@ import { motion } from 'framer-motion'
 import { Award, Users, MapPin, ThumbsUp, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { teamAssets } from '@/lib/team'
+import { useState, useEffect } from 'react'
 
-const stats = [
-  { value: '15+', label: 'años', icon: Award },
-  { value: '10,000+', label: 'viajeros', icon: Users },
-  { value: '25+', label: 'destinos', icon: MapPin },
-  { value: '98%', label: 'satisfacción', icon: ThumbsUp },
+const defaultFounderStats = [
+  { value: '—', label: 'años', icon: Award },
+  { value: '—', label: 'viajeros', icon: Users },
+  { value: '—', label: 'destinos', icon: MapPin },
+  { value: '—', label: 'satisfacción', icon: ThumbsUp },
 ]
 
 const containerVariants = {
@@ -26,6 +27,24 @@ const itemVariants = {
 }
 
 export default function FounderSection() {
+  const [stats, setStats] = useState(defaultFounderStats)
+
+  useEffect(() => {
+    fetch('/api/public/stats')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const { totalDestinations, totalBookings } = res.data
+          setStats([
+            { value: '15+', label: 'años', icon: Award },
+            { value: `${totalBookings || 0}+`, label: 'viajeros', icon: Users },
+            { value: `${totalDestinations || 0}+`, label: 'destinos', icon: MapPin },
+            { value: '98%', label: 'satisfacción', icon: ThumbsUp },
+          ])
+        }
+      })
+      .catch((err) => console.error('Error fetching founder stats:', err))
+  }, [])
   return (
     <section id="founder" className="relative bg-secondary text-white overflow-hidden">
       {/* Subtle gradient accent */}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Star, ArrowRight, Building2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -72,7 +73,25 @@ function StarsDisplay({ stars }: { stars: number }) {
 
 export default function HotelPreviewSection() {
   const { navigate } = usePortalNavigation()
-  const featuredHotels = getFeaturedHotels()
+  const [hotelsList, setHotelsList] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch('/api/public/hotels')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setHotelsList(res.data)
+        }
+      })
+      .catch((err) => console.error('Error fetching hotels:', err))
+  }, [])
+
+  const featuredHotels = useMemo(() => {
+    if (hotelsList.length > 0) {
+      return hotelsList.filter((h) => h.featured).slice(0, 4)
+    }
+    return getFeaturedHotels()
+  }, [hotelsList])
 
   return (
     <section className="bg-gradient-to-b from-brand-surface-light to-amber-50">

@@ -1,12 +1,13 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { MapPin, Mail, Phone, Instagram, Facebook, Twitter, Shield } from 'lucide-react'
+import { MapPin, Mail, Phone, Instagram, Facebook, Shield } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
-import { destinations } from '@/data/destinations'
+import { destinations as staticDestinations } from '@/data/destinations'
 import { portalPaths } from '@/lib/portal-routes'
-import { brand } from '@/lib/brand'
+import { brand, socialLinks as brandSocialLinks } from '@/lib/brand'
 import { supportTelUrl, supportWhatsAppUrl } from '@/lib/contact'
 
 const quickLinks = [
@@ -20,12 +21,23 @@ const quickLinks = [
 ]
 
 const socialLinks = [
-  { icon: Instagram, label: 'Instagram', href: '#' },
-  { icon: Facebook, label: 'Facebook', href: '#' },
-  { icon: Twitter, label: 'Twitter', href: '#' },
+  { icon: Instagram, label: 'Instagram', href: brandSocialLinks.find(s => s.icon === 'Instagram')?.href || '#' },
+  { icon: Facebook, label: 'Facebook', href: brandSocialLinks.find(s => s.icon === 'Facebook')?.href || '#' },
 ]
 
 export default function PortalFooter() {
+  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+
+  useEffect(() => {
+    fetch('/api/public/destinations')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setDestinationsList(res.data)
+        }
+      })
+      .catch((err) => console.error('Error fetching footer destinations:', err))
+  }, [])
   return (
     <footer className="bg-secondary text-brand-text">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -69,7 +81,7 @@ export default function PortalFooter() {
               Destinos Populares
             </h3>
             <ul className="mt-4 space-y-3">
-              {destinations.slice(0, 6).map((dest) => (
+              {destinationsList.slice(0, 6).map((dest) => (
                 <li key={dest.id}>
                   <Link
                     href={portalPaths.destinationDetail(dest.id)}

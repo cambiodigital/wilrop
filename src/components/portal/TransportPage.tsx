@@ -30,6 +30,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { useCities } from '@/hooks/use-cities'
 import { formatCOP } from '@/data/packages'
 import { toast } from 'sonner'
 
@@ -56,14 +57,6 @@ interface TransportService {
     capacity: number
   }
 }
-
-const cityTabs = [
-  { id: '', label: 'Todas' },
-  { id: 'cartagena', label: 'Cartagena' },
-  { id: 'medellin', label: 'Medellín' },
-  { id: 'bogota', label: 'Bogotá' },
-  { id: 'eje-cafetero', label: 'Eje Cafetero' },
-]
 
 const routeTypeLabels: Record<string, string> = {
   'aeropuerto-hotel': 'Aeropuerto → Hotel',
@@ -105,6 +98,7 @@ const staggerItem = {
 // ─── Main Component ─────────────────────────────────────────
 export default function TransportPage() {
   const { goBack } = usePortalNavigation()
+  const { cities, loading: citiesLoading } = useCities()
 
   const [activeCity, setActiveCity] = useState('')
   const [services, setServices] = useState<TransportService[]>([])
@@ -254,7 +248,17 @@ export default function TransportPage() {
       <div className="sticky top-16 z-40 border-b border-neutral-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto py-3 scrollbar-none">
-            {cityTabs.map((city) => (
+            <button
+              onClick={() => setActiveCity('')}
+              className={`flex-shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                activeCity === ''
+                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+              }`}
+            >
+              Todas
+            </button>
+            {cities.map((city) => (
               <button
                 key={city.id}
                 onClick={() => setActiveCity(city.id)}
@@ -264,7 +268,7 @@ export default function TransportPage() {
                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                 }`}
               >
-                {city.label}
+                {city.name}
               </button>
             ))}
           </div>

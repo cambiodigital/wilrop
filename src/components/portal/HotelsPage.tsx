@@ -57,6 +57,7 @@ import {
   type Hotel,
 } from '@/data/hotels'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { useEffect } from 'react'
 
 // ─── Icon map ────────────────────────────────────────────────
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -83,6 +84,18 @@ const staggerItem = {
 // ─── Main Component ─────────────────────────────────────────
 export default function HotelsPage() {
   const { goBack, openHotelDetail } = usePortalNavigation()
+  const [hotelsList, setHotelsList] = useState<any[]>(allHotels)
+
+  useEffect(() => {
+    fetch('/api/public/hotels')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setHotelsList(res.data)
+        }
+      })
+      .catch((err) => console.error('Error fetching hotels:', err))
+  }, [])
 
   // Search state
   const [selectedCity, setSelectedCity] = useState<string>('')
@@ -118,7 +131,7 @@ export default function HotelsPage() {
 
   // Filter & sort hotels
   const filteredHotels = useMemo(() => {
-    let result = [...allHotels]
+    let result = [...hotelsList]
 
     // City filter
     if (selectedCity) {

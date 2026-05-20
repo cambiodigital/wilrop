@@ -107,6 +107,7 @@ export default function AdminPackages() {
   const [dragOver, setDragOver] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyPackage);
+  const [imageError, setImageError] = useState(false);
 
   const fetchPackages = useCallback(async () => {
     setLoading(true);
@@ -191,6 +192,7 @@ export default function AdminPackages() {
       }
 
       const data = await res.json();
+      setImageError(false);
       updateField('image', data.url);
       toast.success('Imagen subida correctamente');
     } catch (err: unknown) {
@@ -474,7 +476,7 @@ export default function AdminPackages() {
                     id="pkg-category"
                     value={form.category}
                     onChange={(e) => updateField('category', e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -496,7 +498,7 @@ export default function AdminPackages() {
                     id="pkg-difficulty"
                     value={form.difficulty}
                     onChange={(e) => updateField('difficulty', e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     {difficulties.map((d) => (
                       <option key={d} value={d}>{d}</option>
@@ -586,17 +588,24 @@ export default function AdminPackages() {
               <div className="form-section-title">Imagen</div>
               {form.image ? (
                 <div className="relative group rounded-lg overflow-hidden border border-border">
-                  <img
-                    src={form.image}
-                    alt="Vista previa"
-                    className="w-full h-36 object-cover"
-                  />
+                  {!imageError ? (
+                    <img
+                      src={form.image}
+                      alt="Vista previa"
+                      className="w-full h-36 object-cover"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-36 bg-muted flex items-center justify-center">
+                      <ImagePlus className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
                       type="button"
                       size="sm"
                       variant="secondary"
-                      onClick={() => imageInputRef.current?.click()}
+                      onClick={() => { setImageError(false); imageInputRef.current?.click(); }}
                     >
                       <Upload className="w-4 h-4 mr-1" />
                       Cambiar
@@ -605,7 +614,7 @@ export default function AdminPackages() {
                       type="button"
                       size="sm"
                       variant="destructive"
-                      onClick={() => updateField('image', '')}
+                      onClick={() => { updateField('image', ''); setImageError(false); }}
                     >
                       <X className="w-4 h-4 mr-1" />
                       Eliminar

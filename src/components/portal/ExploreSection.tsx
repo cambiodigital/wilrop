@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Umbrella, Mountain, Landmark, Globe, Briefcase, Clock, Users } from 'lucide-react'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { useState, useEffect } from 'react'
 
 const categories = [
   {
@@ -31,11 +32,11 @@ const categories = [
   },
 ]
 
-const stats = [
-  { value: '25+', label: 'destinos', icon: Globe },
-  { value: '100+', label: 'paquetes', icon: Briefcase },
-  { value: '15+', label: 'años de experiencia', icon: Clock },
-  { value: '10.000+', label: 'viajeros', icon: Users },
+const defaultStats = [
+  { value: '—', label: 'destinos', icon: Globe },
+  { value: '—', label: 'paquetes', icon: Briefcase },
+  { value: '—', label: 'años de experiencia', icon: Clock },
+  { value: '—', label: 'viajeros', icon: Users },
 ]
 
 const containerVariants = {
@@ -53,6 +54,30 @@ const itemVariants = {
 
 export default function ExploreSection() {
   const { navigate } = usePortalNavigation()
+  const [stats, setStats] = useState(defaultStats)
+  const [categoriesData, setCategoriesData] = useState(categories)
+
+  useEffect(() => {
+    fetch('/api/public/stats')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const { totalDestinations, totalPackages, totalBookings } = res.data
+          setStats([
+            { value: `${totalDestinations || 0}+`, label: 'destinos', icon: Globe },
+            { value: `${totalPackages || 0}+`, label: 'paquetes', icon: Briefcase },
+            { value: '15+', label: 'años de experiencia', icon: Clock },
+            { value: `${totalBookings || 0}+`, label: 'viajeros', icon: Users },
+          ])
+          setCategoriesData([
+            { ...categories[0], subtitle: `${totalPackages || 0} paquetes` },
+            { ...categories[1], subtitle: `${totalPackages || 0} paquetes` },
+            { ...categories[2], subtitle: `${totalPackages || 0} paquetes` },
+          ])
+        }
+      })
+      .catch((err) => console.error('Error fetching stats:', err))
+  }, [])
 
   return (
     <section id="explore" className="relative overflow-hidden">
@@ -90,7 +115,7 @@ export default function ExploreSection() {
 
         {/* Category Cards */}
         <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-          {categories.map((cat) => (
+          {categoriesData.map((cat) => (
             <motion.div
               key={cat.title}
               variants={itemVariants}

@@ -40,6 +40,7 @@ import { packages } from '@/data/packages'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
+import { getAddon, calculateExtrasTotal } from '@/lib/extras-pricing'
 
 // ─── Types for API-ready payload ───────────────────────────────
 interface GuestInfo {
@@ -105,15 +106,12 @@ const steps = [
   { id: 4, label: 'Confirmación', icon: CheckCircle2 },
 ]
 
-const insurancePrice = 85000
-const transferPrice = 120000
-const photoPrice = 150000
-
 interface BookingFlowProps {
   packageId?: string
+  pkg?: any
 }
 
-export default function BookingFlow({ packageId }: BookingFlowProps) {
+export default function BookingFlow({ packageId, pkg: initialPkg }: BookingFlowProps) {
   const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
   const { navigate, openOrderDetail } = usePortalNavigation()
   const [currentStep, setCurrentStep] = useState(1)
@@ -122,12 +120,16 @@ export default function BookingFlow({ packageId }: BookingFlowProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const pkg = useMemo(
-    () => packages.find((p) => p.id === (packageId ?? selectedPackageId)),
-    [packageId, selectedPackageId],
+    () => initialPkg || packages.find((p) => p.id === (packageId ?? selectedPackageId)),
+    [initialPkg, packageId, selectedPackageId],
   )
   const totalGuests = form.adults + form.children
 
-  const extrasTotal = (form.travelInsurance ? insurancePrice : 0) + (form.airportTransfer ? transferPrice : 0) + (form.photoPackage ? photoPrice : 0)
+  const extrasTotal = calculateExtrasTotal([
+    ...(form.travelInsurance ? ['travel-insurance'] as const : []),
+    ...(form.airportTransfer ? ['airport-transfer'] as const : []),
+    ...(form.photoPackage ? ['photo-package'] as const : []),
+  ])
   const subtotal = pkg ? pkg.price * totalGuests : 0
   const total = subtotal + extrasTotal
 
@@ -164,9 +166,9 @@ export default function BookingFlow({ packageId }: BookingFlowProps) {
 
     try {
       const addons = [
-        form.travelInsurance ? { type: 'travel-insurance', price: insurancePrice } : null,
-        form.airportTransfer ? { type: 'airport-transfer', price: transferPrice } : null,
-        form.photoPackage ? { type: 'photo-package', price: photoPrice } : null,
+        form.travelInsurance ? { type: 'travel-insurance', price: getAddon('travel-insurance')?.price ?? 0 } : null,
+        form.airportTransfer ? { type: 'airport-transfer', price: getAddon('airport-transfer')?.price ?? 0 } : null,
+        form.photoPackage ? { type: 'photo-package', price: getAddon('photo-package')?.price ?? 0 } : null,
       ].filter(Boolean)
 
       const response = await fetch('/api/public/booking', {
@@ -452,18 +454,18 @@ export default function BookingFlow({ packageId }: BookingFlowProps) {
                     <p className="mt-1 text-sm text-neutral-500">Añade extras a tu reserva</p>
                     <div className="mt-5 space-y-3">
                       {[
-                        { key: 'travelInsurance' as const, label: 'Seguro de viaje completo', desc: 'Cobertura médica, cancelación y equipaje', price: insurancePrice, icon: Shield },
-                        { key: 'airportTransfer' as const, label: 'Traslado aeropuerto - hotel', desc: 'Ida y vuelta en vehículo privado', price: transferPrice, icon: Building2 },
-                        { key: 'photoPackage' as const, label: 'Paquete fotográfico profesional', desc: 'Sesión de fotos durante el viaje (50+ fotos editadas)', price: photoPrice, icon: CreditCard },
+                        { key: 'travelInsurance' as const, ...getAddon('travel-insurance')!, icon: Shield },
+                        { key: 'airportTransfer' as const, ...getAddon('airport-transfer')!, icon: Building2 },
+                        { key: 'photoPackage' as const, ...getAddon('photo-package')!, icon: CreditCard },
                       ].map((extra) => (
                         <label key={extra.key} className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form[extra.key] ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'}`}>
                           <Checkbox checked={form[extra.key]} onCheckedChange={(c) => set({ [extra.key]: c === true })} className="mt-0.5" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <extra.icon className="size-4 text-amber-500" />
-                              <span className="font-medium text-neutral-900 text-sm">{extra.label}</span>
+                              <span className="font-medium text-neutral-900 text-sm">{extra.name}</span>
                             </div>
-                            <p className="mt-0.5 text-xs text-neutral-500">{extra.desc}</p>
+                            <p className="mt-0.5 text-xs text-neutral-500">{extra.description}</p>
                           </div>
                           <span className="text-sm font-bold text-neutral-900">+${extra.price.toLocaleString('es-CO')}</span>
                         </label>
@@ -530,9 +532,9 @@ export default function BookingFlow({ packageId }: BookingFlowProps) {
                         <h3 className="text-sm font-semibold text-neutral-700">Resumen de Pago</h3>
                         <div className="mt-2 space-y-1.5 text-sm">
                           <div className="flex justify-between text-neutral-600"><span>Paquete × {totalGuests} viajeros</span><span>${subtotal.toLocaleString('es-CO')}</span></div>
-                          {form.travelInsurance && <div className="flex justify-between text-neutral-600"><span>Seguro de viaje</span><span>${insurancePrice.toLocaleString('es-CO')}</span></div>}
-                          {form.airportTransfer && <div className="flex justify-between text-neutral-600"><span>Traslado aeropuerto</span><span>${transferPrice.toLocaleString('es-CO')}</span></div>}
-                          {form.photoPackage && <div className="flex justify-between text-neutral-600"><span>Paquete fotográfico</span><span>${photoPrice.toLocaleString('es-CO')}</span></div>}
+                          {form.travelInsurance && <div className="flex justify-between text-neutral-600"><span>{getAddon('travel-insurance')?.name}</span><span>${getAddon('travel-insurance')?.price.toLocaleString('es-CO')}</span></div>}
+                          {form.airportTransfer && <div className="flex justify-between text-neutral-600"><span>{getAddon('airport-transfer')?.name}</span><span>${getAddon('airport-transfer')?.price.toLocaleString('es-CO')}</span></div>}
+                          {form.photoPackage && <div className="flex justify-between text-neutral-600"><span>{getAddon('photo-package')?.name}</span><span>${getAddon('photo-package')?.price.toLocaleString('es-CO')}</span></div>}
                           <Separator />
                           <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                           <p className="text-xs text-neutral-500">Método de pago: {{ card: 'Tarjeta de crédito/débito', transfer: 'Transferencia bancaria', cash: 'Efectivo' }[form.paymentMethod] || 'No seleccionado'}</p>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, MapPin, Calendar, Star, Users, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,15 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { destinations } from '@/data/destinations'
+import { destinations as staticDestinations } from '@/data/destinations'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
-const stats = [
-  { label: 'Viajeros Felices', value: '500+', icon: Users },
-  { label: 'Paquetes', value: '50+', icon: Briefcase },
-  { label: 'Destinos', value: '6', icon: MapPin },
-  { label: 'Rating', value: '4.9★', icon: Star },
-]
+interface StatItem {
+  label: string
+  value: string
+  icon: React.ComponentType<{ className?: string }>
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,6 +37,38 @@ const itemVariants = {
 export default function HeroSection() {
   const { navigate } = usePortalNavigation()
   const [selectedDest, setSelectedDest] = useState('')
+  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+  const [stats, setStats] = useState<StatItem[]>(() => [
+    { label: 'Viajeros Felices', value: '—', icon: Users },
+    { label: 'Paquetes', value: '—', icon: Briefcase },
+    { label: 'Destinos', value: '—', icon: MapPin },
+    { label: 'Rating', value: '—', icon: Star },
+  ])
+
+  useEffect(() => {
+    fetch('/api/public/destinations')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setDestinationsList(res.data)
+        }
+      })
+      .catch((err) => console.error('Error fetching destinations:', err))
+
+    fetch('/api/public/stats')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          setStats([
+            { label: 'Viajeros Felices', value: `${res.data.totalBookings || 0}+`, icon: Users },
+            { label: 'Paquetes', value: `${res.data.totalPackages || 0}+`, icon: Briefcase },
+            { label: 'Destinos', value: `${res.data.totalDestinations || 0}`, icon: MapPin },
+            { label: 'Hoteles', value: `${res.data.totalHotels || 0}+`, icon: Star },
+          ])
+        }
+      })
+      .catch((err) => console.error('Error fetching stats:', err))
+  }, [])
 
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
@@ -105,7 +136,7 @@ export default function HeroSection() {
                       <SelectValue placeholder="¿A dónde quieres ir?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-neutral-200 bg-white shadow-xl">
-                      {destinations.map((d) => (
+                      {destinationsList.map((d) => (
                         <SelectItem key={d.id} value={d.id} className="text-neutral-700 rounded-lg py-2.5 px-3 focus:bg-amber-50 focus:text-amber-700">
                           <div className="flex items-center gap-2">
                             <MapPin className="size-3.5 text-amber-500" />

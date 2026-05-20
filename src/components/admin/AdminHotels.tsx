@@ -277,6 +277,7 @@ function ImageUpload({
 }) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (file: File) => {
@@ -306,6 +307,7 @@ function ImageUpload({
       }
 
       const data = await res.json();
+      setImgError(false);
       onChange(data.url);
       toast.success('Imagen subida correctamente');
     } catch (err: unknown) {
@@ -341,17 +343,24 @@ function ImageUpload({
       <Label>{label}</Label>
       {value ? (
         <div className="relative group rounded-lg overflow-hidden border border-border">
-          <img
-            src={value}
-            alt="Vista previa"
-            className="w-full h-36 object-cover"
-          />
+          {!imgError ? (
+            <img
+              src={value}
+              alt="Vista previa"
+              className="w-full h-36 object-cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="w-full h-36 bg-muted flex items-center justify-center">
+              <ImagePlus className="w-10 h-10 text-muted-foreground" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button
               type="button"
               size="sm"
               variant="secondary"
-              onClick={() => inputRef.current?.click()}
+              onClick={() => { setImgError(false); inputRef.current?.click(); }}
             >
               <Upload className="w-4 h-4 mr-1" />
               Cambiar
@@ -360,7 +369,7 @@ function ImageUpload({
               type="button"
               size="sm"
               variant="destructive"
-              onClick={() => onChange('')}
+              onClick={() => { onChange(''); setImgError(false); }}
             >
               <X className="w-4 h-4 mr-1" />
               Eliminar

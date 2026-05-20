@@ -39,6 +39,7 @@ import { hotels, formatCOP } from '@/data/hotels'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
+import { getAddon } from '@/lib/extras-pricing'
 
 // ─── Types ──────────────────────────────────────────────────
 interface HotelBookingPayload {
@@ -94,6 +95,7 @@ interface HotelBookingFlowProps {
   adults?: number
   childCount?: number
   childrenAges?: number[]
+  hotel?: any
 }
 
 export default function HotelBookingFlow({
@@ -104,6 +106,7 @@ export default function HotelBookingFlow({
   adults: initialAdults,
   childCount: initialChildren,
   childrenAges: initialChildrenAges,
+  hotel: initialHotel,
 }: HotelBookingFlowProps) {
   const hotelBookingData = useNavigationStore((state) => state.hotelBookingData)
   const { navigate, goBack, openOrderDetail } = usePortalNavigation()
@@ -130,8 +133,8 @@ export default function HotelBookingFlow({
     childrenAges: bookingData?.childrenAges ?? [],
   })
 
-  const hotel = hotels.find((h) => h.id === bookingData?.hotelId)
-  const room = hotel?.rooms.find((r) => r.id === bookingData?.roomId)
+  const hotel = initialHotel || hotels.find((h) => h.id === bookingData?.hotelId)
+  const room = hotel?.rooms.find((r: any) => r.id === bookingData?.roomId)
 
   const checkIn = bookingData?.checkIn ?? ''
   const checkOut = bookingData?.checkOut ?? ''
@@ -141,10 +144,10 @@ export default function HotelBookingFlow({
     return Math.max(1, Math.round(diff))
   })()
 
-  const breakfastPrice = 45000
-  const lateCheckoutPrice = 65000
+  const breakfastAddon = getAddon('breakfast')
+  const lateCheckoutAddon = getAddon('late-checkout')
   const roomSubtotal = room ? room.price * nights : 0
-  const extrasTotal = (form.breakfastAdd ? breakfastPrice * nights : 0) + (form.lateCheckout ? lateCheckoutPrice : 0)
+  const extrasTotal = (form.breakfastAdd ? (breakfastAddon?.price ?? 0) * nights : 0) + (form.lateCheckout ? (lateCheckoutAddon?.price ?? 0) : 0)
   const total = roomSubtotal + extrasTotal
 
   const set = (partial: Partial<HotelBookingPayload>) => setForm((prev) => ({ ...prev, ...partial }))
@@ -156,8 +159,8 @@ export default function HotelBookingFlow({
 
     try {
       const addons = [
-        form.breakfastAdd ? { type: 'breakfast', price: breakfastPrice * nights } : null,
-        form.lateCheckout ? { type: 'late-checkout', price: lateCheckoutPrice } : null,
+        form.breakfastAdd ? { type: 'breakfast', price: (breakfastAddon?.price ?? 0) * nights } : null,
+        form.lateCheckout ? { type: 'late-checkout', price: (lateCheckoutAddon?.price ?? 0) } : null,
       ].filter(Boolean)
 
       const response = await fetch('/api/public/booking', {
@@ -396,18 +399,18 @@ export default function HotelBookingFlow({
                       <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.breakfastAdd ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'}`}>
                         <Checkbox checked={form.breakfastAdd} onCheckedChange={(c) => set({ breakfastAdd: c === true })} />
                         <div className="flex-1">
-                          <span className="font-medium text-neutral-900 text-sm">Desayuno buffet adicional</span>
-                          <p className="text-xs text-neutral-500">Para todos los huéspedes, todas las mañanas</p>
+                          <span className="font-medium text-neutral-900 text-sm">{breakfastAddon?.name}</span>
+                          <p className="text-xs text-neutral-500">{breakfastAddon?.description}</p>
                         </div>
-                        <span className="text-sm font-bold text-neutral-900 whitespace-nowrap">+${formatCOP(breakfastPrice)}/noche</span>
+                          <span className="text-sm font-bold text-neutral-900 whitespace-nowrap">+${formatCOP(breakfastAddon?.price ?? 0)}/noche</span>
                       </label>
                       <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.lateCheckout ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'}`}>
                         <Checkbox checked={form.lateCheckout} onCheckedChange={(c) => set({ lateCheckout: c === true })} />
                         <div className="flex-1">
-                          <span className="font-medium text-neutral-900 text-sm">Late Check-out (14:00)</span>
-                          <p className="text-xs text-neutral-500">Extender la salida hasta las 2:00 PM</p>
+                          <span className="font-medium text-neutral-900 text-sm">{lateCheckoutAddon?.name}</span>
+                          <p className="text-xs text-neutral-500">{lateCheckoutAddon?.description}</p>
                         </div>
-                        <span className="text-sm font-bold text-neutral-900">+${formatCOP(lateCheckoutPrice)}</span>
+                        <span className="text-sm font-bold text-neutral-900">+${formatCOP(lateCheckoutAddon?.price ?? 0)}</span>
                       </label>
                     </div>
                   </Card>
@@ -467,8 +470,8 @@ export default function HotelBookingFlow({
                         <h3 className="text-sm font-semibold text-neutral-700">Resumen de Pago</h3>
                         <div className="mt-2 space-y-1.5 text-sm">
                           <div className="flex justify-between text-neutral-600"><span>{room.name} × {nights} noche{nights !== 1 ? 's' : ''}</span><span>${roomSubtotal.toLocaleString('es-CO')}</span></div>
-                          {form.breakfastAdd && <div className="flex justify-between text-neutral-600"><span>Desayuno adicional</span><span>${(breakfastPrice * nights).toLocaleString('es-CO')}</span></div>}
-                          {form.lateCheckout && <div className="flex justify-between text-neutral-600"><span>Late check-out</span><span>${lateCheckoutPrice.toLocaleString('es-CO')}</span></div>}
+                          {form.breakfastAdd && <div className="flex justify-between text-neutral-600"><span>{breakfastAddon?.name}</span><span>${((breakfastAddon?.price ?? 0) * nights).toLocaleString('es-CO')}</span></div>}
+                          {form.lateCheckout && <div className="flex justify-between text-neutral-600"><span>{lateCheckoutAddon?.name}</span><span>${(lateCheckoutAddon?.price ?? 0).toLocaleString('es-CO')}</span></div>}
                           <Separator />
                           <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                           <p className="text-xs text-neutral-500">Método: {{ card: 'Tarjeta', transfer: 'Transferencia bancaria', cash: 'Efectivo' }[form.paymentMethod] || 'No seleccionado'}</p>

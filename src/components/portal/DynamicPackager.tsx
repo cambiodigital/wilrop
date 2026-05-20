@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { useCities } from '@/hooks/use-cities'
 import { formatCOP } from '@/data/packages'
 import { toast } from 'sonner'
 
@@ -152,6 +153,7 @@ const stepVariants = {
 // ─── Main Component ─────────────────────────────────────────
 export default function DynamicPackager() {
   const { goBack } = usePortalNavigation()
+  const { cities, loading: citiesLoading } = useCities()
 
   const [currentStep, setCurrentStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
@@ -552,10 +554,9 @@ export default function DynamicPackager() {
                         <SelectTrigger className="rounded-xl"><SelectValue placeholder="Todas las ciudades" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas</SelectItem>
-                          <SelectItem value="cartagena">Cartagena</SelectItem>
-                          <SelectItem value="medellin">Medellín</SelectItem>
-                          <SelectItem value="bogota">Bogotá</SelectItem>
-                          <SelectItem value="eje-cafetero">Eje Cafetero</SelectItem>
+                          {cities.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -643,11 +644,9 @@ export default function DynamicPackager() {
                         <SelectTrigger className="rounded-xl"><SelectValue placeholder="Todas las ciudades" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todas</SelectItem>
-                          <SelectItem value="cartagena">Cartagena</SelectItem>
-                          <SelectItem value="medellin">Medellín</SelectItem>
-                          <SelectItem value="bogota">Bogotá</SelectItem>
-                          <SelectItem value="eje-cafetero">Eje Cafetero</SelectItem>
-                          <SelectItem value="san-andres">San Andrés</SelectItem>
+                          {cities.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

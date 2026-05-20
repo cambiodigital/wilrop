@@ -177,9 +177,9 @@ export default function ResellerProducts() {
       </div>
 
       <Tabs defaultValue="hotels">
-        <TabsList>
+        <TabsList className="bg-brand-section text-brand-text">
           {productTabs.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger key={value} value={value} className="gap-2">
+            <TabsTrigger key={value} value={value} className="gap-2 data-[state=active]:bg-brand-surface data-[state=active]:text-brand-text [&[data-state=active]]:font-semibold">
               <Icon className="size-4" />
               {label}
             </TabsTrigger>

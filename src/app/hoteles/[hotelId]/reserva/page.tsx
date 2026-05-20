@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import PortalShell from '@/components/portal/PortalShell'
 import HotelBookingFlow from '@/components/portal/HotelBookingFlow'
-import { getHotelById } from '@/data/hotels'
+import { db } from '@/lib/db'
+import { formatAdminHotel } from '@/lib/admin/hotels'
 import { parseChildrenAges } from '@/lib/portal-routes'
 import { buildPublicMetadata } from '@/lib/seo'
 
@@ -13,9 +14,27 @@ interface HotelBookingRouteProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
+async function getHotelData(hotelId: string) {
+  const realCount = await db.hotel.count({
+    where: { active: true, isTemplate: false },
+  })
+  const isTemplateQuery = realCount > 0 ? false : true
+
+  const hotel = await db.hotel.findFirst({
+    where: {
+      id: hotelId,
+      active: true,
+      isTemplate: isTemplateQuery,
+    },
+  })
+
+  if (!hotel) return null
+  return formatAdminHotel(hotel)
+}
+
 export async function generateMetadata({ params }: HotelBookingRouteProps): Promise<Metadata> {
   const { hotelId } = await params
-  const hotel = getHotelById(hotelId)
+  const hotel = await getHotelData(hotelId)
 
   if (!hotel) {
     return buildPublicMetadata({
@@ -36,7 +55,7 @@ export async function generateMetadata({ params }: HotelBookingRouteProps): Prom
 export default async function HotelBookingRoutePage({ params, searchParams }: HotelBookingRouteProps) {
   const { hotelId } = await params
   const query = await searchParams
-  const hotel = getHotelById(hotelId)
+  const hotel = await getHotelData(hotelId)
 
   if (!hotel) {
     notFound()
@@ -44,7 +63,7 @@ export default async function HotelBookingRoutePage({ params, searchParams }: Ho
 
   const roomId = Array.isArray(query.roomId) ? query.roomId[0] : query.roomId
 
-  if (!roomId || !hotel.rooms.some((room) => room.id === roomId)) {
+  if (!roomId || !hotel.rooms.some((room: any) => room.id === roomId)) {
     notFound()
   }
 
@@ -63,6 +82,7 @@ export default async function HotelBookingRoutePage({ params, searchParams }: Ho
         adults={Number(adultsValue) || 1}
         childCount={Number(childrenValue) || 0}
         childrenAges={parseChildrenAges(query.childrenAges)}
+        hotel={hotel}
       />
     </PortalShell>
   )

@@ -82,6 +82,7 @@ export default function AdminMarketingModal() {
   const [showPreview, setShowPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -130,6 +131,7 @@ export default function AdminMarketingModal() {
       }
 
       const data = await res.json();
+      setImgError(false);
       updateField('imageUrl', data.url);
       toast.success('Imagen subida correctamente');
     } catch (err: unknown) {
@@ -309,17 +311,24 @@ export default function AdminMarketingModal() {
                 </Label>
                 {config.imageUrl ? (
                   <div className="relative group rounded-lg overflow-hidden border border-border max-w-xs">
-                    <img
-                      src={config.imageUrl}
-                      alt="Preview"
-                      className="w-full h-32 object-cover"
-                    />
+                    {!imgError ? (
+                      <img
+                        src={config.imageUrl}
+                        alt="Preview"
+                        className="w-full h-32 object-cover"
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-muted flex items-center justify-center">
+                        <ImagePlus className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         type="button"
                         size="sm"
                         variant="secondary"
-                        onClick={() => imageInputRef.current?.click()}
+                        onClick={() => { setImgError(false); imageInputRef.current?.click(); }}
                       >
                         <Upload className="w-4 h-4 mr-1" />
                         Cambiar
@@ -328,7 +337,7 @@ export default function AdminMarketingModal() {
                         type="button"
                         size="sm"
                         variant="destructive"
-                        onClick={() => updateField('imageUrl', '')}
+                        onClick={() => { updateField('imageUrl', ''); setImgError(false); }}
                       >
                         <X className="w-4 h-4 mr-1" />
                         Eliminar

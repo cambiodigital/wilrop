@@ -1,3 +1,8 @@
+export const socialLinks = [
+  { icon: 'Instagram', label: 'Instagram', href: 'https://www.instagram.com/willrogrouptravel' },
+  { icon: 'Facebook', label: 'Facebook', href: 'https://www.facebook.com/willrogrouptravel' },
+] as const
+
 export const brand = {
   name: 'Willro Group Travel',
   shortName: 'Willro',

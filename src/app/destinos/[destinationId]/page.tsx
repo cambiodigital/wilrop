@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, Star, ArrowRight } from 'lucide-react'
 import PortalShell from '@/components/portal/PortalShell'
-import { destinations } from '@/data/destinations'
-import { getPackagesByDestination } from '@/data/packages'
+import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 
 interface DestinationDetailRouteProps {
@@ -13,11 +12,79 @@ interface DestinationDetailRouteProps {
   }>
 }
 
+async function getDestinationData(destinationId: string) {
+  const realCount = await db.destination.count({
+    where: { active: true, isTemplate: false },
+  })
+  const isTemplateQuery = realCount > 0 ? false : true
+
+  const destination = await db.destination.findFirst({
+    where: {
+      id: destinationId,
+      active: true,
+      isTemplate: isTemplateQuery,
+    },
+  })
+
+  if (!destination) return null
+
+  const highlights = (() => {
+    try {
+      return JSON.parse(destination.highlights || '[]') as string[]
+    } catch {
+      return []
+    }
+  })()
+
+  // Get packages for this destination
+  const packagesRealCount = await db.travelPackage.count({
+    where: { active: true, isTemplate: false },
+  })
+  const packagesIsTemplateQuery = packagesRealCount > 0 ? false : true
+
+  const rawPackages = await db.travelPackage.findMany({
+    where: {
+      destinationId: destination.id,
+      active: true,
+      isTemplate: packagesIsTemplateQuery,
+    },
+    orderBy: { rating: 'desc' },
+  })
+
+  const packages = rawPackages.map((pkg) => {
+    return {
+      ...pkg,
+      includes: (() => {
+        try {
+          return JSON.parse(pkg.includes || '[]') as string[]
+        } catch {
+          return []
+        }
+      })(),
+      departureDates: (() => {
+        try {
+          return JSON.parse(pkg.departureDates || '[]') as string[]
+        } catch {
+          return []
+        }
+      })(),
+    }
+  })
+
+  return {
+    destination: {
+      ...destination,
+      highlights,
+    },
+    packages,
+  }
+}
+
 export async function generateMetadata({ params }: DestinationDetailRouteProps): Promise<Metadata> {
   const { destinationId } = await params
-  const destination = destinations.find((item) => item.id === destinationId)
+  const data = await getDestinationData(destinationId)
 
-  if (!destination) {
+  if (!data) {
     return buildPublicMetadata({
       title: 'Destino no encontrado | WILROP',
       description: 'El destino solicitado no existe o no está disponible en este momento.',
@@ -25,6 +92,8 @@ export async function generateMetadata({ params }: DestinationDetailRouteProps):
       noIndex: true,
     })
   }
+
+  const { destination } = data
 
   return buildPublicMetadata({
     title: `${destination.name} | Destinos WILROP`,
@@ -36,13 +105,13 @@ export async function generateMetadata({ params }: DestinationDetailRouteProps):
 
 export default async function DestinationDetailRoutePage({ params }: DestinationDetailRouteProps) {
   const { destinationId } = await params
-  const destination = destinations.find((item) => item.id === destinationId)
+  const data = await getDestinationData(destinationId)
 
-  if (!destination) {
+  if (!data) {
     notFound()
   }
 
-  const destinationPackages = getPackagesByDestination(destinationId)
+  const { destination, packages: destinationPackages } = data
 
   return (
     <PortalShell>

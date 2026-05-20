@@ -208,6 +208,7 @@ export default function AdminExcursions() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [imgErrors, setImgErrors] = useState<Set<number>>(new Set());
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyExcursion);
 
@@ -304,6 +305,7 @@ export default function AdminExcursions() {
         const data = await res.json();
         newUrls.push(data.url);
       }
+      setImgErrors(new Set());
       updateField('images', [...form.images, ...newUrls]);
       toast.success(`${newUrls.length} imagen(es) subida(s) correctamente`);
     } catch (err: unknown) {
@@ -802,23 +804,32 @@ export default function AdminExcursions() {
                   <Label>Vista previa ({form.images.length} imágenes)</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {form.images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border">
-                        <img
-                          src={img}
-                          alt={`Preview ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                        {!imgErrors.has(idx) ? (
+                          <img
+                            src={img}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={() => setImgErrors((prev) => new Set(prev).add(idx))}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImagePlus className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
                         <button
                           type="button"
-                          onClick={() =>
+                          onClick={() => {
+                            setImgErrors((prev) => {
+                              const next = new Set(prev);
+                              next.delete(idx);
+                              return next;
+                            });
                             updateField(
                               'images',
                               form.images.filter((_, i) => i !== idx)
-                            )
-                          }
+                            );
+                          }}
                           className="absolute top-1 right-1 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/90"
                         >
                           <X className="w-3 h-3" />

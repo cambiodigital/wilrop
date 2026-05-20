@@ -14,7 +14,7 @@ import {
 import { Search, Filter, Star, X } from 'lucide-react'
 
 const sourceTypes = [
-  { value: '', label: 'Todos' },
+  { value: 'all', label: 'Todos' },
   { value: 'hotel', label: 'Hoteles' },
   { value: 'excursion', label: 'Excursiones' },
   { value: 'package', label: 'Paquetes' },

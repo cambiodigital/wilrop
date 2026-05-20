@@ -21,7 +21,7 @@ export default function ResellerCatalogBrowser({ canCustomizePrices, maxCatalogI
   const [currentCount, setCurrentCount] = useState(0)
   const [filters, setFilters] = useState<CatalogFilters>({
     search: '',
-    sourceType: defaultFilter || '',
+    sourceType: defaultFilter || 'all',
     active: undefined,
     featured: undefined,
   })
@@ -34,7 +34,7 @@ export default function ResellerCatalogBrowser({ canCustomizePrices, maxCatalogI
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (filters.sourceType) params.set('sourceType', filters.sourceType)
+      if (filters.sourceType && filters.sourceType !== 'all') params.set('sourceType', filters.sourceType)
       if (filters.active !== undefined) params.set('active', filters.active.toString())
       if (filters.featured !== undefined) params.set('featured', filters.featured.toString())
 

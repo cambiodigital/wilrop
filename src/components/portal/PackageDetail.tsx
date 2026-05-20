@@ -29,23 +29,26 @@ const difficultyConfig: Record<string, { color: string; bg: string; icon: typeof
 
 interface PackageDetailProps {
   packageId?: string
+  pkg?: any
+  relatedPackages?: any[]
 }
 
-export default function PackageDetail({ packageId }: PackageDetailProps) {
+export default function PackageDetail({ packageId, pkg: initialPkg, relatedPackages: initialRelatedPackages }: PackageDetailProps) {
   const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
   const { navigate } = usePortalNavigation()
 
   const pkg = useMemo(
-    () => packages.find((p) => p.id === (packageId ?? selectedPackageId)),
-    [packageId, selectedPackageId]
+    () => initialPkg || packages.find((p) => p.id === (packageId ?? selectedPackageId)),
+    [initialPkg, packageId, selectedPackageId]
   )
 
   const relatedPackages = useMemo(
     () =>
-      pkg
+      initialRelatedPackages ||
+      (pkg
         ? getPackagesByDestination(pkg.destinationId).filter((p) => p.id !== pkg.id)
-        : [],
-    [pkg]
+        : []),
+    [initialRelatedPackages, pkg]
   )
 
   if (!pkg) {

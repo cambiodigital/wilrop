@@ -1,7 +1,4 @@
 import type { MetadataRoute } from 'next'
-import { destinations } from '@/data/destinations'
-import { hotels } from '@/data/hotels'
-import { travelPackages } from '@/data/packages'
 import { db } from '@/lib/db'
 
 const FALLBACK_SITE_URL = 'https://wilroptravel.com'
@@ -13,29 +10,6 @@ function getBaseUrl(): string {
 
 function toAbsolute(path: string): string {
   return `${getBaseUrl()}${path}`
-}
-
-async function getDynamicPathsFromDb(): Promise<string[]> {
-  try {
-    const [excursions, transportServices] = await Promise.all([
-      db.excursion.findMany({
-        where: { active: true },
-        select: { slug: true, updatedAt: true },
-      }),
-      db.transportService.findMany({
-        where: { active: true },
-        select: { id: true, updatedAt: true },
-      }),
-    ])
-
-    return [
-      ...excursions.map((item) => `/excursiones/${item.slug}`),
-      ...transportServices.map((item) => `/transportes/${item.id}`),
-    ]
-  } catch {
-    // If DB is unavailable during build, keep sitemap generation resilient.
-    return []
-  }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -51,30 +25,65 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: toAbsolute('/contacto'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  const destinationRoutes: MetadataRoute.Sitemap = destinations.map((destination) => ({
+  let dbDestinations: any[] = []
+  let dbHotels: any[] = []
+  let dbPackages: any[] = []
+  let dbExcursions: any[] = []
+  let dbTransportServices: any[] = []
+
+  try {
+    const destRealCount = await db.destination.count({ where: { active: true, isTemplate: false } })
+    const htlRealCount = await db.hotel.count({ where: { active: true, isTemplate: false } })
+    const pkgRealCount = await db.travelPackage.count({ where: { active: true, isTemplate: false } })
+    const excRealCount = await db.excursion.count({ where: { active: true, isTemplate: false } })
+
+    const [d, h, p, e, t] = await Promise.all([
+      db.destination.findMany({ where: { active: true, isTemplate: destRealCount > 0 ? false : true } }),
+      db.hotel.findMany({ where: { active: true, isTemplate: htlRealCount > 0 ? false : true } }),
+      db.travelPackage.findMany({ where: { active: true, isTemplate: pkgRealCount > 0 ? false : true } }),
+      db.excursion.findMany({ where: { active: true, isTemplate: excRealCount > 0 ? false : true } }),
+      db.transportService.findMany({ where: { active: true } }),
+    ])
+
+    dbDestinations = d
+    dbHotels = h
+    dbPackages = p
+    dbExcursions = e
+    dbTransportServices = t
+  } catch (error) {
+    console.error('Error generating sitemap dynamic paths:', error)
+  }
+
+  const destinationRoutes: MetadataRoute.Sitemap = dbDestinations.map((destination) => ({
     url: toAbsolute(`/destinos/${destination.id}`),
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.8,
   }))
 
-  const hotelRoutes: MetadataRoute.Sitemap = hotels.map((hotel) => ({
+  const hotelRoutes: MetadataRoute.Sitemap = dbHotels.map((hotel) => ({
     url: toAbsolute(`/hoteles/${hotel.id}`),
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.8,
   }))
 
-  const packageRoutes: MetadataRoute.Sitemap = travelPackages.map((travelPackage) => ({
+  const packageRoutes: MetadataRoute.Sitemap = dbPackages.map((travelPackage) => ({
     url: toAbsolute(`/paquetes/${travelPackage.id}`),
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.8,
   }))
 
-  const dbDynamicPaths = await getDynamicPathsFromDb()
-  const dbRoutes: MetadataRoute.Sitemap = dbDynamicPaths.map((path) => ({
-    url: toAbsolute(path),
+  const excursionRoutes: MetadataRoute.Sitemap = dbExcursions.map((excursion) => ({
+    url: toAbsolute(`/excursiones/${excursion.slug}`),
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
+  const transportRoutes: MetadataRoute.Sitemap = dbTransportServices.map((transport) => ({
+    url: toAbsolute(`/transportes/${transport.id}`),
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.7,
@@ -85,6 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...destinationRoutes,
     ...hotelRoutes,
     ...packageRoutes,
-    ...dbRoutes,
+    ...excursionRoutes,
+    ...transportRoutes,
   ]
 }

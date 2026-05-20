@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import PortalShell from '@/components/portal/PortalShell'
 import BookingFlow from '@/components/portal/BookingFlow'
-import { getPackageById } from '@/data/packages'
+import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 
 interface PackageBookingRouteProps {
@@ -11,9 +11,44 @@ interface PackageBookingRouteProps {
   }>
 }
 
+async function getPackageData(packageId: string) {
+  const realCount = await db.travelPackage.count({
+    where: { active: true, isTemplate: false },
+  })
+  const isTemplateQuery = realCount > 0 ? false : true
+
+  const travelPackage = await db.travelPackage.findFirst({
+    where: {
+      id: packageId,
+      active: true,
+      isTemplate: isTemplateQuery,
+    },
+  })
+
+  if (!travelPackage) return null
+
+  return {
+    ...travelPackage,
+    includes: (() => {
+      try {
+        return JSON.parse(travelPackage.includes || '[]') as string[]
+      } catch {
+        return []
+      }
+    })(),
+    departureDates: (() => {
+      try {
+        return JSON.parse(travelPackage.departureDates || '[]') as string[]
+      } catch {
+        return []
+      }
+    })(),
+  }
+}
+
 export async function generateMetadata({ params }: PackageBookingRouteProps): Promise<Metadata> {
   const { packageId } = await params
-  const travelPackage = getPackageById(packageId)
+  const travelPackage = await getPackageData(packageId)
 
   if (!travelPackage) {
     return buildPublicMetadata({
@@ -33,7 +68,7 @@ export async function generateMetadata({ params }: PackageBookingRouteProps): Pr
 
 export default async function PackageBookingRoutePage({ params }: PackageBookingRouteProps) {
   const { packageId } = await params
-  const travelPackage = getPackageById(packageId)
+  const travelPackage = await getPackageData(packageId)
 
   if (!travelPackage) {
     notFound()
@@ -41,7 +76,7 @@ export default async function PackageBookingRoutePage({ params }: PackageBooking
 
   return (
     <PortalShell>
-      <BookingFlow packageId={packageId} />
+      <BookingFlow packageId={packageId} pkg={travelPackage} />
     </PortalShell>
   )
 }

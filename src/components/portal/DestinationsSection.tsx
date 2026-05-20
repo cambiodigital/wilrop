@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { destinations } from '@/data/destinations'
-import { packages } from '@/data/packages'
+import { destinations as staticDestinations } from '@/data/destinations'
+import { packages as staticPackages } from '@/data/packages'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 const categories = ['Todos', 'Playa', 'Aventura', 'Cultural', 'Naturaleza', 'Relax'] as const
@@ -32,13 +32,31 @@ interface DestinationsSectionProps {
 export default function DestinationsSection({ limit }: DestinationsSectionProps) {
   const { navigate } = usePortalNavigation()
   const [activeCategory, setActiveCategory] = useState<string>('Todos')
+  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+  const [packagesList, setPackagesList] = useState<any[]>(staticPackages)
   const isPreview = typeof limit === 'number'
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/public/destinations').then((res) => res.json()),
+      fetch('/api/public/packages').then((res) => res.json()),
+    ])
+      .then(([destRes, pkgRes]) => {
+        if (destRes.success && Array.isArray(destRes.data) && destRes.data.length > 0) {
+          setDestinationsList(destRes.data)
+        }
+        if (pkgRes.success && Array.isArray(pkgRes.data) && pkgRes.data.length > 0) {
+          setPackagesList(pkgRes.data)
+        }
+      })
+      .catch((err) => console.error('Error fetching destinations or packages:', err))
+  }, [])
 
   const filteredDestinations =
     activeCategory === 'Todos'
-      ? destinations
-      : destinations.filter((d) =>
-          packages.some(
+      ? destinationsList
+      : destinationsList.filter((d) =>
+          packagesList.some(
             (p) => p.destinationId === d.id && p.category === activeCategory
           )
         )

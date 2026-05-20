@@ -215,27 +215,27 @@ export default function ResellerDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Button
                 variant="outline"
-                className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
+                className="h-auto py-4 flex flex-col gap-2 border-amber-200 bg-white text-gray-900 hover:bg-amber-50 hover:border-amber-300 transition-all"
                 onClick={() => router.push('/reseller/ventas')}
               >
                 <Link2 className="w-5 h-5 text-amber-600" />
-                <span className="text-sm font-medium text-gray-700">Crear Enlace de Venta</span>
+                <span className="text-sm font-medium">Crear Enlace de Venta</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
+                className="h-auto py-4 flex flex-col gap-2 border-amber-200 bg-white text-gray-900 hover:bg-amber-50 hover:border-amber-300 transition-all"
                 onClick={() => router.push('/reseller/comisiones')}
               >
                 <Eye className="w-5 h-5 text-amber-600" />
-                <span className="text-sm font-medium text-gray-700">Ver Comisión</span>
+                <span className="text-sm font-medium">Ver Comisión</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-auto py-4 flex flex-col gap-2 border-amber-200 hover:bg-amber-50 hover:border-amber-300 transition-all"
+                className="h-auto py-4 flex flex-col gap-2 border-amber-200 bg-white text-gray-900 hover:bg-amber-50 hover:border-amber-300 transition-all"
                 onClick={() => router.push('/reseller/clientes')}
               >
                 <UserPlus className="w-5 h-5 text-amber-600" />
-                <span className="text-sm font-medium text-gray-700">Invitar Cliente</span>
+                <span className="text-sm font-medium">Invitar Cliente</span>
               </Button>
             </div>
           </CardContent>
