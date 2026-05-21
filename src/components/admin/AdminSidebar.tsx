@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   Megaphone,
+  TrendingUp,
   Users,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -41,12 +42,13 @@ const menuItems: MenuItem[] = [
   { id: 'destinations', label: 'Destinos', icon: <MapPin className="w-5 h-5" />, href: '/admin/destinos' },
   { id: 'hotels', label: 'Hoteles', icon: <Building2 className="w-5 h-5" />, href: '/admin/hoteles' },
   { id: 'packages', label: 'Paquetes', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes' },
-  { id: 'excursions', label: 'Excursiones', icon: <MapPin className="w-5 h-5" />, href: '/admin/excursiones' },
-  { id: 'bookings', label: 'Reservas', icon: <Users className="w-5 h-5" />, href: '/admin/reservas' },
-  { id: 'subagents', label: 'Subagentes', icon: <Users className="w-5 h-5" />, href: '/admin/subagentes' },
-  { id: 'resellers', label: 'Revendedores', icon: <Users className="w-5 h-5" />, href: '/admin/resellers' },
   { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/admin/transportes' },
   { id: 'marketing', label: 'Marketing', icon: <Megaphone className="w-5 h-5" />, href: '/admin/marketing-modal' },
+];
+
+const userMenuItems: MenuItem[] = [
+  { id: 'resellers', label: 'Revendedores', icon: <TrendingUp className="w-5 h-5" />, href: '/admin/revendedores' },
+  { id: 'subagents', label: 'Subagentes', icon: <Users className="w-5 h-5" />, href: '/admin/subagentes' },
 ];
 
 function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void; fallbackAdminName?: string }) {
@@ -106,6 +108,27 @@ function SidebarNav({ onNavigate, fallbackAdminName }: { onNavigate?: () => void
       <nav className="flex-1 px-3 space-y-1">
         <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Menú Principal</p>
         {menuItems.map((item) => {
+          const isActive = isItemActive(item.href);
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavigate(item.href)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <span className={isActive ? 'text-primary-foreground' : 'text-muted-foreground'}>{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
+
+        <Separator className="my-3 w-auto" />
+
+        <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Usuarios B2B</p>
+        {userMenuItems.map((item) => {
           const isActive = isItemActive(item.href);
           return (
             <button

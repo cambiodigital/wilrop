@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
         phone: phone ?? '',
         commission: commission ?? 15,
         sellerLevel: normalizeResellerLevel(sellerLevel),
+        type: 'subagent',
         whiteLabelEnabled: Boolean(whiteLabelEnabled),
         active: active ?? true,
         approvalStatus: 'approved',

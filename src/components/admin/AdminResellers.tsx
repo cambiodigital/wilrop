@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -55,8 +54,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  FileText,
-  MapPin,
+  TrendingUp,
+  DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getResellerLevelLabel, normalizeResellerLevel, type ResellerLevel } from '@/lib/reseller-access';
@@ -67,23 +66,17 @@ interface Reseller {
   id: string;
   code: string;
   email: string;
-  companyName: string;
+  agencyName: string;
   contactName: string;
   country: string;
   phone: string;
-  website: string;
-  taxId: string;
-  address: string;
-  logoUrl: string;
   commission: number;
   sellerLevel: string;
   whiteLabelEnabled: boolean;
   active: boolean;
   approvalStatus: string;
-  rejectionReason: string;
   registrationDate?: string;
-  approvedAt?: string;
-  _count?: { catalogs: number; clients: number; sales: number };
+  _count?: { bookings: number };
 }
 
 // ─── Default Form ───────────────────────────────────────────────
@@ -92,14 +85,11 @@ const emptyReseller = {
   code: '',
   email: '',
   password: '',
-  companyName: '',
+  agencyName: '',
   contactName: '',
   country: '',
   phone: '',
-  website: '',
-  taxId: '',
-  address: '',
-  commission: 10,
+  commission: 15,
   sellerLevel: 'standard',
   whiteLabelEnabled: false,
   active: true,
@@ -114,11 +104,8 @@ export default function AdminResellers() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyReseller);
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -132,7 +119,7 @@ export default function AdminResellers() {
       const allResellers = json.data || json;
       setResellers(allResellers);
       setPendingResellers(
-        allResellers.filter((r: Reseller) => r.approvalStatus === 'pending'),
+        allResellers.filter((s: Reseller) => s.approvalStatus === 'pending')
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error';
@@ -147,12 +134,12 @@ export default function AdminResellers() {
   }, [fetchResellers]);
 
   const filtered = resellers.filter(
-    (r) =>
-      r.approvalStatus !== 'pending' &&
-      (r.companyName.toLowerCase().includes(search.toLowerCase()) ||
-      r.contactName.toLowerCase().includes(search.toLowerCase()) ||
-      r.code.toLowerCase().includes(search.toLowerCase()) ||
-      r.email.toLowerCase().includes(search.toLowerCase())),
+    (s) =>
+      s.approvalStatus !== 'pending' &&
+      (s.agencyName.toLowerCase().includes(search.toLowerCase()) ||
+      s.contactName.toLowerCase().includes(search.toLowerCase()) ||
+      s.code.toLowerCase().includes(search.toLowerCase()) ||
+      s.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleCreate = () => {
@@ -161,23 +148,20 @@ export default function AdminResellers() {
     setDialogOpen(true);
   };
 
-  const handleEdit = (r: Reseller) => {
-    setEditingId(r.id);
+  const handleEdit = (sub: Reseller) => {
+    setEditingId(sub.id);
     setForm({
-      code: r.code,
-      email: r.email,
+      code: sub.code,
+      email: sub.email,
       password: '',
-      companyName: r.companyName,
-      contactName: r.contactName,
-      country: r.country,
-      phone: r.phone,
-      website: r.website,
-      taxId: r.taxId,
-      address: r.address,
-      commission: r.commission,
-      sellerLevel: normalizeResellerLevel(r.sellerLevel),
-      whiteLabelEnabled: r.whiteLabelEnabled,
-      active: r.active,
+      agencyName: sub.agencyName,
+      contactName: sub.contactName,
+      country: sub.country,
+      phone: sub.phone,
+      commission: sub.commission,
+      sellerLevel: normalizeResellerLevel(sub.sellerLevel),
+      whiteLabelEnabled: sub.whiteLabelEnabled,
+      active: sub.active,
     });
     setDialogOpen(true);
   };
@@ -187,8 +171,8 @@ export default function AdminResellers() {
       toast.error('El código es obligatorio');
       return;
     }
-    if (!form.companyName.trim()) {
-      toast.error('El nombre de empresa es obligatorio');
+    if (!form.agencyName.trim()) {
+      toast.error('El nombre de la agencia es obligatorio');
       return;
     }
     if (!form.contactName.trim()) {
@@ -219,7 +203,7 @@ export default function AdminResellers() {
           method: isEditing ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-        },
+        }
       );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -228,7 +212,7 @@ export default function AdminResellers() {
       toast.success(
         isEditing
           ? 'Revendedor actualizado correctamente'
-          : 'Revendedor creado correctamente',
+          : 'Revendedor creado correctamente'
       );
       setDialogOpen(false);
       fetchResellers();
@@ -260,13 +244,13 @@ export default function AdminResellers() {
     }
   };
 
-  const handleApproval = async (id: string, action: 'approve' | 'reject', reason?: string) => {
+  const handleApproval = async (id: string, action: 'approve' | 'reject') => {
     setApprovingId(id);
     try {
-      const res = await fetch(`/api/admin/resellers/${id}/approve`, {
+      const res = await fetch(`/api/admin/resellers/${id}/approval`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reason }),
+        body: JSON.stringify({ action }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -283,38 +267,9 @@ export default function AdminResellers() {
     }
   };
 
-  const handleReject = async () => {
-    if (!rejectingId || !rejectReason.trim()) {
-      toast.error('El motivo de rechazo es obligatorio');
-      return;
-    }
-    setApprovingId(rejectingId);
-    try {
-      const res = await fetch(`/api/admin/resellers/${rejectingId}/reject`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: rejectReason.trim() }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al rechazar');
-      }
-      const result = await res.json();
-      toast.success(result.message);
-      setRejectDialogOpen(false);
-      setRejectingId(null);
-      setRejectReason('');
-      fetchResellers();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
-      toast.error(msg);
-    } finally {
-      setApprovingId(null);
-    }
-  };
-
-  const activeCount = resellers.filter((r) => r.active).length;
-  const totalSales = resellers.reduce((sum, r) => sum + (r._count?.sales || 0), 0);
+  // ── Summary ──
+  const activeCount = resellers.filter((s) => s.active).length;
+  const totalBookings = resellers.reduce((sum, s) => sum + (s._count?.bookings || 0), 0);
 
   return (
     <div className="p-6 space-y-6">
@@ -322,11 +277,11 @@ export default function AdminResellers() {
       <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2">
-            <Users className="w-6 h-6 text-primary" />
+            <TrendingUp className="w-6 h-6 text-primary" />
             Revendedores
           </h1>
           <p className="mt-1">
-            Gestiona las cuentas de revendedores y solicitudes de registro
+            Gestiona los revendedores y su canal de ventas B2B
           </p>
         </div>
         <Button onClick={handleCreate} size="default">
@@ -336,7 +291,7 @@ export default function AdminResellers() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -354,7 +309,7 @@ export default function AdminResellers() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                <Building className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Activos</p>
@@ -367,11 +322,24 @@ export default function AdminResellers() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Globe className="w-5 h-5 text-blue-600" />
+                <DollarSign className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Ventas Totales</p>
-                <p className="text-lg font-bold text-blue-600">{totalSales}</p>
+                <p className="text-xs text-muted-foreground">Reservas B2B</p>
+                <p className="text-lg font-bold text-blue-600">{totalBookings}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Pendientes</p>
+                <p className="text-lg font-bold text-amber-600">{pendingResellers.length}</p>
               </div>
             </div>
           </CardContent>
@@ -387,38 +355,31 @@ export default function AdminResellers() {
               <h2 className="text-lg font-semibold">Solicitudes Pendientes ({pendingResellers.length})</h2>
             </div>
             <div className="space-y-3">
-              {pendingResellers.map((r) => (
-                <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20">
+              {pendingResellers.map((sub) => (
+                <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm">{r.companyName}</span>
+                      <span className="font-semibold text-sm">{sub.agencyName}</span>
                       <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
                         Pendiente
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {r.contactName} · {r.email}
-                      {r.country && ` · ${r.country}`}
-                      {r.phone && ` · ${r.phone}`}
+                      {sub.contactName} · {sub.email}
+                      {sub.country && ` · ${sub.country}`}
+                      {sub.phone && ` · ${sub.phone}`}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Registrado: {r.registrationDate ? new Date(r.registrationDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      Registrado: {sub.registrationDate ? new Date(sub.registrationDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>
-                    {r.taxId && (
-                      <p className="text-xs text-muted-foreground">NIT/RUT: {r.taxId}</p>
-                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
                       size="sm"
                       variant="outline"
                       className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => {
-                        setRejectingId(r.id);
-                        setRejectReason('');
-                        setRejectDialogOpen(true);
-                      }}
-                      disabled={approvingId === r.id}
+                      onClick={() => handleApproval(sub.id, 'reject')}
+                      disabled={approvingId === sub.id}
                     >
                       <XCircle className="w-4 h-4 mr-1" />
                       Rechazar
@@ -426,8 +387,8 @@ export default function AdminResellers() {
                     <Button
                       size="sm"
                       className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => handleApproval(r.id, 'approve')}
-                      disabled={approvingId === r.id}
+                      onClick={() => handleApproval(sub.id, 'approve')}
+                      disabled={approvingId === sub.id}
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Aprobar
@@ -446,7 +407,7 @@ export default function AdminResellers() {
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por empresa, contacto, código o email..."
+              placeholder="Buscar por agencia, contacto, código o email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -470,14 +431,15 @@ export default function AdminResellers() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Código</TableHead>
-                    <TableHead>Empresa</TableHead>
+                    <TableHead>Agencia</TableHead>
                     <TableHead>Contacto</TableHead>
                     <TableHead>País</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Teléfono</TableHead>
                     <TableHead>Comisión</TableHead>
                     <TableHead>Nivel</TableHead>
-                    <TableHead>Catálogo</TableHead>
-                    <TableHead>Clientes</TableHead>
+                    <TableHead>Marca Blanca</TableHead>
+                    <TableHead>Reservas</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -485,52 +447,67 @@ export default function AdminResellers() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                         {search
                           ? 'No se encontraron resultados'
                           : 'No hay revendedores registrados'}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((r) => (
-                      <TableRow key={r.id}>
+                    filtered.map((sub) => (
+                      <TableRow key={sub.id}>
                         <TableCell className="font-mono font-semibold text-sm text-primary">
-                          {r.code}
+                          {sub.code}
                         </TableCell>
                         <TableCell className="font-medium text-sm">
-                          {r.companyName}
+                          {sub.agencyName}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {r.contactName}
+                          {sub.contactName}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {r.country || '—'}
+                          {sub.country || '—'}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {r.email}
+                          {sub.email}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {sub.phone || '—'}
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs font-semibold">
-                            {r.commission}%
+                            {sub.commission}%
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-xs">
-                            {getResellerLevelLabel(normalizeResellerLevel(r.sellerLevel))}
+                            {getResellerLevelLabel(normalizeResellerLevel(sub.sellerLevel))}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-center">
-                          {r._count?.catalogs || 0}
+                        <TableCell>
+                          {sub.whiteLabelEnabled || normalizeResellerLevel(sub.sellerLevel) === 'free_light' ? (
+                            <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-xs">
+                              Habilitada
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-muted text-muted-foreground hover:bg-muted text-xs">
+                              No
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-center">
-                          {r._count?.clients || 0}
+                          {sub._count?.bookings || 0}
                         </TableCell>
                         <TableCell>
-                          {r.approvalStatus === 'rejected' ? (
+                          {sub.approvalStatus === 'pending' ? (
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                              Pendiente
+                            </Badge>
+                          ) : sub.approvalStatus === 'rejected' ? (
                             <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">
                               Rechazado
                             </Badge>
-                          ) : r.active ? (
+                          ) : sub.active ? (
                             <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs">
                               Activo
                             </Badge>
@@ -546,7 +523,7 @@ export default function AdminResellers() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => handleEdit(r)}
+                              onClick={() => handleEdit(sub)}
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -555,7 +532,7 @@ export default function AdminResellers() {
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
-                                setDeletingId(r.id);
+                                setDeletingId(sub.id);
                                 setDeleteDialogOpen(true);
                               }}
                             >
@@ -593,12 +570,12 @@ export default function AdminResellers() {
                 <Label className="label-required">Código</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
-                    RES-
+                    WIL-
                   </span>
                   <Input
                     value={form.code}
                     onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-                    placeholder="0001"
+                    placeholder="AG001"
                     className="pl-12"
                     disabled={!!editingId}
                   />
@@ -612,7 +589,7 @@ export default function AdminResellers() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="empresa@ejemplo.com"
+                    placeholder="agencia@ejemplo.com"
                     className="pl-10"
                   />
                 </div>
@@ -644,13 +621,13 @@ export default function AdminResellers() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de Empresa</Label>
+                <Label className="label-required">Nombre de Agencia</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    value={form.companyName}
-                    onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
-                    placeholder="Travel Express S.A."
+                    value={form.agencyName}
+                    onChange={(e) => setForm((f) => ({ ...f, agencyName: e.target.value }))}
+                    placeholder="Travel Express Inc."
                     className="pl-10"
                   />
                 </div>
@@ -696,46 +673,6 @@ export default function AdminResellers() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Sitio web</Label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={form.website}
-                    onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
-                    placeholder="https://miagencia.com"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>NIT / RUT / ID Fiscal</Label>
-                <div className="relative">
-                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={form.taxId}
-                    onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))}
-                    placeholder="12345678-9"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Dirección</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                  placeholder="Calle 123, Ciudad, País"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
             <div className="space-y-1.5">
               <Label>Comisión (%)</Label>
               <Input
@@ -744,7 +681,7 @@ export default function AdminResellers() {
                 max="100"
                 value={form.commission}
                 onChange={(e) => setForm((f) => ({ ...f, commission: Number(e.target.value) }))}
-                placeholder="10"
+                placeholder="15"
               />
               <p className="text-xs text-muted-foreground">
                 Porcentaje de comisión sobre las ventas del revendedor
@@ -813,7 +750,7 @@ export default function AdminResellers() {
             <AlertDialogTitle>¿Eliminar revendedor?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción no se puede deshacer. El revendedor será eliminado permanentemente
-              junto con su catálogo, clientes y ventas.
+              junto con su historial de comisiones.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -827,41 +764,6 @@ export default function AdminResellers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* ═══ REJECT DIALOG ═══ */}
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent className="admin-dialog">
-          <DialogHeader>
-            <DialogTitle>Rechazar solicitud</DialogTitle>
-            <DialogDescription>
-              Indica el motivo del rechazo. Esta información será visible para el revendedor.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="label-required">Motivo de rechazo</Label>
-              <Textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Ej: Documentación incompleta, empresa no verificada..."
-                rows={4}
-              />
-            </div>
-            <div className="dialog-footer">
-              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleReject}
-                disabled={!rejectReason.trim() || approvingId !== null}
-              >
-                {approvingId === rejectingId ? 'Procesando...' : 'Rechazar'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
