@@ -96,6 +96,10 @@ export interface NormalizedHotel {
   featured: boolean
   active: boolean
   isTemplate: boolean
+  address: string
+  rooms: unknown[]
+  amenities: string[]
+  tags: string[]
 }
 
 export function normalizeHotel(
@@ -116,6 +120,10 @@ export function normalizeHotel(
     featured: Boolean(hotel.featured),
     active: Boolean(hotel.active ?? true),
     isTemplate: Boolean(hotel.isTemplate ?? true),
+    address: String(hotel.address ?? ''),
+    rooms: parseJsonArray<unknown>(String(hotel.rooms ?? '[]')),
+    amenities: parseJsonArray<string>(String(hotel.amenities ?? '[]')),
+    tags: parseJsonArray<string>(String(hotel.tags ?? '[]')),
   }
 }
 
@@ -137,6 +145,11 @@ export interface NormalizedExcursion {
   featured: boolean
   active: boolean
   isTemplate: boolean
+  includes: string[]
+  excludes: string[]
+  requirements: string[]
+  shortDesc: string
+  groupSize: string
 }
 
 export function normalizeExcursion(
@@ -160,6 +173,11 @@ export function normalizeExcursion(
     featured: Boolean(excursion.featured),
     active: Boolean(excursion.active ?? true),
     isTemplate: Boolean(excursion.isTemplate ?? true),
+    includes: parseJsonArray<string>(String(excursion.includes ?? '[]')),
+    excludes: parseJsonArray<string>(String(excursion.excludes ?? '[]')),
+    requirements: parseJsonArray<string>(String(excursion.requirements ?? '[]')),
+    shortDesc: String(excursion.shortDesc ?? ''),
+    groupSize: String(excursion.groupSize ?? ''),
   }
 }
 
