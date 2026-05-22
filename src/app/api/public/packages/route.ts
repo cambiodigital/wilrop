@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { resolvePackageDestinationIds } from '@/lib/catalog/public-hydration';
 
 function safeJsonParse<T>(value: string, fallback: T): T {
   try {
@@ -39,7 +40,27 @@ export async function GET(request: NextRequest) {
 
     const parsed = packages.map(formatPackage);
 
-    return NextResponse.json({ success: true, data: parsed });
+    // ── Resolve relation-based destination IDs from DestinationPackage join ──
+
+    const packageIds = packages.map((p) => p.id);
+    let relatedMap = new Map<string, string[]>();
+
+    try {
+      const joinRows = await db.destinationPackage.findMany({
+        where: { packageId: { in: packageIds }, active: true },
+        select: { packageId: true, destinationId: true, active: true },
+      });
+      relatedMap = resolvePackageDestinationIds(joinRows);
+    } catch {
+      // Join table may not exist yet; gracefully degrade
+    }
+
+    const enriched = parsed.map((pkg) => ({
+      ...pkg,
+      relatedDestinationIds: relatedMap.get(pkg.id) ?? [],
+    }));
+
+    return NextResponse.json({ success: true, data: enriched });
   } catch (error: any) {
     console.error('Error fetching public packages:', error);
     return NextResponse.json(

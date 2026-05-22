@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import { resolveSourceFields } from '@/lib/reseller/catalog'
 
 const formatCOP = (value: number) => {
   return new Intl.NumberFormat('es-CO', {
@@ -44,7 +45,9 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
   const [customDescription, setCustomDescription] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const basePrice = item?.sourceData?.priceFrom as number | undefined ?? item?.sourceData?.basePrice as number | undefined ?? item?.sourceData?.price as number | undefined ?? 0
+  const resolved = item ? resolveSourceFields(item.sourceType, item.sourceData) : null
+  const basePrice = resolved?.price ?? 0
+  const sourceTitle = resolved?.title ?? 'Producto'
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && item) {
@@ -95,7 +98,7 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
         <div className="space-y-4 py-4">
           <div className="p-3 bg-gray-50 rounded-lg">
             <p className="text-sm font-medium text-gray-900">
-              {item.customName || (item.sourceData.name as string) || (item.sourceData.title as string) || 'Producto'}
+              {item.customName || sourceTitle}
             </p>
             <p className="text-xs text-gray-500 mt-1">
               Precio base: {formatCOP(basePrice)}

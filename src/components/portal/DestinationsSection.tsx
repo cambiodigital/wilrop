@@ -52,13 +52,24 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
       .catch((err) => console.error('Error fetching destinations or packages:', err))
   }, [])
 
+  /**
+   * Filter destinations by active category using relational destination IDs
+   * when available (from DestinationPackage join), falling back to legacy
+   * `p.destinationId === d.id` string comparison for migration safety.
+   */
   const filteredDestinations =
     activeCategory === 'Todos'
       ? destinationsList
       : destinationsList.filter((d) =>
-          packagesList.some(
-            (p) => p.destinationId === d.id && p.category === activeCategory
-          )
+          packagesList.some((p) => {
+            if (p.category !== activeCategory) return false
+            const relatedIds = p.relatedDestinationIds
+            if (Array.isArray(relatedIds) && relatedIds.length > 0) {
+              return relatedIds.includes(d.id)
+            }
+            // Legacy fallback: direct string comparison
+            return p.destinationId === d.id
+          })
         )
 
   const displayDestinations = isPreview ? filteredDestinations.slice(0, limit) : filteredDestinations

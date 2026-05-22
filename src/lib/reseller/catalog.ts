@@ -1,6 +1,13 @@
 import { db } from '@/lib/db'
 import type { CatalogItemInput, UpdateCatalogItemInput, CatalogFilters } from './catalog-validators'
 
+// Re-export typed source resolution for consumers that render catalog items.
+export {
+  resolveSourceFields,
+  resolveCatalogPresentation,
+} from './source-resolver'
+export type { ResolvedSource, CatalogPresentation } from './source-resolver'
+
 export interface CatalogItemWithSource {
   id: string
   sourceType: string

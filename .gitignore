@@ -57,6 +57,9 @@ registros-revision.log
 # Skills directory
 /skills/
 
+# Agent/tool local registry cache
+.atl/
+
 # docs adjuntos
 /docs/**
 

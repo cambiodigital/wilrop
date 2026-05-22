@@ -55,8 +55,17 @@ import {
   Building,
   Users,
   X,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  buildTransportDestinationCompatibilityFields,
+  findTransportDestinationOption,
+  findTransportDestinationOptionByLabel,
+  getTransportDestinationSelectorState,
+  normalizeTransportDestinationOptions,
+  type TransportDestinationOption,
+} from '@/lib/admin/transport-destination-ui';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -82,6 +91,8 @@ interface TransportService {
   destination: string;
   cityId: string;
   cityName: string;
+  originDestinationId?: string | null;
+  destinationDestinationId?: string | null;
   durationMins: number;
   basePrice: number;
   pricePerExtra: number;
@@ -128,6 +139,8 @@ const emptyService = {
   destination: '',
   cityId: '',
   cityName: '',
+  originDestinationId: '',
+  destinationDestinationId: '',
   durationMins: 60,
   basePrice: 0,
   pricePerExtra: 0,
@@ -245,6 +258,9 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
   const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
   const [serviceSaving, setServiceSaving] = useState(false);
   const [serviceForm, setServiceForm] = useState(emptyService);
+  const [destinationOptions, setDestinationOptions] = useState<TransportDestinationOption[]>([]);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
+  const [destinationsError, setDestinationsError] = useState<string | null>(null);
 
   // ── Fetch ──
   const fetchProviders = useCallback(async () => {
@@ -277,10 +293,28 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
     }
   }, []);
 
+  const fetchDestinationOptions = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationsError(null);
+    try {
+      const res = await fetch('/api/admin/relation-options/destinations?active=all');
+      if (!res.ok) throw new Error('Error al cargar destinos');
+      const json = await res.json();
+      setDestinationOptions(normalizeTransportDestinationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar destinos';
+      setDestinationsError(msg);
+      toast.error(msg);
+    } finally {
+      setDestinationsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProviders();
     fetchServices();
-  }, [fetchProviders, fetchServices]);
+    fetchDestinationOptions();
+  }, [fetchProviders, fetchServices, fetchDestinationOptions]);
 
   // ── Provider CRUD ──
   const handleProviderCreate = () => {
@@ -366,19 +400,28 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
   const handleServiceCreate = () => {
     setEditingService(null);
     setServiceForm({ ...emptyService, providerId: providers[0]?.id || '' });
+    if (destinationOptions.length === 0 && !destinationsLoading) fetchDestinationOptions();
     setServiceDialogOpen(true);
   };
 
   const handleServiceEdit = (s: TransportService) => {
+    const originOption = s.originDestinationId
+      ? findTransportDestinationOption(destinationOptions, s.originDestinationId)
+      : findTransportDestinationOptionByLabel(destinationOptions, s.origin);
+    const destinationOption = s.destinationDestinationId
+      ? findTransportDestinationOption(destinationOptions, s.destinationDestinationId)
+      : findTransportDestinationOptionByLabel(destinationOptions, s.destination || s.cityName);
     setEditingService(s);
     setServiceForm({
       providerId: s.providerId,
       name: s.name,
       routeType: s.routeType,
-      origin: s.origin,
-      destination: s.destination,
-      cityId: s.cityId,
-      cityName: s.cityName,
+      origin: originOption?.label ?? s.origin,
+      destination: destinationOption?.label ?? s.destination,
+      cityId: destinationOption?.id ?? s.cityId,
+      cityName: destinationOption?.label ?? s.cityName,
+      originDestinationId: originOption?.id ?? s.originDestinationId ?? '',
+      destinationDestinationId: destinationOption?.id ?? s.destinationDestinationId ?? '',
       durationMins: s.durationMins,
       basePrice: s.basePrice,
       pricePerExtra: s.pricePerExtra,
@@ -394,9 +437,37 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
       toast.error('Selecciona un proveedor');
       return;
     }
+    if (destinationsError) {
+      toast.error('Recarga los destinos antes de guardar');
+      return;
+    }
+    if (
+      !serviceForm.originDestinationId?.trim() ||
+      !serviceForm.destinationDestinationId?.trim() ||
+      !findTransportDestinationOption(destinationOptions, serviceForm.originDestinationId) ||
+      !findTransportDestinationOption(destinationOptions, serviceForm.destinationDestinationId)
+    ) {
+      toast.error('Selecciona origen y destino relacionales válidos');
+      return;
+    }
     setServiceSaving(true);
     try {
       const isEditing = !!editingService;
+      const servicePayload = {
+        providerId: serviceForm.providerId,
+        name: serviceForm.name,
+        routeType: serviceForm.routeType,
+        origin: serviceForm.origin,
+        destination: serviceForm.destination,
+        cityId: serviceForm.cityId,
+        cityName: serviceForm.cityName,
+        durationMins: serviceForm.durationMins,
+        basePrice: serviceForm.basePrice,
+        pricePerExtra: serviceForm.pricePerExtra,
+        includes: serviceForm.includes,
+        notes: serviceForm.notes,
+        active: serviceForm.active,
+      };
       const res = await fetch(
         isEditing
           ? `/api/admin/transport-services/${editingService.id}`
@@ -404,7 +475,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
         {
           method: isEditing ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(serviceForm),
+          body: JSON.stringify(servicePayload),
         }
       );
       if (!res.ok) {
@@ -453,6 +524,24 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
   const filteredServices = services.filter((s) =>
     s.name.toLowerCase().includes(serviceSearch.toLowerCase())
   );
+  const selectedOrigin = findTransportDestinationOption(destinationOptions, serviceForm.originDestinationId ?? '');
+  const selectedDestination = findTransportDestinationOption(destinationOptions, serviceForm.destinationDestinationId ?? '');
+  const originSelectorState = getTransportDestinationSelectorState({
+    options: destinationOptions,
+    selectedId: serviceForm.originDestinationId ?? '',
+    isLoading: destinationsLoading,
+    error: destinationsError,
+    createCtaHref: '/admin/destinos',
+    createCtaLabel: 'Crear destino',
+  });
+  const destinationSelectorState = getTransportDestinationSelectorState({
+    options: destinationOptions,
+    selectedId: serviceForm.destinationDestinationId ?? '',
+    isLoading: destinationsLoading,
+    error: destinationsError,
+    createCtaHref: '/admin/destinos',
+    createCtaLabel: 'Crear destino',
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -922,41 +1011,113 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Origen</Label>
-                <Input
-                  value={serviceForm.origin}
-                  onChange={(e) => setServiceForm((s) => ({ ...s, origin: e.target.value }))}
-                  placeholder="Aeropuerto Rafael Núñez"
-                />
+                <Label>Origen relacional *</Label>
+                <Select
+                  value={serviceForm.originDestinationId ?? ''}
+                  onValueChange={(v) => {
+                    const option = findTransportDestinationOption(destinationOptions, v);
+                    setServiceForm((s) => ({
+                      ...s,
+                      ...buildTransportDestinationCompatibilityFields({ origin: option, destination: selectedDestination }),
+                    }));
+                  }}
+                  disabled={destinationsLoading || Boolean(destinationsError)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar origen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {originSelectorState.options.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}{option.stateLabel ? ` (${option.stateLabel})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {originSelectorState.status === 'loading' && (
+                  <p className="text-xs text-muted-foreground">{originSelectorState.statusLabel}</p>
+                )}
+                {originSelectorState.status === 'error' && (
+                  <div className="flex items-center justify-between gap-2 text-xs text-destructive">
+                    <span>{originSelectorState.statusLabel}</span>
+                    <Button type="button" variant="ghost" size="sm" onClick={fetchDestinationOptions}>Reintentar</Button>
+                  </div>
+                )}
+                {originSelectorState.status === 'empty' && (
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>{originSelectorState.statusLabel}</span>
+                    <Button type="button" variant="outline" size="sm" asChild>
+                      <a href={originSelectorState.createCta?.href ?? '/admin/destinos'}>
+                        <ExternalLink className="w-3 h-3 mr-1" /> {originSelectorState.createCta?.label ?? 'Crear destino'}
+                      </a>
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
-                <Label>Destino</Label>
-                <Input
-                  value={serviceForm.destination}
-                  onChange={(e) => setServiceForm((s) => ({ ...s, destination: e.target.value }))}
-                  placeholder="Hotel Charleston"
-                />
+                <Label>Destino relacional *</Label>
+                <Select
+                  value={serviceForm.destinationDestinationId ?? ''}
+                  onValueChange={(v) => {
+                    const option = findTransportDestinationOption(destinationOptions, v);
+                    setServiceForm((s) => ({
+                      ...s,
+                      ...buildTransportDestinationCompatibilityFields({ origin: selectedOrigin, destination: option }),
+                    }));
+                  }}
+                  disabled={destinationsLoading || Boolean(destinationsError)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar destino" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {destinationSelectorState.options.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}{option.stateLabel ? ` (${option.stateLabel})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Ciudad</Label>
+                <Label>Ruta / ciudad (snapshot)</Label>
                 <Input
-                  value={serviceForm.cityName}
-                  onChange={(e) => setServiceForm((s) => ({ ...s, cityName: e.target.value }))}
-                  placeholder="Cartagena"
+                  value={`${selectedOrigin?.label ?? (serviceForm.origin || 'Origen')} → ${selectedDestination?.label ?? (serviceForm.destination || 'Destino')}`}
+                  readOnly
+                  className="bg-muted"
                 />
+                <p className="text-xs text-muted-foreground">
+                  El API actual de transporte guarda `origin`, `destination`, `cityId` y `cityName` como snapshots de compatibilidad.
+                </p>
               </div>
               <div className="space-y-2">
-                <Label>City ID</Label>
+                <Label>Ciudad principal (snapshot)</Label>
                 <Input
-                  value={serviceForm.cityId}
-                  onChange={(e) => setServiceForm((s) => ({ ...s, cityId: e.target.value }))}
-                  placeholder="cartagena"
+                  value={selectedDestination?.label ?? serviceForm.cityName}
+                  readOnly
+                  className="bg-muted"
                 />
               </div>
             </div>
+            {destinationSelectorState.status === 'error' && (
+              <div className="flex items-center justify-between gap-2 text-xs text-destructive">
+                <span>{destinationSelectorState.statusLabel}</span>
+                <Button type="button" variant="ghost" size="sm" onClick={fetchDestinationOptions}>Reintentar</Button>
+              </div>
+            )}
+            {destinationSelectorState.status === 'empty' && (
+              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span>{destinationSelectorState.statusLabel}</span>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href={destinationSelectorState.createCta?.href ?? '/admin/destinos'}>
+                    <ExternalLink className="w-3 h-3 mr-1" /> {destinationSelectorState.createCta?.label ?? 'Crear destino'}
+                  </a>
+                </Button>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">

@@ -1,0 +1,92 @@
+schema: spec-driven
+project: wilrop
+artifact_store: openspec
+initialized: 2026-05-21
+
+context: |
+  Tech stack: Next.js 16 App Router, React 19, TypeScript 5, Bun 1.3.4, Tailwind CSS 4, Prisma 6 with PostgreSQL.
+  Architecture: App Router pages/API routes with role areas for public portal, admin, reseller, and subagent panels.
+  Data/auth: Prisma singleton in src/lib/db.ts; custom HMAC panel sessions guarded by middleware.ts.
+  UI/state: shadcn/Radix primitives, brand tokens in globals.css, Zustand, TanStack React Query, React Hook Form, Zod.
+  Testing: no automated test runner configured; manual E2E docs and commands for lint, build, and TypeScript checking exist.
+  Style: Spanish public routes, @/* imports, strict TypeScript with noImplicitAny disabled, relaxed ESLint rules.
+
+strict_tdd: false
+
+review:
+  changed_line_budget: 400
+  chained_pr_strategy: ask-before-exceeding-budget
+
+testing:
+  strict_tdd: false
+  detected: 2026-05-21
+  reason: No Jest/Vitest/Playwright/Cypress test runner, test script, or test files were found; strict TDD cannot be enforced automatically.
+  runner:
+    available: false
+    framework: null
+    command: null
+  layers:
+    unit:
+      available: false
+      tool: null
+      evidence: No *.{test,spec}.{js,jsx,ts,tsx} files or unit test dependencies/configs found.
+    integration:
+      available: false
+      tool: null
+      evidence: No integration test runner or integration test files found.
+    e2e:
+      available: manual-only
+      tool: docs/E2E_TESTING.md
+      evidence: Manual browser/curl checklist for upload flow; no automated E2E framework configured.
+  coverage:
+    available: false
+    command: null
+  quality:
+    linter:
+      available: true
+      command: bun run lint
+      evidence: package.json script uses eslint . with eslint.config.mjs.
+    type_checker:
+      available: true
+      command: bunx tsc --noEmit
+      evidence: TypeScript configured via tsconfig.json and documented in docs/E2E_TESTING.md.
+    formatter:
+      available: false
+      command: null
+      evidence: No Prettier/Biome formatter config or formatter script found.
+    build:
+      available: true
+      command: bun run build
+      evidence: package.json script runs next build and scripts/copy-standalone-assets.mjs.
+
+rules:
+  proposal:
+    - Include user-visible scope, rollback plan for risky changes, and impact on public/admin/reseller/subagent roles when applicable.
+    - Keep changes aligned with the 400 changed-line review budget; ask before exceeding it.
+  specs:
+    - Use RFC 2119 keywords and Given/When/Then scenarios.
+    - Name affected route areas explicitly, such as public portal, admin, reseller, or subagent.
+  design:
+    - Document Prisma schema, API route, auth, and UI state impacts when touched.
+    - Preserve Spanish public URL conventions and centralized brand/contact tokens.
+  tasks:
+    - Group tasks into reviewable work units under the 400 changed-line budget where possible.
+    - Include quality checks with the affected work unit.
+  apply:
+    instructions:
+      - Follow existing App Router, shadcn/Radix, Prisma, and @/* import patterns.
+      - Do not assume automated tests exist; add/enable the smallest useful test capability before claiming TDD.
+    tdd: false
+    test_command: ""
+    lint_command: bun run lint
+    typecheck_command: bunx tsc --noEmit
+    build_command: bun run build
+  verify:
+    test_command: ""
+    lint_command: bun run lint
+    typecheck_command: bunx tsc --noEmit
+    build_command: bun run build
+    coverage_threshold: 0
+  archive:
+    - Merge accepted deltas into openspec/specs and preserve archived change folders as audit trail.
+    - Warn before destructive or security-sensitive deltas.

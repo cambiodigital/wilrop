@@ -184,7 +184,7 @@ export default function HotelsPage() {
     }
 
     return result
-  }, [selectedCity, priceRange, starFilters, amenityFilters, minRating, sortBy, totalGuests])
+  }, [hotelsList, selectedCity, priceRange, starFilters, amenityFilters, minRating, sortBy, totalGuests])
 
   // Toggle helpers
   const toggleStar = useCallback((star: number) => {
@@ -753,4 +753,3 @@ function HotelListingCard({
     </motion.div>
   )
 }
-

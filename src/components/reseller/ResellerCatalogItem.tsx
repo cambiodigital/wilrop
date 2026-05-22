@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { resolveCatalogPresentation } from '@/lib/reseller/catalog'
 import {
   Bed,
   Bus,
@@ -50,42 +51,17 @@ const formatCOP = (value: number) => {
   }).format(value)
 }
 
-const getSourceTypeInfo = (sourceType: string) => {
-  const typeMap: Record<string, { icon: typeof Bed; label: string; color: string }> = {
-    hotel: { icon: Bed, label: 'Hotel', color: 'bg-blue-100 text-blue-700' },
-    excursion: { icon: Mountain, label: 'Excursión', color: 'bg-emerald-100 text-emerald-700' },
-    package: { icon: Package, label: 'Paquete', color: 'bg-purple-100 text-purple-700' },
-    transport: { icon: Bus, label: 'Transporte', color: 'bg-amber-100 text-amber-700' },
-    destination: { icon: Globe, label: 'Destino', color: 'bg-cyan-100 text-cyan-700' },
-    room: { icon: Bed, label: 'Habitación', color: 'bg-indigo-100 text-indigo-700' },
-  }
-  return typeMap[sourceType] || { icon: Package, label: sourceType, color: 'bg-gray-100 text-gray-600' }
+const sourceTypeMeta: Record<string, { icon: typeof Bed; label: string; color: string }> = {
+  hotel: { icon: Bed, label: 'Hotel', color: 'bg-blue-100 text-blue-700' },
+  excursion: { icon: Mountain, label: 'Excursión', color: 'bg-emerald-100 text-emerald-700' },
+  package: { icon: Package, label: 'Paquete', color: 'bg-purple-100 text-purple-700' },
+  transport: { icon: Bus, label: 'Transporte', color: 'bg-amber-100 text-amber-700' },
+  destination: { icon: Globe, label: 'Destino', color: 'bg-cyan-100 text-cyan-700' },
+  room: { icon: Bed, label: 'Habitación', color: 'bg-indigo-100 text-indigo-700' },
 }
 
-const getSourceImage = (sourceType: string, sourceData: Record<string, unknown>): string => {
-  if (sourceType === 'hotel' || sourceType === 'excursion') {
-    const images = sourceData.images as string[] | undefined
-    return images?.[0] || ''
-  }
-  return (sourceData.image as string) || ''
-}
-
-const getSourceName = (sourceType: string, sourceData: Record<string, unknown>): string => {
-  return (sourceData.name as string) || (sourceData.title as string) || 'Sin nombre'
-}
-
-const getSourceLocation = (sourceType: string, sourceData: Record<string, unknown>): string => {
-  if (sourceType === 'transport') {
-    return `${sourceData.origin || ''} → ${sourceData.destination || ''}`
-  }
-  return (sourceData.cityName as string) || (sourceData.region as string) || (sourceData.location as string) || ''
-}
-
-const getSourceBasePrice = (sourceType: string, sourceData: Record<string, unknown>): number => {
-  if (sourceType === 'package') {
-    return (sourceData.price as number) || 0
-  }
-  return (sourceData.priceFrom as number) || (sourceData.basePrice as number) || 0
+function getSourceTypeInfo(sourceType: string) {
+  return sourceTypeMeta[sourceType] ?? { icon: Package, label: sourceType, color: 'bg-gray-100 text-gray-600' }
 }
 
 export function ResellerCatalogItem({
@@ -97,13 +73,9 @@ export function ResellerCatalogItem({
 }: ResellerCatalogItemProps) {
   const [loading, setLoading] = useState<string | null>(null)
 
+  const pres = resolveCatalogPresentation(item)
   const sourceTypeInfo = getSourceTypeInfo(item.sourceType)
   const Icon = sourceTypeInfo.icon
-  const image = getSourceImage(item.sourceType, item.sourceData)
-  const name = item.customName || getSourceName(item.sourceType, item.sourceData)
-  const location = getSourceLocation(item.sourceType, item.sourceData)
-  const basePrice = getSourceBasePrice(item.sourceType, item.sourceData)
-  const displayPrice = item.customPrice ?? basePrice
 
   const handleAction = async (action: string, fn: () => void | Promise<void>) => {
     setLoading(action)
@@ -117,8 +89,8 @@ export function ResellerCatalogItem({
   return (
     <Card className={`overflow-hidden transition-all ${!item.active ? 'opacity-60' : ''} ${item.featured ? 'ring-2 ring-amber-200' : ''}`}>
       <div className="relative h-40 overflow-hidden bg-gray-100">
-        {image ? (
-          <img src={image} alt={name} className="h-full w-full object-cover" />
+        {pres.image ? (
+          <img src={pres.image} alt={pres.title} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary/10">
             <Icon className="size-12 text-primary/50" />
@@ -146,19 +118,19 @@ export function ResellerCatalogItem({
 
       <CardContent className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold text-gray-900 truncate">{name}</h3>
-          {location && (
+          <h3 className="font-semibold text-gray-900 truncate">{pres.title}</h3>
+          {pres.location && (
             <p className="flex items-center gap-1 mt-1 text-xs text-gray-500">
               <MapPin className="size-3" />
-              {location}
+              {pres.location}
             </p>
           )}
         </div>
 
         <div className="flex items-baseline gap-2">
-          <p className="text-lg font-bold text-gray-900">{formatCOP(displayPrice)}</p>
-          {item.customPrice !== null && item.customPrice !== basePrice && (
-            <p className="text-xs text-gray-400 line-through">{formatCOP(basePrice)}</p>
+          <p className="text-lg font-bold text-gray-900">{formatCOP(pres.price)}</p>
+          {pres.hasCustomPrice && pres.price !== pres.originalPrice && (
+            <p className="text-xs text-gray-400 line-through">{formatCOP(pres.originalPrice)}</p>
           )}
         </div>
 

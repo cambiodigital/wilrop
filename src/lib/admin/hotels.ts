@@ -17,6 +17,7 @@ export interface AdminHotelPayload {
   name?: string;
   cityId?: string;
   cityName?: string;
+  destinationId?: string | null;
   stars?: number;
   address?: string;
   description?: string;
@@ -88,6 +89,7 @@ export function buildHotelCreateData(payload: AdminHotelPayload) {
   const name = payload.name?.trim();
   const cityName = payload.cityName?.trim();
   const cityId = payload.cityId?.trim();
+  const destinationId = payload.destinationId?.trim();
 
   if (!name || !cityId || !cityName) {
     throw new Error('Nombre, ID de ciudad y nombre de ciudad son obligatorios');
@@ -98,6 +100,7 @@ export function buildHotelCreateData(payload: AdminHotelPayload) {
     name,
     cityId,
     cityName,
+    destinationId: destinationId || null,
     stars: toNumber(payload.stars, 3),
     address: payload.address ?? '',
     description: payload.description ?? '',
@@ -120,6 +123,7 @@ export function buildHotelUpdateData(payload: AdminHotelPayload) {
   if (payload.name !== undefined) updates.name = payload.name.trim();
   if (payload.cityId !== undefined) updates.cityId = payload.cityId.trim();
   if (payload.cityName !== undefined) updates.cityName = payload.cityName.trim();
+  if (payload.destinationId !== undefined) updates.destinationId = payload.destinationId?.trim() || null;
   if (payload.stars !== undefined) updates.stars = toNumber(payload.stars, 3);
   if (payload.address !== undefined) updates.address = payload.address;
   if (payload.description !== undefined) updates.description = payload.description;

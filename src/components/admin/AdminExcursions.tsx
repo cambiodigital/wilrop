@@ -53,9 +53,18 @@ import {
   X,
   Upload,
   ImagePlus,
+  RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  buildExcursionDestinationCompatibilityFields,
+  findExcursionDestinationOption,
+  getExcursionDestinationSelectorState,
+  normalizeExcursionDestinationOptions,
+  type ExcursionDestinationOption,
+} from '@/lib/admin/excursion-destination-ui';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -211,6 +220,9 @@ export default function AdminExcursions() {
   const [imgErrors, setImgErrors] = useState<Set<number>>(new Set());
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyExcursion);
+  const [destinationOptions, setDestinationOptions] = useState<ExcursionDestinationOption[]>([]);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
+  const [destinationsError, setDestinationsError] = useState<string | null>(null);
 
   const fetchExcursions = useCallback(async () => {
     setLoading(true);
@@ -230,6 +242,28 @@ export default function AdminExcursions() {
   useEffect(() => {
     fetchExcursions();
   }, [fetchExcursions]);
+
+  const fetchDestinationOptions = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationsError(null);
+    try {
+      const res = await fetch('/api/admin/relation-options/destinations?active=all');
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error || 'Error al cargar destinos');
+      }
+      setDestinationOptions(normalizeExcursionDestinationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar destinos';
+      setDestinationsError(msg);
+    } finally {
+      setDestinationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (dialogOpen) fetchDestinationOptions();
+  }, [dialogOpen, fetchDestinationOptions]);
 
   const filtered = excursions.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -322,6 +356,19 @@ export default function AdminExcursions() {
       toast.error('El nombre es obligatorio');
       return;
     }
+    if (destinationsError) {
+      toast.error('No se puede guardar hasta cargar destinos correctamente');
+      return;
+    }
+    if (
+      !form.destinationId.trim() ||
+      !form.destinationName.trim() ||
+      !form.cityName.trim() ||
+      !findExcursionDestinationOption(destinationOptions, form.destinationId)
+    ) {
+      toast.error('Selecciona un destino válido');
+      return;
+    }
     setSaving(true);
     try {
       const isEditing = !!editingId;
@@ -373,6 +420,16 @@ export default function AdminExcursions() {
   const updateField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  const selectedDestination = findExcursionDestinationOption(destinationOptions, form.destinationId);
+  const destinationSelectorState = getExcursionDestinationSelectorState({
+    options: destinationOptions,
+    selectedId: form.destinationId,
+    isLoading: destinationsLoading,
+    error: destinationsError,
+    createCtaHref: '/admin/destinos',
+    createCtaLabel: 'Crear destino',
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -573,20 +630,63 @@ export default function AdminExcursions() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Destino</Label>
-                  <Input
-                    value={form.destinationName}
-                    onChange={(e) => updateField('destinationName', e.target.value)}
-                    placeholder="Cartagena de Indias"
-                  />
+                  <Label htmlFor="excursion-destination">Destino relacional</Label>
+                  <select
+                    id="excursion-destination"
+                    value={form.destinationId}
+                    onChange={(e) => {
+                      const option = findExcursionDestinationOption(destinationOptions, e.target.value);
+                      setForm((prev) => ({
+                        ...prev,
+                        ...buildExcursionDestinationCompatibilityFields(option),
+                      }));
+                    }}
+                    disabled={destinationsLoading || Boolean(destinationsError)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Selecciona un destino</option>
+                    {destinationSelectorState.options.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}{option.stateLabel ? ` · ${option.stateLabel.toLowerCase()}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {destinationSelectorState.status === 'loading' && (
+                    <p className="text-xs text-muted-foreground">{destinationSelectorState.statusLabel}</p>
+                  )}
+                  {destinationSelectorState.status === 'error' && (
+                    <div className="flex items-center gap-2 text-xs text-destructive">
+                      <span>{destinationSelectorState.statusLabel}</span>
+                      <Button type="button" variant="outline" size="sm" onClick={fetchDestinationOptions}>
+                        <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
+                      </Button>
+                    </div>
+                  )}
+                  {destinationSelectorState.status === 'empty' && (
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>{destinationSelectorState.statusLabel}</span>
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <a href={destinationSelectorState.createCta?.href ?? '/admin/destinos'}>
+                          <ExternalLink className="w-3 h-3 mr-1" /> {destinationSelectorState.createCta?.label ?? 'Crear destino'}
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    El API actual de excursiones guarda `destinationId`, `destinationName` y `cityName` como campos de compatibilidad.
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Ciudad</Label>
+                  <Label htmlFor="excursion-destination-name">Nombre destino / ciudad (snapshot)</Label>
                   <Input
-                    value={form.cityName}
-                    onChange={(e) => updateField('cityName', e.target.value)}
-                    placeholder="Cartagena"
+                    id="excursion-destination-name"
+                    value={selectedDestination?.label ?? (form.destinationName || form.cityName)}
+                    readOnly
+                    placeholder="Se completa al seleccionar destino"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Etiqueta de visualización; ya no es la fuente primaria manual.
+                  </p>
                 </div>
               </div>
 

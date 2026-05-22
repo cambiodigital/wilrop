@@ -35,6 +35,19 @@ model Destination {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  hotels                 DestinationHotel[]
+  packages               DestinationPackage[]
+  excursions             DestinationExcursion[]
+  transportServices      DestinationTransportService[]
+  hotelPrimaryRefs       Hotel[]                 @relation("HotelPrimaryDestination")
+  packagePrimaryRefs     TravelPackage[]         @relation("PackagePrimaryDestination")
+  excursionPrimaryRefs   Excursion[]             @relation("ExcursionPrimaryDestination")
+  transportOriginRefs    TransportService[]      @relation("TransportOriginDestination")
+  transportDestinationRefs TransportService[]    @relation("TransportTargetDestination")
+
+  @@index([active, isTemplate])
+  @@index([order])
 }
 
 // ─── Hotels ──────────────────────────────────────────────────────
@@ -57,11 +70,19 @@ model Hotel {
   featured    Boolean      @default(false)
   active      Boolean      @default(true)
   isTemplate  Boolean      @default(true)
+  destinationId String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  
+
   roomTypes   RoomType[]
   allotments  Allotment[]
+  destination Destination?  @relation("HotelPrimaryDestination", fields: [destinationId], references: [id], onDelete: SetNull)
+  destinations DestinationHotel[]
+  packageHotels PackageHotel[]
+
+  @@index([destinationId])
+  @@index([active, isTemplate])
+  @@index([featured, active])
 }
 
 // ─── Room Types ──────────────────────────────────────────────────
@@ -81,6 +102,9 @@ model RoomType {
   
   hotel         Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
   allotments    Allotment[]
+  packageRoomTypes PackageRoomType[]
+
+  @@index([hotelId, active])
 }
 
 // ─── Allotments ──────────────────────────────────────────────────
@@ -144,8 +168,24 @@ model TravelPackage {
   commission      Int      @default(10)
   active          Boolean  @default(true)
   isTemplate      Boolean  @default(true)
+  primaryDestinationId String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  primaryDestination Destination? @relation("PackagePrimaryDestination", fields: [primaryDestinationId], references: [id], onDelete: SetNull)
+  destinations       DestinationPackage[]
+  hotels             PackageHotel[]
+  excursions         PackageExcursion[]
+  transportServices  PackageTransportService[]
+  roomTypes          PackageRoomType[]
+  departureDatesRel  PackageDepartureDate[]
+  itineraryDays      PackageItineraryDay[]
+  includedServices   PackageIncludedService[]
+
+  @@index([primaryDestinationId])
+  @@index([destinationId])
+  @@index([active, isTemplate])
+  @@index([category, active])
 }
 
 // ─── Excursions ───────────────────────────────────────────────────
@@ -172,8 +212,19 @@ model Excursion {
   featured        Boolean  @default(false)
   active          Boolean  @default(true)
   isTemplate      Boolean  @default(true)
+  destinationRefId String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  destinationRef Destination? @relation("ExcursionPrimaryDestination", fields: [destinationRefId], references: [id], onDelete: SetNull)
+  destinations   DestinationExcursion[]
+  packageExcursions PackageExcursion[]
+
+  @@index([destinationRefId])
+  @@index([destinationId])
+  @@index([active, isTemplate])
+  @@index([category, active])
+  @@index([featured, active])
 }
 
 // ─── Subagents ────────────────────────────────────────────────────
@@ -199,6 +250,124 @@ model Subagent {
   bookings    Booking[]
 }
 
+// ─── Resellers ────────────────────────────────────────────────────
+model Reseller {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  email             String    @unique
+  password          String
+  companyName       String    @default("")
+  contactName       String    @default("")
+  country           String    @default("")
+  phone             String    @default("")
+  website           String    @default("")
+  taxId             String    @default("")
+  address           String    @default("")
+  logoUrl           String    @default("")
+  sellerLevel       String    @default("standard")
+  commission        Int       @default(0)
+  whiteLabelEnabled Boolean   @default(false)
+  active            Boolean   @default(false)
+  approvalStatus    String    @default("pending")
+  rejectionReason   String    @default("")
+  registrationDate  DateTime  @default(now())
+  approvedAt        DateTime?
+  approvedBy        String?
+  lastLoginAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  bookings          Booking[]
+  catalogs          ResellerCatalog[]
+  sales             ResellerSale[]
+  clients           ResellerClient[]
+  documents         ResellerDocument[]
+
+  @@index([active, approvalStatus])
+  @@index([sellerLevel])
+}
+
+model ResellerCatalog {
+  id                String   @id @default(cuid())
+  resellerId        String
+  sourceType        String
+  sourceId          String
+  customPrice       Int?
+  customName        String   @default("")
+  customDescription String   @default("")
+  active            Boolean  @default(true)
+  featured          Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  reseller          Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@unique([resellerId, sourceType, sourceId])
+  @@index([resellerId, sourceType])
+  @@index([resellerId, active])
+  @@index([sourceType, sourceId])
+}
+
+model ResellerSale {
+  id            String   @id @default(cuid())
+  resellerId    String
+  bookingId     String?
+  clientName    String   @default("")
+  clientEmail   String   @default("")
+  totalAmount   Int      @default(0)
+  commissionAmt Int      @default(0)
+  netAmount     Int      @default(0)
+  status        String   @default("pending")
+  saleDate      DateTime @default(now())
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reseller      Reseller @relation(fields: [resellerId], references: [id])
+  booking       Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([resellerId, status])
+  @@index([resellerId, saleDate])
+  @@index([bookingId])
+}
+
+model ResellerClient {
+  id             String   @id @default(cuid())
+  resellerId     String
+  name           String
+  email          String
+  phone          String   @default("")
+  country        String   @default("")
+  passport       String   @default("")
+  notes          String   @default("")
+  totalPurchases Int      @default(0)
+  totalSpent     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reseller       Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, email])
+  @@index([resellerId, name])
+}
+
+model ResellerDocument {
+  id            String    @id @default(cuid())
+  resellerId    String
+  docType       String
+  fileName      String
+  fileUrl       String
+  status        String    @default("pending")
+  reviewerNotes String    @default("")
+  uploadedAt    DateTime  @default(now())
+  reviewedAt    DateTime?
+
+  reseller      Reseller  @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, status])
+}
+
 // ─── Bookings ─────────────────────────────────────────────────────
 model Booking {
   id           String         @id @default(cuid())
@@ -219,11 +388,17 @@ model Booking {
   checkOut     DateTime?
   bookedBy     String         @default("b2c") // "b2c" | "b2b"
   subagentId   String?
+  resellerId   String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  
+
   items        BookingItem[]
   subagent     Subagent?      @relation(fields: [subagentId], references: [id], onDelete: SetNull)
+  reseller     Reseller?      @relation(fields: [resellerId], references: [id], onDelete: SetNull)
+  resellerSales ResellerSale[]
+
+  @@index([resellerId])
+  @@index([subagentId])
 }
 
 // ─── Booking Items ────────────────────────────────────────────────
@@ -282,8 +457,215 @@ model TransportService {
   notes      String            @default("")
   active     Boolean           @default(true)
   isTemplate Boolean           @default(true)
+  originDestinationId String?
+  destinationDestinationId String?
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
-  
+
   provider   TransportProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  originDestinationRef Destination? @relation("TransportOriginDestination", fields: [originDestinationId], references: [id], onDelete: SetNull)
+  destinationDestinationRef Destination? @relation("TransportTargetDestination", fields: [destinationDestinationId], references: [id], onDelete: SetNull)
+  destinations DestinationTransportService[]
+  packageTransportServices PackageTransportService[]
+
+  @@index([providerId])
+  @@index([originDestinationId])
+  @@index([destinationDestinationId])
+  @@index([cityId])
+  @@index([active, isTemplate])
+}
+
+// ─── Relational Tourism Catalog Spine ─────────────────────────────
+model DestinationHotel {
+  id            String      @id @default(cuid())
+  destinationId String
+  hotelId       String
+  featured      Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  hotel         Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, hotelId])
+  @@index([destinationId, active, sortOrder])
+  @@index([hotelId])
+}
+
+model DestinationPackage {
+  id            String        @id @default(cuid())
+  destinationId String
+  packageId     String
+  featured      Boolean       @default(false)
+  sortOrder     Int           @default(0)
+  active        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  destination   Destination   @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  package       TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, packageId])
+  @@index([destinationId, active, sortOrder])
+  @@index([packageId])
+}
+
+model DestinationExcursion {
+  id            String      @id @default(cuid())
+  destinationId String
+  excursionId   String
+  featured      Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  excursion     Excursion   @relation(fields: [excursionId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, excursionId])
+  @@index([destinationId, active, sortOrder])
+  @@index([excursionId])
+}
+
+model DestinationTransportService {
+  id                 String           @id @default(cuid())
+  destinationId      String
+  transportServiceId String
+  featured           Boolean          @default(false)
+  sortOrder          Int              @default(0)
+  active             Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  destination        Destination      @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  transportService   TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, transportServiceId])
+  @@index([destinationId, active, sortOrder])
+  @@index([transportServiceId])
+}
+
+model PackageHotel {
+  id        String        @id @default(cuid())
+  packageId String
+  hotelId   String
+  role      String        @default("lodging")
+  sortOrder Int           @default(0)
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  package   TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  hotel     Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, hotelId, role])
+  @@index([packageId, active, sortOrder])
+  @@index([hotelId])
+}
+
+model PackageExcursion {
+  id          String        @id @default(cuid())
+  packageId   String
+  excursionId String
+  included    Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  package     TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  excursion   Excursion     @relation(fields: [excursionId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, excursionId])
+  @@index([packageId, active, sortOrder])
+  @@index([excursionId])
+}
+
+model PackageTransportService {
+  id                 String           @id @default(cuid())
+  packageId          String
+  transportServiceId String
+  role               String           @default("transfer")
+  sortOrder          Int              @default(0)
+  active             Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  package            TravelPackage    @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  transportService   TransportService @relation(fields: [transportServiceId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, transportServiceId, role])
+  @@index([packageId, active, sortOrder])
+  @@index([transportServiceId])
+}
+
+model PackageRoomType {
+  id         String        @id @default(cuid())
+  packageId  String
+  roomTypeId String
+  sortOrder  Int           @default(0)
+  active     Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  package    TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  roomType   RoomType      @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, roomTypeId])
+  @@index([packageId, active, sortOrder])
+  @@index([roomTypeId])
+}
+
+model PackageDepartureDate {
+  id             String        @id @default(cuid())
+  packageId      String
+  dateFrom       DateTime
+  dateTo         DateTime?
+  availableSeats Int           @default(0)
+  price          Int?
+  active         Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  package        TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, dateFrom])
+  @@index([packageId, active, dateFrom])
+}
+
+model PackageItineraryDay {
+  id          String        @id @default(cuid())
+  packageId   String
+  day         Int
+  title       String        @default("")
+  description String        @default("")
+  activities  String        @default("[]")
+  meals       String        @default("[]")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  package     TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, day])
+  @@index([packageId, day])
+}
+
+model PackageIncludedService {
+  id          String        @id @default(cuid())
+  packageId   String
+  serviceType String        @default("general")
+  name        String
+  description String        @default("")
+  sortOrder   Int           @default(0)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  package     TravelPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, serviceType, name])
+  @@index([packageId, active, sortOrder])
 }

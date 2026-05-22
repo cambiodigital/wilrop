@@ -1,10 +1,20 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MapPin, Star, ArrowRight } from 'lucide-react'
+import { ArrowLeft, MapPin, Star, ArrowRight, Building2, Compass, Bus } from 'lucide-react'
 import PortalShell from '@/components/portal/PortalShell'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
+import {
+  parseJsonArray,
+  resolveIsTemplateFallback,
+  normalizePackage,
+  normalizeHotel,
+  normalizeExcursion,
+  normalizeTransport,
+  extractEntitiesFromJoinRows,
+} from '@/lib/catalog/public-hydration'
+import type { NormalizedPackage, NormalizedHotel, NormalizedExcursion, NormalizedTransport } from '@/lib/catalog/public-hydration'
 
 interface DestinationDetailRouteProps {
   params: Promise<{
@@ -12,11 +22,201 @@ interface DestinationDetailRouteProps {
   }>
 }
 
-async function getDestinationData(destinationId: string) {
-  const realCount = await db.destination.count({
-    where: { active: true, isTemplate: false },
+// ─── isTemplate resolution ─────────────────────────────────────────
+
+async function resolveTemplateFallbackForEntity(
+  model: 'destination' | 'package' | 'hotel' | 'excursion' | 'transport',
+): Promise<boolean> {
+  const where = { active: true, isTemplate: false }
+  let count: number
+  switch (model) {
+    case 'destination':
+      count = await db.destination.count({ where })
+      break
+    case 'package':
+      count = await db.travelPackage.count({ where })
+      break
+    case 'hotel':
+      count = await db.hotel.count({ where })
+      break
+    case 'excursion':
+      count = await db.excursion.count({ where })
+      break
+    case 'transport':
+      count = await db.transportService.count({ where })
+      break
+  }
+  return resolveIsTemplateFallback(count)
+}
+
+// ─── Relational package hydration ───────────────────────────────────
+
+async function getRelatedPackages(
+  destinationId: string,
+  isTemplateFallback: boolean,
+): Promise<NormalizedPackage[]> {
+  // 1. Try DestinationPackage join model first
+  const joinRows = await db.destinationPackage.findMany({
+    where: { destinationId, active: true },
+    include: { package: true },
+    orderBy: { sortOrder: 'asc' },
   })
-  const isTemplateQuery = realCount > 0 ? false : true
+
+  if (joinRows.length > 0) {
+    const fromJoin = extractEntitiesFromJoinRows(joinRows, 'package', isTemplateFallback)
+    if (fromJoin.length > 0) {
+      return (fromJoin as Array<Record<string, unknown>>).map(normalizePackage).sort((a, b) => b.rating - a.rating)
+    }
+  }
+
+  // 2. Fallback: primary destination FK on TravelPackage
+  const viaFk = await db.travelPackage.findMany({
+    where: { primaryDestinationId: destinationId, active: true, isTemplate: isTemplateFallback },
+    orderBy: { rating: 'desc' },
+  })
+  if (viaFk.length > 0) {
+    return viaFk.map((p) => normalizePackage(p as unknown as Record<string, unknown>))
+  }
+
+  // 3. Legacy fallback: string destinationId field
+  const viaLegacy = await db.travelPackage.findMany({
+    where: { destinationId, active: true, isTemplate: isTemplateFallback },
+    orderBy: { rating: 'desc' },
+  })
+  return viaLegacy.map((p) => normalizePackage(p as unknown as Record<string, unknown>))
+}
+
+// ─── Relational hotel hydration ─────────────────────────────────────
+
+async function getRelatedHotels(
+  destinationId: string,
+  destinationName: string,
+  isTemplateFallback: boolean,
+): Promise<NormalizedHotel[]> {
+  // 1. Try DestinationHotel join model first
+  const joinRows = await db.destinationHotel.findMany({
+    where: { destinationId, active: true },
+    include: { hotel: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+
+  if (joinRows.length > 0) {
+    const fromJoin = extractEntitiesFromJoinRows(joinRows, 'hotel', isTemplateFallback)
+    if (fromJoin.length > 0) {
+      return (fromJoin as Array<Record<string, unknown>>).map(normalizeHotel)
+    }
+  }
+
+  // 2. Fallback: Hotel.destinationId nullable FK
+  const viaFk = await db.hotel.findMany({
+    where: { destinationId, active: true, isTemplate: isTemplateFallback },
+  })
+  if (viaFk.length > 0) {
+    return viaFk.map((h) => normalizeHotel(h as unknown as Record<string, unknown>))
+  }
+
+  // 3. Legacy fallback: cityId matches destination id OR cityName matches destination name
+  const viaLegacy = await db.hotel.findMany({
+    where: {
+      active: true,
+      isTemplate: isTemplateFallback,
+      OR: [{ cityId: destinationId }, { cityName: destinationName }],
+    },
+  })
+  return viaLegacy.map((h) => normalizeHotel(h as unknown as Record<string, unknown>))
+}
+
+// ─── Relational excursion hydration ─────────────────────────────────
+
+async function getRelatedExcursions(
+  destinationId: string,
+  destinationName: string,
+  isTemplateFallback: boolean,
+): Promise<NormalizedExcursion[]> {
+  // 1. Try DestinationExcursion join model first
+  const joinRows = await db.destinationExcursion.findMany({
+    where: { destinationId, active: true },
+    include: { excursion: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+
+  if (joinRows.length > 0) {
+    const fromJoin = extractEntitiesFromJoinRows(joinRows, 'excursion', isTemplateFallback)
+    if (fromJoin.length > 0) {
+      return (fromJoin as Array<Record<string, unknown>>).map(normalizeExcursion)
+    }
+  }
+
+  // 2. Fallback: Excursion.destinationRefId nullable FK
+  const viaFk = await db.excursion.findMany({
+    where: { destinationRefId: destinationId, active: true, isTemplate: isTemplateFallback },
+  })
+  if (viaFk.length > 0) {
+    return viaFk.map((e) => normalizeExcursion(e as unknown as Record<string, unknown>))
+  }
+
+  // 3. Legacy fallback: string destinationId field or destinationName match
+  const viaLegacy = await db.excursion.findMany({
+    where: {
+      active: true,
+      isTemplate: isTemplateFallback,
+      OR: [{ destinationId }, { destinationName }],
+    },
+  })
+  return viaLegacy.map((e) => normalizeExcursion(e as unknown as Record<string, unknown>))
+}
+
+// ─── Relational transport hydration ────────────────────────────────
+
+async function getRelatedTransportServices(
+  destinationId: string,
+  destinationName: string,
+  isTemplateFallback: boolean,
+): Promise<NormalizedTransport[]> {
+  // 1. Try DestinationTransportService join model first
+  const joinRows = await db.destinationTransportService.findMany({
+    where: { destinationId, active: true },
+    include: { transportService: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+
+  if (joinRows.length > 0) {
+    const fromJoin = extractEntitiesFromJoinRows(joinRows, 'transportService', isTemplateFallback)
+    if (fromJoin.length > 0) {
+      return (fromJoin as Array<Record<string, unknown>>).map(normalizeTransport)
+    }
+  }
+
+  // 2. Fallback: TransportService nullable FKs (originDestinationId or destinationDestinationId)
+  const viaFk = await db.transportService.findMany({
+    where: {
+      active: true,
+      isTemplate: isTemplateFallback,
+      OR: [
+        { originDestinationId: destinationId },
+        { destinationDestinationId: destinationId },
+      ],
+    },
+  })
+  if (viaFk.length > 0) {
+    return viaFk.map((t) => normalizeTransport(t as unknown as Record<string, unknown>))
+  }
+
+  // 3. Legacy fallback: cityId matches destination id OR cityName matches destination name
+  const viaLegacy = await db.transportService.findMany({
+    where: {
+      active: true,
+      isTemplate: isTemplateFallback,
+      OR: [{ cityId: destinationId }, { cityName: destinationName }],
+    },
+  })
+  return viaLegacy.map((t) => normalizeTransport(t as unknown as Record<string, unknown>))
+}
+
+// ─── Main data loader ───────────────────────────────────────────────
+
+async function getDestinationData(destinationId: string) {
+  const isTemplateQuery = await resolveTemplateFallbackForEntity('destination')
 
   const destination = await db.destination.findFirst({
     where: {
@@ -28,48 +228,19 @@ async function getDestinationData(destinationId: string) {
 
   if (!destination) return null
 
-  const highlights = (() => {
-    try {
-      return JSON.parse(destination.highlights || '[]') as string[]
-    } catch {
-      return []
-    }
-  })()
+  const highlights = parseJsonArray<string>(destination.highlights)
 
-  // Get packages for this destination
-  const packagesRealCount = await db.travelPackage.count({
-    where: { active: true, isTemplate: false },
-  })
-  const packagesIsTemplateQuery = packagesRealCount > 0 ? false : true
+  const packagesIsTemplate = await resolveTemplateFallbackForEntity('package')
+  const hotelsIsTemplate = await resolveTemplateFallbackForEntity('hotel')
+  const excursionsIsTemplate = await resolveTemplateFallbackForEntity('excursion')
+  const transportIsTemplate = await resolveTemplateFallbackForEntity('transport')
 
-  const rawPackages = await db.travelPackage.findMany({
-    where: {
-      destinationId: destination.id,
-      active: true,
-      isTemplate: packagesIsTemplateQuery,
-    },
-    orderBy: { rating: 'desc' },
-  })
-
-  const packages = rawPackages.map((pkg) => {
-    return {
-      ...pkg,
-      includes: (() => {
-        try {
-          return JSON.parse(pkg.includes || '[]') as string[]
-        } catch {
-          return []
-        }
-      })(),
-      departureDates: (() => {
-        try {
-          return JSON.parse(pkg.departureDates || '[]') as string[]
-        } catch {
-          return []
-        }
-      })(),
-    }
-  })
+  const [packages, hotels, excursions, transportServices] = await Promise.all([
+    getRelatedPackages(destination.id, packagesIsTemplate),
+    getRelatedHotels(destination.id, destination.name, hotelsIsTemplate),
+    getRelatedExcursions(destination.id, destination.name, excursionsIsTemplate),
+    getRelatedTransportServices(destination.id, destination.name, transportIsTemplate),
+  ])
 
   return {
     destination: {
@@ -77,8 +248,13 @@ async function getDestinationData(destinationId: string) {
       highlights,
     },
     packages,
+    hotels,
+    excursions,
+    transportServices,
   }
 }
+
+// ─── Metadata ───────────────────────────────────────────────────────
 
 export async function generateMetadata({ params }: DestinationDetailRouteProps): Promise<Metadata> {
   const { destinationId } = await params
@@ -97,11 +273,13 @@ export async function generateMetadata({ params }: DestinationDetailRouteProps):
 
   return buildPublicMetadata({
     title: `${destination.name} | Destinos WILROP`,
-    description: `Explora paquetes para ${destination.name}, ${destination.region}.`,
+    description: `Explora paquetes, hoteles, excursiones y servicios de transporte en ${destination.name}, ${destination.region}.`,
     path: `/destinos/${destinationId}`,
     ogImage: destination.image,
   })
 }
+
+// ─── Page Component ─────────────────────────────────────────────────
 
 export default async function DestinationDetailRoutePage({ params }: DestinationDetailRouteProps) {
   const { destinationId } = await params
@@ -111,7 +289,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
     notFound()
   }
 
-  const { destination, packages: destinationPackages } = data
+  const { destination, packages, hotels, excursions, transportServices } = data
 
   return (
     <PortalShell>
@@ -125,6 +303,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
             Volver a destinos
           </Link>
 
+          {/* ── Destination Hero ─────────────────────────────── */}
           <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
             <div className="relative h-72 sm:h-96">
               <img src={destination.image} alt={destination.name} className="h-full w-full object-cover" />
@@ -150,7 +329,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
 
               {destination.highlights.length > 0 && (
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {destination.highlights.map((highlight) => (
+                  {destination.highlights.map((highlight: string) => (
                     <span
                       key={highlight}
                       className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
@@ -163,28 +342,31 @@ export default async function DestinationDetailRoutePage({ params }: Destination
             </div>
           </div>
 
+          {/* ── Packages Section ─────────────────────────────── */}
           <section className="mt-10">
             <div className="mb-5 flex items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Paquetes en {destination.name}</h2>
-                <p className="mt-1 text-sm text-neutral-500">{destinationPackages.length} opciones disponibles</p>
+                <p className="mt-1 text-sm text-neutral-500">{packages.length} opciones disponibles</p>
               </div>
             </div>
 
-            {destinationPackages.length === 0 ? (
+            {packages.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
                 Aún no hay paquetes activos para este destino.
               </div>
             ) : (
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {destinationPackages.map((pkg) => (
+                {packages.map((pkg) => (
                   <article key={pkg.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
                     <img src={pkg.image} alt={pkg.title} className="h-44 w-full object-cover" />
                     <div className="p-4">
                       <p className="text-xs uppercase tracking-wide text-amber-600">{pkg.category}</p>
                       <h3 className="mt-1 text-lg font-semibold text-neutral-900">{pkg.title}</h3>
                       <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{pkg.description}</p>
-                      <p className="mt-3 text-xl font-bold text-amber-600">${pkg.price.toLocaleString('es-CO')}</p>
+                      <p className="mt-3 text-xl font-bold text-amber-600">
+                        ${pkg.price.toLocaleString('es-CO')}
+                      </p>
                       <div className="mt-4 flex gap-2">
                         <Link
                           href={`/paquetes/${pkg.id}`}
@@ -200,6 +382,171 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                           <ArrowRight className="ml-1.5 size-4" />
                         </Link>
                       </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── Hotels Section ────────────────────────────────── */}
+          <section className="mt-10">
+            <div className="mb-5">
+              <div className="flex items-center gap-2">
+                <Building2 className="size-5 text-amber-600" />
+                <h2 className="text-2xl font-bold text-neutral-900">Hoteles en {destination.name}</h2>
+              </div>
+              <p className="mt-1 text-sm text-neutral-500">{hotels.length} alojamientos disponibles</p>
+            </div>
+
+            {hotels.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
+                Aún no hay hoteles activos para este destino.
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {hotels.map((hotel) => (
+                  <article key={hotel.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                    <img
+                      src={hotel.images[0] ?? '/placeholder-hotel.jpg'}
+                      alt={hotel.name}
+                      className="h-44 w-full object-cover"
+                    />
+                    <div className="p-4">
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {Array.from({ length: hotel.stars }).map((_, i) => (
+                          <Star key={i} className="size-3.5 fill-current" />
+                        ))}
+                      </div>
+                      <h3 className="mt-1 text-lg font-semibold text-neutral-900">{hotel.name}</h3>
+                      <div className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
+                        <MapPin className="size-3" />
+                        {hotel.cityName}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{hotel.description}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                          {hotel.rating.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-neutral-500">{hotel.reviewCount} reseñas</span>
+                      </div>
+                      <p className="mt-3 text-xl font-bold text-amber-600">
+                        ${hotel.priceFrom.toLocaleString('es-CO')}
+                        <span className="text-xs font-normal text-neutral-400"> / noche</span>
+                      </p>
+                      <Link
+                        href={`/hoteles/${hotel.slug || hotel.id}`}
+                        className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
+                      >
+                        Ver hotel
+                        <ArrowRight className="ml-1.5 size-4" />
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── Excursions Section ────────────────────────────── */}
+          <section className="mt-10">
+            <div className="mb-5">
+              <div className="flex items-center gap-2">
+                <Compass className="size-5 text-amber-600" />
+                <h2 className="text-2xl font-bold text-neutral-900">Excursiones en {destination.name}</h2>
+              </div>
+              <p className="mt-1 text-sm text-neutral-500">{excursions.length} actividades disponibles</p>
+            </div>
+
+            {excursions.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
+                Aún no hay excursiones activas para este destino.
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {excursions.map((exc) => (
+                  <article key={exc.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                    <img
+                      src={exc.images[0] ?? '/placeholder-excursion.jpg'}
+                      alt={exc.name}
+                      className="h-44 w-full object-cover"
+                    />
+                    <div className="p-4">
+                      <p className="text-xs uppercase tracking-wide text-amber-600">{exc.category || 'Excursión'}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-neutral-900">{exc.name}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{exc.description}</p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
+                        {exc.duration && (
+                          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{exc.duration}</span>
+                        )}
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5">{exc.difficulty}</span>
+                      </div>
+                      <p className="mt-3 text-xl font-bold text-amber-600">
+                        ${exc.basePrice.toLocaleString('es-CO')}
+                        <span className="text-xs font-normal text-neutral-400"> / persona</span>
+                      </p>
+                      <Link
+                        href={`/excursiones/${exc.slug || exc.id}`}
+                        className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
+                      >
+                        Ver excursión
+                        <ArrowRight className="ml-1.5 size-4" />
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── Transport Section ─────────────────────────────── */}
+          <section className="mt-10">
+            <div className="mb-5">
+              <div className="flex items-center gap-2">
+                <Bus className="size-5 text-amber-600" />
+                <h2 className="text-2xl font-bold text-neutral-900">Transporte en {destination.name}</h2>
+              </div>
+              <p className="mt-1 text-sm text-neutral-500">{transportServices.length} servicios disponibles</p>
+            </div>
+
+            {transportServices.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
+                Aún no hay servicios de transporte activos para este destino.
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {transportServices.map((ts) => (
+                  <article key={ts.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                    <img
+                      src="/placeholder-transport.jpg"
+                      alt={ts.name}
+                      className="h-44 w-full object-cover"
+                    />
+                    <div className="p-4">
+                      <p className="text-xs uppercase tracking-wide text-amber-600">{ts.routeType || 'Transporte'}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-neutral-900">{ts.name}</h3>
+                      <div className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
+                        <MapPin className="size-3" />
+                        {ts.origin} → {ts.destination}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{ts.notes}</p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
+                        {ts.durationMins > 0 && (
+                          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{ts.durationMins} min</span>
+                        )}
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5">{ts.cityName}</span>
+                      </div>
+                      <p className="mt-3 text-xl font-bold text-amber-600">
+                        ${ts.basePrice.toLocaleString('es-CO')}
+                        <span className="text-xs font-normal text-neutral-400"> / persona</span>
+                      </p>
+                      <Link
+                        href={`/transportes/${ts.id}`}
+                        className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
+                      >
+                        Ver servicio
+                        <ArrowRight className="ml-1.5 size-4" />
+                      </Link>
                     </div>
                   </article>
                 ))}

@@ -54,9 +54,27 @@ import {
   DollarSign,
   GripVertical,
   Link2,
+  RefreshCw,
+  ExternalLink,
+  Database,
+  ArrowRightLeft,
+  Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  buildHotelDestinationCompatibilityFields,
+  findHotelDestinationOption,
+  getHotelDestinationSelectorState,
+  normalizeHotelDestinationOptions,
+  type HotelDestinationOption,
+} from '@/lib/admin/hotel-destination-ui';
+import {
+  parseRoomTypeIncludes,
+  parseRoomTypeIncludesFromForm,
+  formatRoomTypeIncludesForForm,
+  syncRoomTypesToHotelRooms,
+} from '@/lib/admin/hotel-roomtypes';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -78,6 +96,7 @@ interface Hotel {
   slug: string;
   cityId: string;
   cityName: string;
+  destinationId?: string | null;
   stars: number;
   address: string;
   description: string;
@@ -89,6 +108,19 @@ interface Hotel {
   priceFrom: number;
   tags: string[];
   featured: boolean;
+  active: boolean;
+}
+
+interface RoomTypeRow {
+  id: string;
+  hotelId: string;
+  name: string;
+  maxGuests: number;
+  beds: string;
+  basePrice: number;
+  originalPrice: number;
+  includes: string;
+  roomImage: string;
   active: boolean;
 }
 
@@ -132,8 +164,9 @@ function sanitizeRoom(room: Partial<HotelRoom>): HotelRoom {
 const emptyHotel: Omit<Hotel, 'id'> = {
   name: '',
   slug: '',
-  cityId: 'medellin',
-  cityName: 'Medellin',
+  cityId: '',
+  cityName: '',
+  destinationId: '',
   stars: 3,
   address: '',
   description: '',
@@ -607,6 +640,27 @@ export default function AdminHotels() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyHotel);
+  const [destinationOptions, setDestinationOptions] = useState<HotelDestinationOption[]>([]);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
+  const [destinationsError, setDestinationsError] = useState<string | null>(null);
+
+  // ── RoomType (relational) state ──
+  const [roomTypes, setRoomTypes] = useState<RoomTypeRow[]>([]);
+  const [roomTypesLoading, setRoomTypesLoading] = useState(false);
+  const [editingRoomTypeId, setEditingRoomTypeId] = useState<string | null>(null);
+  const [roomTypeForm, setRoomTypeForm] = useState({
+    name: '',
+    maxGuests: 2,
+    beds: '1 cama doble',
+    basePrice: 0,
+    originalPrice: 0,
+    includes: '',
+    roomImage: '',
+    active: true,
+  });
+  const [savingRoomType, setSavingRoomType] = useState(false);
+  const [roomTypeDeleteId, setRoomTypeDeleteId] = useState<string | null>(null);
+  const [showRoomTypeForm, setShowRoomTypeForm] = useState(false);
 
   // ── Images state ──
   const [imagesUploading, setImagesUploading] = useState(false);
@@ -635,6 +689,170 @@ export default function AdminHotels() {
     fetchHotels();
   }, [fetchHotels]);
 
+  const fetchDestinationOptions = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationsError(null);
+    try {
+      const res = await fetch('/api/admin/relation-options/destinations?active=all');
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error || 'Error al cargar destinos');
+      }
+      setDestinationOptions(normalizeHotelDestinationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar destinos';
+      setDestinationsError(msg);
+    } finally {
+      setDestinationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (dialogOpen) fetchDestinationOptions();
+  }, [dialogOpen, fetchDestinationOptions]);
+
+  // ── RoomType relational management ──
+  const fetchRoomTypes = useCallback(async (hotelId: string) => {
+    if (!hotelId) { setRoomTypes([]); return; }
+    setRoomTypesLoading(true);
+    try {
+      const res = await fetch(`/api/admin/rooms?hotelId=${hotelId}`);
+      const json = await res.json().catch(() => ({}));
+      if (json.success) setRoomTypes(json.data ?? []);
+    } catch {
+      setRoomTypes([]);
+    } finally {
+      setRoomTypesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (dialogOpen && editingId) fetchRoomTypes(editingId);
+    if (!editingId) setRoomTypes([]);
+  }, [dialogOpen, editingId, fetchRoomTypes]);
+
+  const resetRoomTypeForm = () => {
+    setEditingRoomTypeId(null);
+    setShowRoomTypeForm(false);
+    setRoomTypeForm({
+      name: '', maxGuests: 2, beds: '1 cama doble', basePrice: 0,
+      originalPrice: 0, includes: '', roomImage: '', active: true,
+    });
+  };
+
+  const handleCreateRoomType = async () => {
+    if (!editingId || !roomTypeForm.name.trim()) {
+      toast.error('El nombre del tipo de habitación es obligatorio');
+      return;
+    }
+    setSavingRoomType(true);
+    try {
+      const res = await fetch(`/api/admin/rooms/${editingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: roomTypeForm.name.trim(),
+          maxGuests: roomTypeForm.maxGuests,
+          beds: roomTypeForm.beds,
+          basePrice: roomTypeForm.basePrice,
+          originalPrice: roomTypeForm.originalPrice,
+          includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
+          roomImage: roomTypeForm.roomImage,
+          active: roomTypeForm.active,
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Error al crear tipo de habitación');
+      }
+      toast.success('RoomType creado correctamente');
+      resetRoomTypeForm();
+      fetchRoomTypes(editingId);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al crear');
+    } finally {
+      setSavingRoomType(false);
+    }
+  };
+
+  const handleUpdateRoomType = async () => {
+    if (!editingRoomTypeId || !roomTypeForm.name.trim()) {
+      toast.error('El nombre del tipo de habitación es obligatorio');
+      return;
+    }
+    setSavingRoomType(true);
+    try {
+      const res = await fetch(`/api/admin/rooms/${editingRoomTypeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: roomTypeForm.name.trim(),
+          maxGuests: roomTypeForm.maxGuests,
+          beds: roomTypeForm.beds,
+          basePrice: roomTypeForm.basePrice,
+          originalPrice: roomTypeForm.originalPrice,
+          includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
+          roomImage: roomTypeForm.roomImage,
+          active: roomTypeForm.active,
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Error al actualizar');
+      }
+      toast.success('RoomType actualizado correctamente');
+      resetRoomTypeForm();
+      if (editingId) fetchRoomTypes(editingId);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al actualizar');
+    } finally {
+      setSavingRoomType(false);
+    }
+  };
+
+  const handleDeleteRoomType = async () => {
+    if (!roomTypeDeleteId) return;
+    try {
+      const res = await fetch(`/api/admin/rooms/${roomTypeDeleteId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Error al eliminar');
+      }
+      toast.success('RoomType eliminado correctamente');
+      setRoomTypeDeleteId(null);
+      if (editingId) fetchRoomTypes(editingId);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar');
+    }
+  };
+
+  const handleSyncRoomTypesCache = () => {
+    if (roomTypes.length === 0) {
+      toast.error('No hay RoomTypes para sincronizar. Crea al menos uno primero.');
+      return;
+    }
+    const synced = syncRoomTypesToHotelRooms(roomTypes);
+    setForm((prev) => ({ ...prev, rooms: synced }));
+    toast.success(
+      `${synced.length} RoomType(s) sincronizado(s) al caché JSON de habitaciones.`
+    );
+  };
+
+  const openEditRoomType = (rt: RoomTypeRow) => {
+    setEditingRoomTypeId(rt.id);
+    setShowRoomTypeForm(true);
+    setRoomTypeForm({
+      name: rt.name,
+      maxGuests: rt.maxGuests,
+      beds: rt.beds,
+      basePrice: rt.basePrice,
+      originalPrice: rt.originalPrice,
+      includes: formatRoomTypeIncludesForForm(rt.includes),
+      roomImage: rt.roomImage,
+      active: rt.active,
+    });
+  };
+
   const filtered = hotels.filter((h) =>
     h.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -658,6 +876,7 @@ export default function AdminHotels() {
       slug: hotel.slug,
       cityId: hotel.cityId,
       cityName: hotel.cityName,
+      destinationId: hotel.destinationId ?? '',
       stars: hotel.stars,
       address: hotel.address,
       description: hotel.description,
@@ -679,15 +898,27 @@ export default function AdminHotels() {
       toast.error('El nombre es obligatorio');
       return;
     }
-    if (!form.cityId.trim() || !form.cityName.trim()) {
-      toast.error('La ciudad es obligatoria');
+    if (destinationsError) {
+      toast.error('No se puede guardar hasta cargar destinos correctamente');
+      return;
+    }
+    if (!form.destinationId?.trim() || !form.cityName.trim()) {
+      toast.error('Selecciona un destino válido');
       return;
     }
     setSaving(true);
     try {
+      // Auto-sync: derive Hotel.rooms cache from RoomType rows when available
+      const activeRoomTypes = roomTypes.filter((rt) => rt.active);
+      const roomsPayload =
+        activeRoomTypes.length > 0
+          ? syncRoomTypesToHotelRooms(activeRoomTypes)
+          : form.rooms;
+
       const payload = {
         ...form,
         slug: form.slug || generateSlug(form.name),
+        rooms: roomsPayload,
       };
       const isEditing = !!editingId;
       const res = await fetch(
@@ -842,6 +1073,16 @@ export default function AdminHotels() {
       return next;
     });
   };
+
+  const selectedDestination = findHotelDestinationOption(destinationOptions, form.destinationId ?? '');
+  const destinationSelectorState = getHotelDestinationSelectorState({
+    options: destinationOptions,
+    selectedId: form.destinationId ?? '',
+    isLoading: destinationsLoading,
+    error: destinationsError,
+    createCtaHref: '/admin/destinos',
+    createCtaLabel: 'Crear destino',
+  });
 
   // ── Room management helpers ──
   const addRoom = () => {
@@ -1055,6 +1296,10 @@ export default function AdminHotels() {
               <TabsTrigger value="rooms" className="flex-1">
                 Habitaciones
               </TabsTrigger>
+              <TabsTrigger value="roomtypes" className="flex-1">
+                <Database className="w-3.5 h-3.5 mr-1" />
+                RoomTypes
+              </TabsTrigger>
               <TabsTrigger value="extra" className="flex-1">
                 Extra
               </TabsTrigger>
@@ -1088,22 +1333,63 @@ export default function AdminHotels() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-city-id" className="label-required">City ID</Label>
-                  <Input
-                    id="hotel-city-id"
-                    value={form.cityId}
-                    onChange={(e) => updateField('cityId', e.target.value)}
-                    placeholder="cartagena"
-                  />
+                  <Label htmlFor="hotel-destination" className="label-required">Destino relacional</Label>
+                  <select
+                    id="hotel-destination"
+                    value={form.destinationId ?? ''}
+                    onChange={(e) => {
+                      const option = findHotelDestinationOption(destinationOptions, e.target.value);
+                      setForm((prev) => ({
+                        ...prev,
+                        ...buildHotelDestinationCompatibilityFields(option),
+                      }));
+                    }}
+                    disabled={destinationsLoading || Boolean(destinationsError)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Selecciona un destino</option>
+                    {destinationSelectorState.options.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}{option.stateLabel ? ` · ${option.stateLabel.toLowerCase()}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {destinationSelectorState.status === 'loading' && (
+                    <p className="text-xs text-muted-foreground">{destinationSelectorState.statusLabel}</p>
+                  )}
+                  {destinationSelectorState.status === 'error' && (
+                    <div className="flex items-center gap-2 text-xs text-destructive">
+                      <span>{destinationSelectorState.statusLabel}</span>
+                      <Button type="button" variant="outline" size="sm" onClick={fetchDestinationOptions}>
+                        <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
+                      </Button>
+                    </div>
+                  )}
+                  {destinationSelectorState.status === 'empty' && (
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>{destinationSelectorState.statusLabel}</span>
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <a href={destinationSelectorState.createCta?.href ?? '/admin/destinos'}>
+                          <ExternalLink className="w-3 h-3 mr-1" /> {destinationSelectorState.createCta?.label ?? 'Crear destino'}
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Guarda `destinationId` real y mantiene `cityId` como compatibilidad del API actual.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-city-name" className="label-required">Nombre Ciudad</Label>
+                  <Label htmlFor="hotel-city-name">Nombre destino (snapshot)</Label>
                   <Input
                     id="hotel-city-name"
-                    value={form.cityName}
-                    onChange={(e) => updateField('cityName', e.target.value)}
-                    placeholder="Cartagena de Indias"
+                    value={selectedDestination?.label ?? form.cityName}
+                    readOnly
+                    placeholder="Se completa al seleccionar destino"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Etiqueta de visualización compatible; ya no es la fuente primaria manual.
+                  </p>
                 </div>
               </div>
 
@@ -1394,8 +1680,17 @@ export default function AdminHotels() {
               </div>
             </TabsContent>
 
-            {/* ─── ROOMS TAB (Dynamic Form) ─── */}
+            {/* ─── ROOMS TAB (Dynamic Form — JSON Cache / Legado) ─── */}
             <TabsContent value="rooms" className="space-y-4 mt-4">
+              <div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs text-amber-800 dark:text-amber-200 space-y-1">
+                <p className="font-medium">⚠️ Caché JSON — compatibilidad</p>
+                <p>
+                  Esta pestaña gestiona el campo <code>Hotel.rooms</code> (JSON).
+                  La fuente primaria de habitaciones son los{' '}
+                  <strong>RoomTypes relacionales</strong> en la pestaña contigua.
+                  Edita aquí solo si necesitas ajustar la caché manualmente.
+                </p>
+              </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground">
@@ -1449,6 +1744,262 @@ export default function AdminHotels() {
               )}
             </TabsContent>
 
+            {/* ─── ROOMTYPES TAB (Relational, primary source) ─── */}
+            <TabsContent value="roomtypes" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                    <Database className="w-4 h-4 text-primary" />
+                    RoomTypes del hotel
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {editingId
+                      ? `${roomTypes.length} RoomType(s) en base de datos — fuente primaria de habitaciones`
+                      : 'Guarda el hotel primero para gestionar RoomTypes'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {editingId && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSyncRoomTypesCache}
+                        disabled={roomTypes.length === 0}
+                        title="Derivar caché JSON de habitaciones desde RoomTypes"
+                      >
+                        <ArrowRightLeft className="w-3.5 h-3.5 mr-1" />
+                        Sincronizar caché
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          resetRoomTypeForm();
+                          setShowRoomTypeForm(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Nuevo RoomType
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Info banner */}
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground/80">Modelo relacional — fuente primaria</p>
+                <p>
+                  Los <strong>RoomTypes</strong> se guardan como filas reales en la base de datos y
+                  son la fuente autoritativa para allotments, paquetes y precios.
+                </p>
+                <p>
+                  La pestaña <strong>Habitaciones</strong> gestiona el campo JSON{' '}
+                  <code>Hotel.rooms</code> que funciona como caché de compatibilidad.
+                  Usa &ldquo;Sincronizar caché&rdquo; para mantener ambos en consistencia.
+                </p>
+              </div>
+
+              {!editingId ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Guarda el hotel primero para gestionar RoomTypes</p>
+                </div>
+              ) : roomTypesLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {/* RoomType form for create/edit */}
+                  {showRoomTypeForm && (
+                    <Card className="border-primary/30">
+                        <CardHeader className="p-3 pb-1">
+                          <CardTitle className="text-sm font-semibold">
+                            {editingRoomTypeId ? 'Editar RoomType' : 'Nuevo RoomType'}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-1 space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Nombre</Label>
+                              <Input
+                                value={roomTypeForm.name}
+                                onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, name: e.target.value }))}
+                                placeholder="Suite Deluxe"
+                                className="text-sm h-8"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Camas / Tipo</Label>
+                              <Input
+                                value={roomTypeForm.beds}
+                                onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, beds: e.target.value }))}
+                                placeholder="1 cama king"
+                                className="text-sm h-8"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Max. Huéspedes</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={roomTypeForm.maxGuests}
+                                onChange={(e) =>
+                                  setRoomTypeForm((prev) => ({ ...prev, maxGuests: Number(e.target.value) }))
+                                }
+                                className="text-sm h-8"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Precio (COP)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={roomTypeForm.basePrice}
+                                onChange={(e) =>
+                                  setRoomTypeForm((prev) => ({ ...prev, basePrice: Number(e.target.value) }))
+                                }
+                                className="text-sm h-8"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Precio Orig.</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={roomTypeForm.originalPrice || ''}
+                                onChange={(e) =>
+                                  setRoomTypeForm((prev) => ({
+                                    ...prev,
+                                    originalPrice: e.target.value ? Number(e.target.value) : 0,
+                                  }))
+                                }
+                                className="text-sm h-8"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Servicios (separados por coma)</Label>
+                            <Input
+                              value={roomTypeForm.includes}
+                              onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, includes: e.target.value }))}
+                              placeholder="Wi-Fi, Aire acondicionado, Desayuno"
+                              className="text-sm h-8"
+                            />
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={roomTypeForm.active}
+                                onCheckedChange={(checked) =>
+                                  setRoomTypeForm((prev) => ({ ...prev, active: checked }))
+                                }
+                              />
+                              <Label className="text-xs">Activo</Label>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={editingRoomTypeId ? handleUpdateRoomType : handleCreateRoomType}
+                              disabled={savingRoomType || !roomTypeForm.name.trim()}
+                            >
+                              <Save className="w-3.5 h-3.5 mr-1" />
+                              {savingRoomType
+                                ? 'Guardando...'
+                                : editingRoomTypeId
+                                  ? 'Actualizar'
+                                  : 'Crear'}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={resetRoomTypeForm}
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                  )}
+
+                  {/* RoomType table */}
+                  {roomTypes.length > 0 && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Nombre</TableHead>
+                          <TableHead className="text-xs">Tipo</TableHead>
+                          <TableHead className="text-xs">Cap.</TableHead>
+                          <TableHead className="text-xs">Precio</TableHead>
+                          <TableHead className="text-xs">Estado</TableHead>
+                          <TableHead className="text-xs text-right">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {roomTypes.map((rt) => (
+                          <TableRow key={rt.id}>
+                            <TableCell className="text-sm font-medium">{rt.name}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{rt.beds}</TableCell>
+                            <TableCell className="text-xs">{rt.maxGuests} pax</TableCell>
+                            <TableCell className="text-xs font-semibold">{formatCOP(rt.basePrice)}</TableCell>
+                            <TableCell>
+                              {rt.active ? (
+                                <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-600">
+                                  Activo
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs">Inactivo</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                  onClick={() => openEditRoomType(rt)}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                  onClick={() => setRoomTypeDeleteId(rt.id)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+
+                  {roomTypes.length === 0 && !editingRoomTypeId && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Database className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">No hay RoomTypes registrados para este hotel</p>
+                      <p className="text-xs mt-1">Crea un RoomType para empezar a usar el modelo relacional</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+
             {/* Extra Tab */}
             <TabsContent value="extra" className="space-y-4 mt-4">
               <div className="flex items-center gap-6">
@@ -1497,6 +2048,31 @@ export default function AdminHotels() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* RoomType Delete Confirmation */}
+      <AlertDialog
+        open={!!roomTypeDeleteId}
+        onOpenChange={(open) => { if (!open) setRoomTypeDeleteId(null); }}
+      >
+        <AlertDialogContent className="admin-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar RoomType?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El RoomType y sus allotments
+              asociados serán eliminados permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteRoomType}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
               Eliminar

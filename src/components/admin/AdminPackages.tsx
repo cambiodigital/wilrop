@@ -35,9 +35,22 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatCOP } from '@/data/packages';
-import { Plus, Search, Pencil, Trash2, Star, Package, Upload, ImagePlus, X } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Star, Package, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  buildPackageRelationsPayload,
+  findPackageDestinationOption,
+  getPackageRelationSelectorSmokeState,
+  keepIdsPresentInOptions,
+  normalizePackageDestinationOptions,
+  normalizePackageRelationOptions,
+  selectedIdsFromPackageRelations,
+  toggleSelectedId,
+  type PackageCompositionSelection,
+  type PackageDestinationOption,
+  type PackageRelationOption,
+} from '@/lib/admin/package-relation-ui';
 
 interface TravelPackage {
   id: string;
@@ -84,6 +97,13 @@ const emptyPackage: Omit<TravelPackage, 'id'> = {
 
 const categories = ['Aventura', 'Relax', 'Cultural', 'Naturaleza', 'Playa'];
 const difficulties = ['Fácil', 'Moderado', 'Avanzado'];
+const emptyCompositionSelection: PackageCompositionSelection = {
+  destinationId: '',
+  hotelIds: [],
+  roomTypeIds: [],
+  excursionIds: [],
+  transportServiceIds: [],
+};
 
 function generateSlug(title: string): string {
   return title
@@ -108,6 +128,16 @@ export default function AdminPackages() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyPackage);
   const [imageError, setImageError] = useState(false);
+  const [destinationOptions, setDestinationOptions] = useState<PackageDestinationOption[]>([]);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
+  const [destinationsError, setDestinationsError] = useState<string | null>(null);
+  const [composition, setComposition] = useState<PackageCompositionSelection>(emptyCompositionSelection);
+  const [hotelOptions, setHotelOptions] = useState<PackageRelationOption[]>([]);
+  const [roomTypeOptions, setRoomTypeOptions] = useState<PackageRelationOption[]>([]);
+  const [excursionOptions, setExcursionOptions] = useState<PackageRelationOption[]>([]);
+  const [transportOptions, setTransportOptions] = useState<PackageRelationOption[]>([]);
+  const [selectorLoading, setSelectorLoading] = useState<Record<string, boolean>>({});
+  const [selectorErrors, setSelectorErrors] = useState<Record<string, string | null>>({});
 
   const fetchPackages = useCallback(async () => {
     setLoading(true);
@@ -128,6 +158,103 @@ export default function AdminPackages() {
     fetchPackages();
   }, [fetchPackages]);
 
+  const fetchDestinationOptions = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationsError(null);
+    try {
+      const res = await fetch('/api/admin/relation-options/destinations?active=all');
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) {
+        throw new Error(json.error || 'Error al cargar destinos');
+      }
+      setDestinationOptions(normalizePackageDestinationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar destinos';
+      setDestinationsError(msg);
+    } finally {
+      setDestinationsLoading(false);
+    }
+  }, []);
+
+  const fetchRelationOptions = useCallback(async (
+    key: 'hotels' | 'roomTypes' | 'excursions' | 'transportServices',
+    url: string,
+    setter: (options: PackageRelationOption[]) => void,
+  ) => {
+    setSelectorLoading((prev) => ({ ...prev, [key]: true }));
+    setSelectorErrors((prev) => ({ ...prev, [key]: null }));
+    try {
+      const res = await fetch(url);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) throw new Error(json.error || 'Error al cargar opciones');
+      setter(normalizePackageRelationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar opciones';
+      setSelectorErrors((prev) => ({ ...prev, [key]: msg }));
+    } finally {
+      setSelectorLoading((prev) => ({ ...prev, [key]: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (dialogOpen) fetchDestinationOptions();
+  }, [dialogOpen, fetchDestinationOptions]);
+
+  const selectedHotelForRoomTypes = composition.hotelIds[0];
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+    const destinationQuery = form.destinationId ? `&destinationId=${encodeURIComponent(form.destinationId)}` : '';
+    fetchRelationOptions('hotels', `/api/admin/relation-options/hotels?active=all${destinationQuery}`, setHotelOptions);
+    fetchRelationOptions('excursions', `/api/admin/relation-options/excursions?active=all${destinationQuery}`, setExcursionOptions);
+    fetchRelationOptions('transportServices', `/api/admin/relation-options/transport-services?active=all${destinationQuery}`, setTransportOptions);
+  }, [dialogOpen, form.destinationId, fetchRelationOptions]);
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+    if (!selectedHotelForRoomTypes) {
+      setRoomTypeOptions([]);
+      return;
+    }
+    fetchRelationOptions(
+      'roomTypes',
+      `/api/admin/relation-options/room-types?active=all&hotelId=${encodeURIComponent(selectedHotelForRoomTypes)}`,
+      setRoomTypeOptions,
+    );
+  }, [dialogOpen, selectedHotelForRoomTypes, fetchRelationOptions]);
+
+  useEffect(() => {
+    setComposition((prev) => ({
+      ...prev,
+      hotelIds: keepIdsPresentInOptions(prev.hotelIds, hotelOptions),
+      roomTypeIds: keepIdsPresentInOptions(prev.roomTypeIds, roomTypeOptions),
+      excursionIds: keepIdsPresentInOptions(prev.excursionIds, excursionOptions),
+      transportServiceIds: keepIdsPresentInOptions(prev.transportServiceIds, transportOptions),
+    }));
+  }, [hotelOptions, roomTypeOptions, excursionOptions, transportOptions]);
+
+  const fetchPackageDestinationRelation = useCallback(async (packageId: string) => {
+    try {
+      const res = await fetch(`/api/admin/packages/${packageId}/relations`);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) return;
+      const destination = json.data?.destinations?.[0]?.destination;
+      setComposition((prev) => ({
+        ...prev,
+        hotelIds: selectedIdsFromPackageRelations(json.data, 'hotels', 'hotel'),
+        roomTypeIds: selectedIdsFromPackageRelations(json.data, 'roomTypes', 'roomType'),
+        excursionIds: selectedIdsFromPackageRelations(json.data, 'excursions', 'excursion'),
+        transportServiceIds: selectedIdsFromPackageRelations(json.data, 'transportServices', 'transportService'),
+      }));
+      if (destination?.id && destination?.name) {
+        setForm((prev) => ({ ...prev, destinationId: destination.id, destinationName: destination.name }));
+        setComposition((prev) => ({ ...prev, destinationId: destination.id }));
+      }
+    } catch {
+      // Keep legacy destination snapshots visible if relation loading fails.
+    }
+  }, []);
+
   const filtered = packages.filter(
     (p) =>
       p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -137,6 +264,7 @@ export default function AdminPackages() {
   const handleOpenCreate = () => {
     setEditingId(null);
     setForm({ ...emptyPackage });
+    setComposition({ ...emptyCompositionSelection });
     setDialogOpen(true);
   };
 
@@ -162,7 +290,9 @@ export default function AdminPackages() {
       category: pkg.category,
       active: pkg.active,
     });
+    setComposition({ ...emptyCompositionSelection, destinationId: pkg.destinationId });
     setDialogOpen(true);
+    fetchPackageDestinationRelation(pkg.id);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -209,6 +339,22 @@ export default function AdminPackages() {
       toast.error('El título es obligatorio');
       return;
     }
+    if (destinationsError) {
+      toast.error('No se puede guardar hasta recuperar el selector de destino');
+      return;
+    }
+    if (Object.values(selectorErrors).some(Boolean)) {
+      toast.error('No se puede guardar hasta recuperar los selectores de composición');
+      return;
+    }
+    if (!form.destinationId.trim()) {
+      toast.error('Selecciona un destino válido');
+      return;
+    }
+    if (!selectedDestination) {
+      toast.error('Selecciona un destino de la lista relacional antes de guardar');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -227,6 +373,19 @@ export default function AdminPackages() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Error al guardar');
+      }
+      const saved = await res.json();
+      const packageId = saved?.data?.id ?? editingId;
+      if (!packageId) throw new Error('No se pudo resolver el paquete guardado');
+
+      const relationRes = await fetch(`/api/admin/packages/${packageId}/relations`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPackageRelationsPayload({ ...composition, destinationId: form.destinationId })),
+      });
+      if (!relationRes.ok) {
+        const data = await relationRes.json().catch(() => ({}));
+        throw new Error(data.error || 'El paquete se guardó, pero no se pudo guardar la relación de destino');
       }
       toast.success(isEditing ? 'Paquete actualizado correctamente' : 'Paquete creado correctamente');
       setDialogOpen(false);
@@ -265,6 +424,85 @@ export default function AdminPackages() {
       }
       return next;
     });
+  };
+
+  const selectedDestination = findPackageDestinationOption(destinationOptions, form.destinationId);
+
+  const toggleComposition = (key: keyof Omit<PackageCompositionSelection, 'destinationId'>, id: string) => {
+    setComposition((prev) => ({ ...prev, [key]: toggleSelectedId(prev[key], id) }));
+  };
+
+  const renderOptionGroup = (
+    key: 'hotels' | 'roomTypes' | 'excursions' | 'transportServices',
+    label: string,
+    options: PackageRelationOption[],
+    selectedIds: string[],
+    selectionKey: keyof Omit<PackageCompositionSelection, 'destinationId'>,
+    ctaHref: string,
+    ctaLabel: string,
+    disabledMessage?: string,
+  ) => {
+    const selectorState = getPackageRelationSelectorSmokeState({
+      options,
+      selectedIds,
+      isLoading: Boolean(selectorLoading[key]),
+      error: selectorErrors[key],
+      disabledMessage,
+      createCtaHref: ctaHref,
+      createCtaLabel: ctaLabel,
+    });
+    return (
+      <div className="rounded-md border border-border p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Label>{label}</Label>
+          {selectorState.hasRetry && (
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              const destinationQuery = form.destinationId ? `&destinationId=${encodeURIComponent(form.destinationId)}` : '';
+              const urls = {
+                hotels: `/api/admin/relation-options/hotels?active=all${destinationQuery}`,
+                roomTypes: selectedHotelForRoomTypes ? `/api/admin/relation-options/room-types?active=all&hotelId=${encodeURIComponent(selectedHotelForRoomTypes)}` : '',
+                excursions: `/api/admin/relation-options/excursions?active=all${destinationQuery}`,
+                transportServices: `/api/admin/relation-options/transport-services?active=all${destinationQuery}`,
+              };
+              const setters = { hotels: setHotelOptions, roomTypes: setRoomTypeOptions, excursions: setExcursionOptions, transportServices: setTransportOptions };
+              if (urls[key]) fetchRelationOptions(key, urls[key], setters[key]);
+            }}>
+              <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
+            </Button>
+          )}
+        </div>
+        {selectorState.status === 'disabled' && <p className="text-xs text-muted-foreground">{selectorState.statusLabel}</p>}
+        {selectorState.status === 'loading' && <p className="text-xs text-muted-foreground">{selectorState.statusLabel}</p>}
+        {selectorState.status === 'error' && <p className="text-xs text-destructive">{selectorState.statusLabel}</p>}
+        {selectorState.status === 'empty' && selectorState.createCta && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>{selectorState.statusLabel}</span>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={selectorState.createCta.href}><ExternalLink className="w-3 h-3 mr-1" /> {selectorState.createCta.label}</a>
+            </Button>
+          </div>
+        )}
+        {selectorState.status === 'ready' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
+            {selectorState.options.map((option) => (
+              <label key={option.id} className="flex items-start gap-2 rounded border border-border/60 p-2 text-xs">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={option.selected}
+                  onChange={() => toggleComposition(selectionKey, option.id)}
+                />
+                <span>
+                  <span className="font-medium text-foreground">{option.label}</span>
+                  {option.subtitle && <span className="block text-muted-foreground">{option.subtitle}</span>}
+                  {option.stateLabel && <span className="block text-muted-foreground">{option.stateLabel}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -450,22 +688,84 @@ export default function AdminPackages() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-dest-id">ID Destino</Label>
-                  <Input
-                    id="pkg-dest-id"
+                  <Label htmlFor="pkg-destination" className="label-required">Destino relacional</Label>
+                  <select
+                    id="pkg-destination"
                     value={form.destinationId}
-                    onChange={(e) => updateField('destinationId', e.target.value)}
-                    placeholder="cartagena"
-                  />
+                    onChange={(e) => {
+                      const option = findPackageDestinationOption(destinationOptions, e.target.value);
+                      updateField('destinationId', option?.id ?? '');
+                      updateField('destinationName', option?.label ?? '');
+                      setComposition((prev) => ({
+                        ...prev,
+                        destinationId: option?.id ?? '',
+                        hotelIds: [],
+                        roomTypeIds: [],
+                        excursionIds: [],
+                        transportServiceIds: [],
+                      }));
+                    }}
+                    disabled={destinationsLoading || Boolean(destinationsError)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Selecciona un destino</option>
+                    {destinationOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}{option.isTemplate ? ' · plantilla' : ''}{option.active ? '' : ' · inactivo'}
+                      </option>
+                    ))}
+                  </select>
+                  {destinationsLoading && <p className="text-xs text-muted-foreground">Cargando destinos...</p>}
+                  {!destinationsLoading && destinationsError && (
+                    <div className="flex items-center gap-2 text-xs text-destructive">
+                      <span>{destinationsError}</span>
+                      <Button type="button" variant="outline" size="sm" onClick={fetchDestinationOptions}>
+                        <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
+                      </Button>
+                    </div>
+                  )}
+                  {!destinationsLoading && !destinationsError && destinationOptions.length === 0 && (
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>No hay destinos compatibles.</span>
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <a href="/admin/destinos"><ExternalLink className="w-3 h-3 mr-1" /> Crear destino</a>
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-dest-name">Nombre Destino</Label>
+                  <Label htmlFor="pkg-dest-name">Nombre Destino (snapshot)</Label>
                   <Input
                     id="pkg-dest-name"
-                    value={form.destinationName}
-                    onChange={(e) => updateField('destinationName', e.target.value)}
-                    placeholder="Cartagena de Indias"
+                    value={selectedDestination?.label ?? form.destinationName}
+                    readOnly
+                    placeholder="Se completa al seleccionar destino"
                   />
+                  <p className="text-xs text-muted-foreground">El ID real se guarda desde el selector; este nombre queda como etiqueta compatible.</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div>
+                  <div className="form-section-title">Composición relacional del paquete</div>
+                  <p className="text-xs text-muted-foreground">
+                    Selecciona entidades reales desde APIs de relación. Los campos legacy de descripción, incluye y fechas se conservan como snapshots compatibles.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {renderOptionGroup('hotels', 'Hoteles', hotelOptions, composition.hotelIds, 'hotelIds', '/admin/hoteles', 'Crear hotel')}
+                  {renderOptionGroup(
+                    'roomTypes',
+                    'Tipos de habitación',
+                    roomTypeOptions,
+                    composition.roomTypeIds,
+                    'roomTypeIds',
+                    '/admin/habitaciones',
+                    'Crear habitación',
+                    selectedHotelForRoomTypes ? undefined : 'Selecciona primero un hotel para cargar sus habitaciones.',
+                  )}
+                  {renderOptionGroup('excursions', 'Excursiones', excursionOptions, composition.excursionIds, 'excursionIds', '/admin/excursiones', 'Crear excursión')}
+                  {renderOptionGroup('transportServices', 'Servicios de transporte', transportOptions, composition.transportServiceIds, 'transportServiceIds', '/admin/transportes/servicios', 'Crear transporte')}
                 </div>
               </div>
 

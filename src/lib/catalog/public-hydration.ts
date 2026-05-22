@@ -1,0 +1,304 @@
+/**
+ * Public hydration helpers — pure, testable normalization for public-facing
+ * destination detail, hotel, package, and excursion data loaded through
+ * relational join models with legacy fallback.
+ *
+ * These are consumed by server components (RSC) that hydrate catalog data
+ * for public portal pages. Kept pure so they can be verified without a DB.
+ */
+
+// ─── JSON Array Parsing ────────────────────────────────────────────
+
+export function parseJsonArray<T = unknown>(
+  raw: string | null | undefined,
+): T[] {
+  try {
+    const parsed = JSON.parse(raw ?? '[]')
+    return Array.isArray(parsed) ? (parsed as T[]) : []
+  } catch {
+    return []
+  }
+}
+
+// ─── isTemplate Fallback ────────────────────────────────────────────
+
+/**
+ * When zero real (non-template) active rows exist for an entity type,
+ * the public query MUST include templates so empty pages are avoided.
+ *
+ * Returns `true` when only templates exist (realActiveCount === 0),
+ * meaning `isTemplate` should be set to `true` in the where clause.
+ */
+export function resolveIsTemplateFallback(
+  realActiveCount: number,
+): boolean {
+  return realActiveCount === 0
+}
+
+// ─── Entity Normalization ───────────────────────────────────────────
+
+export interface NormalizedPackage {
+  id: string
+  slug: string
+  title: string
+  description: string
+  image: string
+  price: number
+  originalPrice: number | null
+  category: string
+  rating: number
+  duration: string
+  difficulty: string
+  groupSize: string
+  soldOut: boolean
+  includes: string[]
+  departureDates: string[]
+  active: boolean
+  isTemplate: boolean
+}
+
+export function normalizePackage(
+  pkg: Record<string, unknown>,
+): NormalizedPackage {
+  return {
+    id: String(pkg.id ?? ''),
+    slug: String(pkg.slug ?? ''),
+    title: String(pkg.title ?? ''),
+    description: String(pkg.description ?? ''),
+    image: String(pkg.image ?? ''),
+    price: Number(pkg.price ?? 0),
+    originalPrice: pkg.originalPrice != null ? Number(pkg.originalPrice) : null,
+    category: String(pkg.category ?? ''),
+    rating: Number(pkg.rating ?? 0),
+    duration: String(pkg.duration ?? ''),
+    difficulty: String(pkg.difficulty ?? 'Fácil'),
+    groupSize: String(pkg.groupSize ?? ''),
+    soldOut: Boolean(pkg.soldOut),
+    includes: parseJsonArray<string>(String(pkg.includes ?? '[]')),
+    departureDates: parseJsonArray<string>(String(pkg.departureDates ?? '[]')),
+    active: Boolean(pkg.active ?? true),
+    isTemplate: Boolean(pkg.isTemplate ?? true),
+  }
+}
+
+export interface NormalizedHotel {
+  id: string
+  slug: string
+  name: string
+  cityId: string
+  cityName: string
+  stars: number
+  rating: number
+  reviewCount: number
+  priceFrom: number
+  images: string[]
+  description: string
+  featured: boolean
+  active: boolean
+  isTemplate: boolean
+}
+
+export function normalizeHotel(
+  hotel: Record<string, unknown>,
+): NormalizedHotel {
+  return {
+    id: String(hotel.id ?? ''),
+    slug: String(hotel.slug ?? ''),
+    name: String(hotel.name ?? ''),
+    cityId: String(hotel.cityId ?? ''),
+    cityName: String(hotel.cityName ?? ''),
+    stars: Number(hotel.stars ?? 3),
+    rating: Number(hotel.rating ?? 0),
+    reviewCount: Number(hotel.reviewCount ?? 0),
+    priceFrom: Number(hotel.priceFrom ?? 0),
+    images: parseJsonArray<string>(String(hotel.images ?? '[]')),
+    description: String(hotel.description ?? ''),
+    featured: Boolean(hotel.featured),
+    active: Boolean(hotel.active ?? true),
+    isTemplate: Boolean(hotel.isTemplate ?? true),
+  }
+}
+
+export interface NormalizedExcursion {
+  id: string
+  slug: string
+  name: string
+  destinationId: string
+  destinationName: string
+  cityName: string
+  description: string
+  images: string[]
+  duration: string
+  difficulty: string
+  basePrice: number
+  childPrice: number
+  category: string
+  rating: number
+  featured: boolean
+  active: boolean
+  isTemplate: boolean
+}
+
+export function normalizeExcursion(
+  excursion: Record<string, unknown>,
+): NormalizedExcursion {
+  return {
+    id: String(excursion.id ?? ''),
+    slug: String(excursion.slug ?? ''),
+    name: String(excursion.name ?? ''),
+    destinationId: String(excursion.destinationId ?? ''),
+    destinationName: String(excursion.destinationName ?? ''),
+    cityName: String(excursion.cityName ?? ''),
+    description: String(excursion.description ?? ''),
+    images: parseJsonArray<string>(String(excursion.images ?? '[]')),
+    duration: String(excursion.duration ?? ''),
+    difficulty: String(excursion.difficulty ?? 'Fácil'),
+    basePrice: Number(excursion.basePrice ?? 0),
+    childPrice: Number(excursion.childPrice ?? 0),
+    category: String(excursion.category ?? ''),
+    rating: Number(excursion.rating ?? 0),
+    featured: Boolean(excursion.featured),
+    active: Boolean(excursion.active ?? true),
+    isTemplate: Boolean(excursion.isTemplate ?? true),
+  }
+}
+
+// ─── Transport normalization ────────────────────────────────────────
+
+export interface NormalizedTransport {
+  id: string
+  name: string
+  routeType: string
+  origin: string
+  destination: string
+  cityId: string
+  cityName: string
+  durationMins: number
+  basePrice: number
+  pricePerExtra: number
+  includes: string[]
+  notes: string
+  active: boolean
+  isTemplate: boolean
+  providerId: string
+}
+
+export function normalizeTransport(
+  transport: Record<string, unknown>,
+): NormalizedTransport {
+  return {
+    id: String(transport.id ?? ''),
+    name: String(transport.name ?? ''),
+    routeType: String(transport.routeType ?? ''),
+    origin: String(transport.origin ?? ''),
+    destination: String(transport.destination ?? ''),
+    cityId: String(transport.cityId ?? ''),
+    cityName: String(transport.cityName ?? ''),
+    durationMins: Number(transport.durationMins ?? 0),
+    basePrice: Number(transport.basePrice ?? 0),
+    pricePerExtra: Number(transport.pricePerExtra ?? 0),
+    includes: parseJsonArray<string>(String(transport.includes ?? '[]')),
+    notes: String(transport.notes ?? ''),
+    active: Boolean(transport.active ?? true),
+    isTemplate: Boolean(transport.isTemplate ?? true),
+    providerId: String(transport.providerId ?? ''),
+  }
+}
+
+// ─── Destination-Package relation resolution ────────────────────────
+
+export interface DestinationPackageJoinRow {
+  packageId: string
+  destinationId: string
+  active?: boolean
+}
+
+/**
+ * Resolve the set of related destination IDs for each package from
+ * DestinationPackage join rows. Used to enrich public API responses so
+ * client components can filter destinations by real relations instead of
+ * legacy string comparison (p.destinationId === d.id).
+ *
+ * Returns a Map<packageId, destinationIds[]>.
+ */
+export function resolvePackageDestinationIds(
+  joinRows: DestinationPackageJoinRow[],
+): Map<string, string[]> {
+  const map = new Map<string, string[]>()
+  for (const row of joinRows) {
+    // Exclude inactive join rows from public result
+    if (row.active === false) continue
+    const ids = map.get(row.packageId) ?? []
+    ids.push(row.destinationId)
+    map.set(row.packageId, ids)
+  }
+  return map
+}
+
+// ─── Destination Filter Resolution ──────────────────────────────────
+
+export interface ResolvedDestinationFilter {
+  destinationId: string
+  destination: { id: string; name: string; slug: string }
+}
+
+/**
+ * Resolve a destination ID from a slug or direct ID query parameter.
+ * Returns null when no filter is provided or the destination is not found.
+ *
+ * Shared by public API routes that accept `destinationId` or `destinationSlug`.
+ */
+export async function resolveDestinationFilter(
+  db: { destination: { findFirst: (args: any) => Promise<any> } },
+  slugOrId: string | null,
+): Promise<ResolvedDestinationFilter | null> {
+  if (!slugOrId) return null
+
+  const destination = await db.destination.findFirst({
+    where: {
+      OR: [{ id: slugOrId }, { slug: slugOrId }],
+      active: true,
+    },
+    select: { id: true, name: true, slug: true },
+  })
+
+  if (!destination) return null
+  return { destinationId: destination.id, destination }
+}
+
+// ─── Filter helpers for join-row results ────────────────────────────
+
+export interface JoinRowWithEntity<T> {
+  featured?: boolean
+  sortOrder?: number
+  active?: boolean
+  // The related entity — shape depends on Prisma include
+  [key: string]: unknown
+}
+
+/**
+ * Filter and sort join rows by entity active/isTemplate status,
+ * returning the related entity objects in sort order.
+ */
+export function extractEntitiesFromJoinRows<T>(
+  joinRows: JoinRowWithEntity<T>[],
+  entityKey: string,
+  isTemplateFallback: boolean,
+  fallbackSortKey?: string,
+): T[] {
+  const filtered = joinRows
+    .filter((row) => {
+      const entity = row[entityKey] as Record<string, unknown> | undefined
+      if (!entity) return false
+      const active = entity.active !== false
+      const isTemplate = Boolean(entity.isTemplate ?? true)
+      return active && isTemplate === isTemplateFallback
+    })
+    .sort((a, b) => {
+      const sa = Number(a.sortOrder ?? 0)
+      const sb = Number(b.sortOrder ?? 0)
+      return sa - sb
+    })
+
+  return filtered.map((row) => row[entityKey] as T)
+}

@@ -1,39 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
-
-function formatTransportService(service: any) {
-  return {
-    ...service,
-    includes: safeJsonParse<string[]>(service.includes, []),
-  };
-}
+import {
+  normalizeTransport,
+  resolveIsTemplateFallback,
+  resolveDestinationFilter,
+} from '@/lib/catalog/public-hydration';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const cityId = searchParams.get('cityId');
+    const destinationId = searchParams.get('destinationId');
+    const destinationSlug = searchParams.get('destinationSlug');
+
+    // Resolve destination filter (slug → ID lookup)
+    const destFilter = await resolveDestinationFilter(
+      db,
+      destinationId ?? destinationSlug,
+    );
 
     const realCount = await db.transportService.count({
       where: { active: true, isTemplate: false },
     });
+    const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
-    const where: any = { active: true };
-    where.isTemplate = realCount > 0 ? false : true;
+    // --- Build transport-ID set from DestinationTransportService join ---
+    let transportIds: string[] | undefined;
 
-    if (cityId) {
-      where.cityId = cityId;
+    if (destFilter) {
+      const joins = await db.destinationTransportService.findMany({
+        where: {
+          destinationId: destFilter.destinationId,
+          active: true,
+          transportService: {
+            active: true,
+            isTemplate: isTemplateFallback,
+          },
+        },
+        select: { transportServiceId: true },
+      });
+      transportIds = joins.map((j) => j.transportServiceId);
+
+      // FK fallback: originDestinationId / destinationDestinationId when no join rows exist
+      if (transportIds.length === 0) {
+        const fkTransports = await db.transportService.findMany({
+          where: {
+            OR: [
+              { originDestinationId: destFilter.destinationId },
+              { destinationDestinationId: destFilter.destinationId },
+            ],
+            active: true,
+            isTemplate: isTemplateFallback,
+          },
+          select: { id: true },
+        });
+        transportIds = fkTransports.map((t) => t.id);
+      }
+    }
+
+    // --- Query transport services ---
+    const where: Record<string, unknown> = {
+      active: true,
+      isTemplate: isTemplateFallback,
+    };
+
+    if (transportIds) {
+      where.id = { in: transportIds };
     }
 
     const services = await db.transportService.findMany({
-      where,
+      where: where as any,
       orderBy: { basePrice: 'asc' },
       include: {
         provider: {
@@ -42,14 +77,44 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const parsed = services.map(formatTransportService);
+    // --- Enrich with relatedDestinationIds from DestinationTransportService join ---
+    const normalized = services.map((s) =>
+      normalizeTransport(s as Record<string, unknown>),
+    );
 
-    return NextResponse.json({ success: true, data: parsed });
+    if (services.length > 0) {
+      const destJoins = await db.destinationTransportService.findMany({
+        where: {
+          transportServiceId: { in: services.map((s) => s.id) },
+          active: true,
+        },
+        select: { transportServiceId: true, destinationId: true },
+      });
+
+      const destMap = new Map<string, string[]>();
+      for (const j of destJoins) {
+        const ids = destMap.get(j.transportServiceId) ?? [];
+        ids.push(j.destinationId);
+        destMap.set(j.transportServiceId, ids);
+      }
+
+      const enriched = normalized.map((t) => ({
+        ...t,
+        relatedDestinationIds: destMap.get(t.id) ?? [],
+      }));
+
+      return NextResponse.json({ success: true, data: enriched });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: normalized.map((t) => ({ ...t, relatedDestinationIds: [] })),
+    });
   } catch (error: any) {
     console.error('Error fetching public transport services:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch transport services' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
