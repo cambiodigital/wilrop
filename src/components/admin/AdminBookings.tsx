@@ -634,6 +634,25 @@ export default function AdminBookings() {
                                   Unit: {formatCOP(item.unitPrice)}
                                 </span>
                               </div>
+                              {item.addons && item.addons.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {item.addons.map((addon: any, idx: number) => {
+                                    const labelMap: Record<string, string> = {
+                                      'breakfast': 'Desayuno buffet',
+                                      'late-checkout': 'Late Check-out',
+                                      'travel-insurance': 'Seguro de viaje',
+                                      'airport-transfer': 'Traslado aeropuerto',
+                                      'photo-package': 'Paquete fotográfico',
+                                    };
+                                    const label = labelMap[addon.type] || addon.type;
+                                    return (
+                                      <Badge key={idx} variant="outline" className="text-[10px] py-0 px-1.5 border-amber-200 bg-amber-50/50 text-amber-700">
+                                        {label} ({addon.price > 0 ? `$${addon.price.toLocaleString('es-CO')}` : 'Gratis'})
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-semibold">{formatCOP(item.totalPrice)}</p>

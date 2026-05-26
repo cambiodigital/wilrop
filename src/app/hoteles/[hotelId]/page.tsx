@@ -65,14 +65,16 @@ export default async function HotelDetailRoutePage({ params }: HotelDetailRouteP
 
   return (
     <PortalShell>
-      <div className="mx-auto max-w-5xl px-5 pt-20 sm:px-6">
-        <PortalBreadcrumbs
-          items={[
-            { label: 'Inicio', href: '/' },
-            { label: 'Hoteles', href: '/hoteles' },
-            { label: hotel.name },
-          ]}
-        />
+      <div className="w-full bg-neutral-50/90 border-b border-neutral-200/50 backdrop-blur-xs pt-16 shadow-xs">
+        <div className="mx-auto max-w-5xl px-5 py-3 sm:px-6">
+          <PortalBreadcrumbs
+            items={[
+              { label: 'Inicio', href: '/' },
+              { label: 'Hoteles', href: '/hoteles' },
+              { label: hotel.name },
+            ]}
+          />
+        </div>
       </div>
       <HotelDetailPage hotel={hotel as any} />
     </PortalShell>

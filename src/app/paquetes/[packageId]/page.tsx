@@ -229,8 +229,8 @@ export default async function PackageDetailRoutePage({
 
   return (
     <PortalShell>
-      <div className="bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 pt-20 pb-4 sm:px-6 lg:px-8">
+      <div className="w-full bg-neutral-50/90 border-b border-neutral-200/50 backdrop-blur-xs pt-16 shadow-xs">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <PortalBreadcrumbs
             items={[
               { label: 'Inicio', href: '/' },

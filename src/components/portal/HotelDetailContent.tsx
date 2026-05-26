@@ -66,6 +66,57 @@ export default function HotelDetailContent({
 }: HotelDetailContentProps) {
   const [activeImgIdx, setActiveImgIdx] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState(0)
+
+  const [mainTouchStartX, setMainTouchStartX] = useState<number | null>(null)
+  const [mainTouchStartY, setMainTouchStartY] = useState<number | null>(null)
+
+  const handleMainTouchStart = (e: React.TouchEvent) => {
+    setMainTouchStartX(e.targetTouches[0].clientX)
+    setMainTouchStartY(e.targetTouches[0].clientY)
+  }
+
+  const handleMainTouchEnd = (e: React.TouchEvent) => {
+    if (mainTouchStartX === null || mainTouchStartY === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const touchEndY = e.changedTouches[0].clientY
+    const diffX = Math.abs(mainTouchStartX - touchEndX)
+    const diffY = Math.abs(mainTouchStartY - touchEndY)
+
+    // Open lightbox on tap or drag/swipe
+    if (diffX > 10 || diffY > 10 || (diffX <= 10 && diffY <= 10)) {
+      setLightboxIdx(activeImgIdx)
+      setIsLightboxOpen(true)
+    }
+    setMainTouchStartX(null)
+    setMainTouchStartY(null)
+  }
+
+  const nextLightboxImage = () => {
+    setLightboxIdx((prev) => (prev + 1) % hotel.images.length)
+  }
+
+  const prevLightboxImage = () => {
+    setLightboxIdx((prev) => (prev - 1 + hotel.images.length) % hotel.images.length)
+  }
+
+  const [dialogTouchStartX, setDialogTouchStartX] = useState<number | null>(null)
+
+  const handleDialogTouchStart = (e: React.TouchEvent) => {
+    setDialogTouchStartX(e.targetTouches[0].clientX)
+  }
+
+  const handleDialogTouchEnd = (e: React.TouchEvent) => {
+    if (dialogTouchStartX === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const diff = dialogTouchStartX - touchEndX
+    if (diff > 50) {
+      nextLightboxImage()
+    } else if (diff < -50) {
+      prevLightboxImage()
+    }
+    setDialogTouchStartX(null)
+  }
 
   const ratingColor =
     hotel.rating >= 9
@@ -84,7 +135,7 @@ export default function HotelDetailContent({
           : 'Bueno'
 
   return (
-    <div className="min-h-screen bg-white pt-16">
+    <div className="min-h-screen bg-white pt-0">
       {/* Hotel Banner Carousel */}
       <div className="relative h-64 overflow-hidden sm:h-96 group bg-neutral-900 shadow-inner">
         {hotel.images && hotel.images.length > 0 ? (
@@ -92,7 +143,13 @@ export default function HotelDetailContent({
             <img
               src={hotel.images[activeImgIdx]}
               alt={`${hotel.name} - Imagen ${activeImgIdx + 1}`}
-              className="h-full w-full object-cover opacity-90 transition-opacity duration-300"
+              className="h-full w-full object-cover opacity-90 hover:opacity-100 transition-all duration-300 cursor-pointer"
+              onClick={() => {
+                setLightboxIdx(activeImgIdx)
+                setIsLightboxOpen(true)
+              }}
+              onTouchStart={handleMainTouchStart}
+              onTouchEnd={handleMainTouchEnd}
             />
             {hotel.images.length > 1 && (
               <>
@@ -124,7 +181,10 @@ export default function HotelDetailContent({
                   {hotel.images.map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setActiveImgIdx(idx)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveImgIdx(idx)
+                      }}
                       className={`h-1.5 rounded-full transition-all cursor-pointer ${
                         idx === activeImgIdx ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/85'
                       }`}
@@ -132,15 +192,6 @@ export default function HotelDetailContent({
                     />
                   ))}
                 </div>
-
-                {/* View Photos Trigger */}
-                <button
-                  onClick={() => setIsLightboxOpen(true)}
-                  className="absolute bottom-4 right-5 z-10 flex items-center gap-1.5 rounded-lg bg-black/65 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/80 transition-colors cursor-pointer backdrop-blur-xs shadow-md border border-white/10"
-                >
-                  <ImageIcon className="size-3.5" />
-                  Ver fotos ({hotel.images.length})
-                </button>
               </>
             )}
           </>
@@ -277,33 +328,81 @@ export default function HotelDetailContent({
 
       {/* Lightbox Dialog */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog rounded-2xl p-6">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto admin-dialog rounded-2xl p-6 bg-white">
+          <DialogHeader className="mb-4">
             <DialogTitle>Galería de fotos - {hotel.name}</DialogTitle>
             <DialogDescription>
-              {hotel.images.length} imágenes disponibles para este hotel.
+              {hotel.images.length} imágenes disponibles para este hotel. Usa las flechas o desliza la imagen para navegar.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-            {hotel.images.map((img, idx) => (
-              <div
-                key={idx}
-                className="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 aspect-video group cursor-pointer shadow-xs hover:border-amber-400 hover:shadow-md transition-all duration-300"
-                onClick={() => {
-                  setActiveImgIdx(idx)
-                  setIsLightboxOpen(false)
-                }}
-              >
-                <img
-                  src={img}
-                  alt={`Imagen ${idx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
-                  Foto {idx + 1}
+
+          {/* Carousel Active Image Display */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-900 group shadow-md select-none">
+            <img
+              src={hotel.images[lightboxIdx]}
+              alt={`Imagen ${lightboxIdx + 1}`}
+              className="h-full w-full object-cover transition-opacity duration-300"
+              onTouchStart={handleDialogTouchStart}
+              onTouchEnd={handleDialogTouchEnd}
+            />
+
+            {/* Navigation arrows inside lightbox */}
+            {hotel.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    prevLightboxImage()
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/75 p-2.5 text-white transition-all cursor-pointer backdrop-blur-xs shadow-md z-20"
+                  aria-label="Anterior"
+                >
+                  <ChevronLeft className="size-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    nextLightboxImage()
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/75 p-2.5 text-white transition-all cursor-pointer backdrop-blur-xs shadow-md z-20"
+                  aria-label="Siguiente"
+                >
+                  <ChevronRight className="size-6" />
+                </button>
+
+                {/* Slide counter indicator */}
+                <div className="absolute top-4 right-4 z-20 rounded-md bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs shadow-xs border border-white/10">
+                  {lightboxIdx + 1} / {hotel.images.length}
                 </div>
-              </div>
-            ))}
+              </>
+            )}
+          </div>
+
+          {/* Grid / Thumbnails Strip below */}
+          <div className="mt-6">
+            <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Todas las fotos</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {hotel.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={`relative overflow-hidden rounded-lg aspect-video border bg-neutral-50 cursor-pointer transition-all duration-200 ${
+                    idx === lightboxIdx
+                      ? 'border-amber-500 ring-2 ring-amber-500/30 opacity-100 scale-95'
+                      : 'border-neutral-200 hover:border-amber-400 hover:scale-98 opacity-75 hover:opacity-100'
+                  }`}
+                  onClick={() => setLightboxIdx(idx)}
+                >
+                  <img
+                    src={img}
+                    alt={`Miniatura ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

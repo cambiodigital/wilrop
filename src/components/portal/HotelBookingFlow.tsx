@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
@@ -57,6 +57,9 @@ interface HotelBookingPayload {
   paymentMethod: string
   breakfastAdd: boolean
   lateCheckout: boolean
+  travelInsurance: boolean
+  airportTransfer: boolean
+  photoPackage: boolean
   acceptTerms: boolean
   acceptPrivacy: boolean
 }
@@ -76,6 +79,9 @@ const initialForm: HotelBookingPayload = {
   paymentMethod: '',
   breakfastAdd: false,
   lateCheckout: false,
+  travelInsurance: false,
+  airportTransfer: false,
+  photoPackage: false,
   acceptTerms: false,
   acceptPrivacy: false,
 }
@@ -144,10 +150,68 @@ export default function HotelBookingFlow({
     return Math.max(1, Math.round(diff))
   })()
 
+  const isBreakfastIncluded = useMemo(() => {
+    return room?.includes?.some((inc: string) => 
+      inc.toLowerCase().includes('desayuno')
+    ) || false
+  }, [room])
+
+  const isLateCheckoutIncluded = useMemo(() => {
+    return room?.includes?.some((inc: string) => 
+      inc.toLowerCase().includes('late') || inc.toLowerCase().includes('salida tardía')
+    ) || false
+  }, [room])
+
+  const isTransferIncluded = useMemo(() => {
+    return room?.includes?.some((inc: string) => 
+      inc.toLowerCase().includes('transfer') || inc.toLowerCase().includes('traslado')
+    ) || false
+  }, [room])
+
+  const isInsuranceIncluded = useMemo(() => {
+    return room?.includes?.some((inc: string) => 
+      inc.toLowerCase().includes('seguro')
+    ) || false
+  }, [room])
+
+  const isPhotoIncluded = useMemo(() => {
+    return room?.includes?.some((inc: string) => 
+      inc.toLowerCase().includes('foto') || inc.toLowerCase().includes('fotografía')
+    ) || false
+  }, [room])
+
+  // Sync includes to form
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      breakfastAdd: isBreakfastIncluded ? true : prev.breakfastAdd,
+      lateCheckout: isLateCheckoutIncluded ? true : prev.lateCheckout,
+      travelInsurance: isInsuranceIncluded ? true : prev.travelInsurance,
+      airportTransfer: isTransferIncluded ? true : prev.airportTransfer,
+      photoPackage: isPhotoIncluded ? true : prev.photoPackage,
+    }))
+  }, [isBreakfastIncluded, isLateCheckoutIncluded, isInsuranceIncluded, isTransferIncluded, isPhotoIncluded])
+
   const breakfastAddon = getAddon('breakfast')
   const lateCheckoutAddon = getAddon('late-checkout')
+  const travelInsuranceAddon = getAddon('travel-insurance')
+  const airportTransferAddon = getAddon('airport-transfer')
+  const photoPackageAddon = getAddon('photo-package')
+
+  const breakfastPrice = isBreakfastIncluded ? 0 : (breakfastAddon?.price ?? 0)
+  const lateCheckoutPrice = isLateCheckoutIncluded ? 0 : (lateCheckoutAddon?.price ?? 0)
+  const travelInsurancePrice = isInsuranceIncluded ? 0 : (travelInsuranceAddon?.price ?? 0)
+  const airportTransferPrice = isTransferIncluded ? 0 : (airportTransferAddon?.price ?? 0)
+  const photoPackagePrice = isPhotoIncluded ? 0 : (photoPackageAddon?.price ?? 0)
+
   const roomSubtotal = room ? room.price * nights : 0
-  const extrasTotal = (form.breakfastAdd ? (breakfastAddon?.price ?? 0) * nights : 0) + (form.lateCheckout ? (lateCheckoutAddon?.price ?? 0) : 0)
+  const extrasTotal = 
+    (form.breakfastAdd ? breakfastPrice * nights : 0) + 
+    (form.lateCheckout ? lateCheckoutPrice : 0) +
+    (form.travelInsurance ? travelInsurancePrice : 0) +
+    (form.airportTransfer ? airportTransferPrice : 0) +
+    (form.photoPackage ? photoPackagePrice : 0)
+
   const total = roomSubtotal + extrasTotal
 
   const set = (partial: Partial<HotelBookingPayload>) => setForm((prev) => ({ ...prev, ...partial }))
@@ -159,8 +223,11 @@ export default function HotelBookingFlow({
 
     try {
       const addons = [
-        form.breakfastAdd ? { type: 'breakfast', price: (breakfastAddon?.price ?? 0) * nights } : null,
-        form.lateCheckout ? { type: 'late-checkout', price: (lateCheckoutAddon?.price ?? 0) } : null,
+        form.breakfastAdd ? { type: 'breakfast', price: breakfastPrice * nights } : null,
+        form.lateCheckout ? { type: 'late-checkout', price: lateCheckoutPrice } : null,
+        form.travelInsurance ? { type: 'travel-insurance', price: travelInsurancePrice } : null,
+        form.airportTransfer ? { type: 'airport-transfer', price: airportTransferPrice } : null,
+        form.photoPackage ? { type: 'photo-package', price: photoPackagePrice } : null,
       ].filter(Boolean)
 
       const response = await fetch('/api/public/booking', {
@@ -395,22 +462,70 @@ export default function HotelBookingFlow({
                   {/* Extras */}
                   <Card className="border-neutral-200 p-6">
                     <h2 className="text-lg font-semibold text-neutral-900">Servicios Adicionales</h2>
+                    <p className="mt-1 text-sm text-neutral-500">Agrega servicios opcionales a tu estadía</p>
                     <div className="mt-5 space-y-3">
-                      <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.breakfastAdd ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'}`}>
-                        <Checkbox checked={form.breakfastAdd} onCheckedChange={(c) => set({ breakfastAdd: c === true })} />
-                        <div className="flex-1">
-                          <span className="font-medium text-neutral-900 text-sm">{breakfastAddon?.name}</span>
-                          <p className="text-xs text-neutral-500">{breakfastAddon?.description}</p>
-                        </div>
-                          <span className="text-sm font-bold text-neutral-900 whitespace-nowrap">+${formatCOP(breakfastAddon?.price ?? 0)}/noche</span>
-                      </label>
-                      <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.lateCheckout ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'}`}>
-                        <Checkbox checked={form.lateCheckout} onCheckedChange={(c) => set({ lateCheckout: c === true })} />
+                      {/* Desayuno */}
+                      {(hotel.amenities.includes('breakfast') || isBreakfastIncluded) && (
+                        <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.breakfastAdd ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isBreakfastIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
+                          <Checkbox checked={form.breakfastAdd} disabled={isBreakfastIncluded} onCheckedChange={(c) => !isBreakfastIncluded && set({ breakfastAdd: c === true })} />
+                          <div className="flex-1">
+                            <span className="font-medium text-neutral-900 text-sm">{breakfastAddon?.name}</span>
+                            <p className="text-xs text-neutral-500">{breakfastAddon?.description}</p>
+                          </div>
+                          <span className="text-sm font-bold text-neutral-900 whitespace-nowrap">
+                            {isBreakfastIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(breakfastAddon?.price ?? 0)}/noche`}
+                          </span>
+                        </label>
+                      )}
+
+                      {/* Late Check-out */}
+                      <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.lateCheckout ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isLateCheckoutIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
+                        <Checkbox checked={form.lateCheckout} disabled={isLateCheckoutIncluded} onCheckedChange={(c) => !isLateCheckoutIncluded && set({ lateCheckout: c === true })} />
                         <div className="flex-1">
                           <span className="font-medium text-neutral-900 text-sm">{lateCheckoutAddon?.name}</span>
                           <p className="text-xs text-neutral-500">{lateCheckoutAddon?.description}</p>
                         </div>
-                        <span className="text-sm font-bold text-neutral-900">+${formatCOP(lateCheckoutAddon?.price ?? 0)}</span>
+                        <span className="text-sm font-bold text-neutral-900">
+                          {isLateCheckoutIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(lateCheckoutAddon?.price ?? 0)}`}
+                        </span>
+                      </label>
+
+                      {/* Traslado Aeropuerto */}
+                      {(hotel.amenities.includes('transfer') || isTransferIncluded) && (
+                        <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.airportTransfer ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isTransferIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
+                          <Checkbox checked={form.airportTransfer} disabled={isTransferIncluded} onCheckedChange={(c) => !isTransferIncluded && set({ airportTransfer: c === true })} />
+                          <div className="flex-1">
+                            <span className="font-medium text-neutral-900 text-sm">{airportTransferAddon?.name}</span>
+                            <p className="text-xs text-neutral-500">{airportTransferAddon?.description}</p>
+                          </div>
+                          <span className="text-sm font-bold text-neutral-900">
+                            {isTransferIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(airportTransferAddon?.price ?? 0)}`}
+                          </span>
+                        </label>
+                      )}
+
+                      {/* Seguro de Viaje */}
+                      <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.travelInsurance ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isInsuranceIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
+                        <Checkbox checked={form.travelInsurance} disabled={isInsuranceIncluded} onCheckedChange={(c) => !isInsuranceIncluded && set({ travelInsurance: c === true })} />
+                        <div className="flex-1">
+                          <span className="font-medium text-neutral-900 text-sm">{travelInsuranceAddon?.name}</span>
+                          <p className="text-xs text-neutral-500">{travelInsuranceAddon?.description}</p>
+                        </div>
+                        <span className="text-sm font-bold text-neutral-900">
+                          {isInsuranceIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(travelInsuranceAddon?.price ?? 0)}`}
+                        </span>
+                      </label>
+
+                      {/* Paquete Fotográfico */}
+                      <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.photoPackage ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isPhotoIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
+                        <Checkbox checked={form.photoPackage} disabled={isPhotoIncluded} onCheckedChange={(c) => !isPhotoIncluded && set({ photoPackage: c === true })} />
+                        <div className="flex-1">
+                          <span className="font-medium text-neutral-900 text-sm">{photoPackageAddon?.name}</span>
+                          <p className="text-xs text-neutral-500">{photoPackageAddon?.description}</p>
+                        </div>
+                        <span className="text-sm font-bold text-neutral-900">
+                          {isPhotoIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(photoPackageAddon?.price ?? 0)}`}
+                        </span>
                       </label>
                     </div>
                   </Card>
@@ -470,8 +585,11 @@ export default function HotelBookingFlow({
                         <h3 className="text-sm font-semibold text-neutral-700">Resumen de Pago</h3>
                         <div className="mt-2 space-y-1.5 text-sm">
                           <div className="flex justify-between text-neutral-600"><span>{room.name} × {nights} noche{nights !== 1 ? 's' : ''}</span><span>${roomSubtotal.toLocaleString('es-CO')}</span></div>
-                          {form.breakfastAdd && <div className="flex justify-between text-neutral-600"><span>{breakfastAddon?.name}</span><span>${((breakfastAddon?.price ?? 0) * nights).toLocaleString('es-CO')}</span></div>}
-                          {form.lateCheckout && <div className="flex justify-between text-neutral-600"><span>{lateCheckoutAddon?.name}</span><span>${(lateCheckoutAddon?.price ?? 0).toLocaleString('es-CO')}</span></div>}
+                          {form.breakfastAdd && <div className="flex justify-between text-neutral-600"><span>{breakfastAddon?.name}</span><span>{isBreakfastIncluded ? 'Gratis (Incluido)' : `$${(breakfastPrice * nights).toLocaleString('es-CO')}`}</span></div>}
+                          {form.lateCheckout && <div className="flex justify-between text-neutral-600"><span>{lateCheckoutAddon?.name}</span><span>{isLateCheckoutIncluded ? 'Gratis (Incluido)' : `$${lateCheckoutPrice.toLocaleString('es-CO')}`}</span></div>}
+                          {form.airportTransfer && <div className="flex justify-between text-neutral-600"><span>{airportTransferAddon?.name}</span><span>{isTransferIncluded ? 'Gratis (Incluido)' : `$${airportTransferPrice.toLocaleString('es-CO')}`}</span></div>}
+                          {form.travelInsurance && <div className="flex justify-between text-neutral-600"><span>{travelInsuranceAddon?.name}</span><span>{isInsuranceIncluded ? 'Gratis (Incluido)' : `$${travelInsurancePrice.toLocaleString('es-CO')}`}</span></div>}
+                          {form.photoPackage && <div className="flex justify-between text-neutral-600"><span>{photoPackageAddon?.name}</span><span>{isPhotoIncluded ? 'Gratis (Incluido)' : `$${photoPackagePrice.toLocaleString('es-CO')}`}</span></div>}
                           <Separator />
                           <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                           <p className="text-xs text-neutral-500">Método: {{ card: 'Tarjeta', transfer: 'Transferencia bancaria', cash: 'Efectivo' }[form.paymentMethod] || 'No seleccionado'}</p>
@@ -529,7 +647,46 @@ export default function HotelBookingFlow({
                   <div className="flex justify-between"><span className="text-neutral-500">Habitación</span><span className="font-medium text-right text-xs max-w-[150px] truncate">{room.name}</span></div>
                   <div className="flex justify-between"><span className="text-neutral-500">Precio / noche</span><span className="font-semibold">${room.price.toLocaleString('es-CO')}</span></div>
                   <div className="flex justify-between"><span className="text-neutral-500">× {nights} noche{nights !== 1 ? 's' : ''}</span><span className="font-semibold">${roomSubtotal.toLocaleString('es-CO')}</span></div>
-                  {extrasTotal > 0 && <div className="flex justify-between"><span className="text-neutral-500">Extras</span><span className="font-semibold text-amber-600">+${extrasTotal.toLocaleString('es-CO')}</span></div>}
+                  
+                  {/* Detailed extras */}
+                  {(form.breakfastAdd || form.lateCheckout || form.airportTransfer || form.travelInsurance || form.photoPackage) && (
+                    <>
+                      <Separator className="my-2" />
+                      <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Adicionales</p>
+                      <div className="space-y-1">
+                        {form.breakfastAdd && (
+                          <div className="flex justify-between text-xs text-neutral-600">
+                            <span>{breakfastAddon?.name}</span>
+                            <span className="font-medium text-amber-600">{isBreakfastIncluded ? 'Gratis' : `+$${(breakfastPrice * nights).toLocaleString('es-CO')}`}</span>
+                          </div>
+                        )}
+                        {form.lateCheckout && (
+                          <div className="flex justify-between text-xs text-neutral-600">
+                            <span>{lateCheckoutAddon?.name}</span>
+                            <span className="font-medium text-amber-600">{isLateCheckoutIncluded ? 'Gratis' : `+$${lateCheckoutPrice.toLocaleString('es-CO')}`}</span>
+                          </div>
+                        )}
+                        {form.airportTransfer && (
+                          <div className="flex justify-between text-xs text-neutral-600">
+                            <span>{airportTransferAddon?.name}</span>
+                            <span className="font-medium text-amber-600">{isTransferIncluded ? 'Gratis' : `+$${airportTransferPrice.toLocaleString('es-CO')}`}</span>
+                          </div>
+                        )}
+                        {form.travelInsurance && (
+                          <div className="flex justify-between text-xs text-neutral-600">
+                            <span>{travelInsuranceAddon?.name}</span>
+                            <span className="font-medium text-amber-600">{isInsuranceIncluded ? 'Gratis' : `+$${travelInsurancePrice.toLocaleString('es-CO')}`}</span>
+                          </div>
+                        )}
+                        {form.photoPackage && (
+                          <div className="flex justify-between text-xs text-neutral-600">
+                            <span>{photoPackageAddon?.name}</span>
+                            <span className="font-medium text-amber-600">{isPhotoIncluded ? 'Gratis' : `+$${photoPackagePrice.toLocaleString('es-CO')}`}</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                   <Separator />
                   <div className="flex justify-between text-lg font-bold text-neutral-900"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                 </div>
