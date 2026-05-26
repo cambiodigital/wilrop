@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { formatCOP, hotelAmenities, type Hotel, type HotelRoom } from '@/data/hotels'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Wifi,
@@ -63,6 +64,9 @@ export default function HotelDetailContent({
   onBack,
   onSelectRoom,
 }: HotelDetailContentProps) {
+  const [activeImgIdx, setActiveImgIdx] = useState(0)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+
   const ratingColor =
     hotel.rating >= 9
       ? 'bg-emerald-500 text-white'
@@ -81,27 +85,95 @@ export default function HotelDetailContent({
 
   return (
     <div className="min-h-screen bg-white pt-16">
-      <div className="relative h-56 overflow-hidden sm:h-72">
-        <img src={hotel.images[0]} alt={hotel.name} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute left-5 right-5 top-5">
+      {/* Hotel Banner Carousel */}
+      <div className="relative h-64 overflow-hidden sm:h-96 group bg-neutral-900 shadow-inner">
+        {hotel.images && hotel.images.length > 0 ? (
+          <>
+            <img
+              src={hotel.images[activeImgIdx]}
+              alt={`${hotel.name} - Imagen ${activeImgIdx + 1}`}
+              className="h-full w-full object-cover opacity-90 transition-opacity duration-300"
+            />
+            {hotel.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveImgIdx((prev) => (prev - 1 + hotel.images.length) % hotel.images.length)
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 hover:bg-black/65 p-2 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-xs shadow-md z-10"
+                  aria-label="Anterior"
+                >
+                  <ChevronLeft className="size-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveImgIdx((prev) => (prev + 1) % hotel.images.length)
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 hover:bg-black/65 p-2 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-xs shadow-md z-10"
+                  aria-label="Siguiente"
+                >
+                  <ChevronRight className="size-6" />
+                </button>
+
+                {/* Dot Indicators */}
+                <div className="absolute bottom-4 left-5 flex gap-1.5 z-10">
+                  {hotel.images.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImgIdx(idx)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        idx === activeImgIdx ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/85'
+                      }`}
+                      aria-label={`Ir a imagen ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* View Photos Trigger */}
+                <button
+                  onClick={() => setIsLightboxOpen(true)}
+                  className="absolute bottom-4 right-5 z-10 flex items-center gap-1.5 rounded-lg bg-black/65 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/80 transition-colors cursor-pointer backdrop-blur-xs shadow-md border border-white/10"
+                >
+                  <ImageIcon className="size-3.5" />
+                  Ver fotos ({hotel.images.length})
+                </button>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
+            <ImageIcon className="size-12 stroke-1" />
+          </div>
+        )}
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent pointer-events-none" />
+
+        {/* Back Button */}
+        <div className="absolute left-5 right-5 top-5 z-10">
           {onBack ? (
             <Button
               variant="ghost"
               onClick={onBack}
-              className="text-white/85 hover:bg-white/10 hover:text-white"
+              className="text-white/90 hover:bg-white/10 hover:text-white backdrop-blur-xs bg-black/25 shadow-xs border border-white/5"
             >
               <ArrowLeft className="mr-2 size-4" />
               Volver a hoteles
             </Button>
           ) : null}
         </div>
-        <div className="absolute bottom-4 left-5 right-5">
+
+        {/* Floating Rating Badge */}
+        <div className="absolute bottom-4 left-5 right-5 flex justify-end pointer-events-none z-10">
           <div className="mb-1 flex items-center gap-2">
-            <div className={`flex items-center justify-center rounded-lg px-2.5 py-1 text-sm font-bold ${ratingColor}`}>
+            <div className={`flex items-center justify-center rounded-lg px-2.5 py-1 text-sm font-bold shadow-sm ${ratingColor}`}>
               {hotel.rating.toFixed(1)}
             </div>
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-semibold text-white drop-shadow-md">
               {ratingLabel} ({hotel.reviewCount} reseñas)
             </span>
           </div>
@@ -202,6 +274,39 @@ export default function HotelDetailContent({
           </div>
         </div>
       </div>
+
+      {/* Lightbox Dialog */}
+      <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle>Galería de fotos - {hotel.name}</DialogTitle>
+            <DialogDescription>
+              {hotel.images.length} imágenes disponibles para este hotel.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+            {hotel.images.map((img, idx) => (
+              <div
+                key={idx}
+                className="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 aspect-video group cursor-pointer shadow-xs hover:border-amber-400 hover:shadow-md transition-all duration-300"
+                onClick={() => {
+                  setActiveImgIdx(idx)
+                  setIsLightboxOpen(false)
+                }}
+              >
+                <img
+                  src={img}
+                  alt={`Imagen ${idx + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
+                  Foto {idx + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -215,6 +320,7 @@ interface RoomCardProps {
 
 function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
   const [currentImgIdx, setCurrentImgIdx] = useState(0)
+  const [isRoomLightboxOpen, setIsRoomLightboxOpen] = useState(false)
 
   const images = room.roomImages && Array.isArray(room.roomImages) && room.roomImages.length > 0
     ? room.roomImages
@@ -246,14 +352,15 @@ function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
             <img
               src={images[currentImgIdx]}
               alt={`${room.name} - Imagen ${currentImgIdx + 1}`}
-              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105 cursor-pointer"
+              onClick={() => setIsRoomLightboxOpen(true)}
             />
             {images.length > 1 && (
               <>
                 <button
                   type="button"
                   onClick={prevImage}
-                  className="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 cursor-pointer"
+                  className="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-100 md:opacity-0 md:transition-opacity md:hover:bg-black/60 md:group-hover:opacity-100 cursor-pointer z-10"
                   aria-label="Imagen anterior"
                 >
                   <ChevronLeft className="size-4" />
@@ -261,7 +368,7 @@ function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
                 <button
                   type="button"
                   onClick={nextImage}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-100 md:opacity-0 md:transition-opacity md:hover:bg-black/60 md:group-hover:opacity-100 cursor-pointer z-10"
                   aria-label="Siguiente imagen"
                 >
                   <ChevronRight className="size-4" />
@@ -350,6 +457,35 @@ function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Room Lightbox Dialog */}
+      <Dialog open={isRoomLightboxOpen} onOpenChange={setIsRoomLightboxOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle>Imágenes de {room.name}</DialogTitle>
+            <DialogDescription>
+              {images.length} fotos disponibles para esta habitación.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+            {images.map((img, idx) => (
+              <div
+                key={idx}
+                className="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 aspect-video group cursor-pointer shadow-xs hover:border-amber-400 hover:shadow-md transition-all duration-300"
+              >
+                <img
+                  src={img}
+                  alt={`Foto ${idx + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
+                  Foto {idx + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

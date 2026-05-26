@@ -10,6 +10,7 @@ export interface AdminHotelRoom {
   includes: string[];
   available: number;
   roomImage: string;
+  roomImages?: string[];
 }
 
 export interface AdminHotelPayload {

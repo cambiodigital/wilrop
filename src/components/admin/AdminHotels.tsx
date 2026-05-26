@@ -341,6 +341,88 @@ function ImageUpload({
 
 
 
+function TagInput({
+  tags,
+  onChange,
+  placeholder = 'Agregar...',
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  placeholder?: string;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const addTag = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+      setInputValue('');
+    }
+  };
+
+  const removeTag = (index: number) => {
+    onChange(tags.filter((_, i) => i !== index));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+    if (e.key === 'Backspace' && inputValue === '' && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="flex-1 text-sm h-8"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addTag}
+          disabled={!inputValue.trim()}
+          className="shrink-0 h-8"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Agregar
+        </Button>
+      </div>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag, idx) => (
+            <Badge
+              key={idx}
+              variant="secondary"
+              className="pl-2 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground hover:bg-accent"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(idx)}
+                className="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+      {tags.length === 0 && (
+        <p className="text-xs text-muted-foreground">Presiona Enter para agregar</p>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────
 
 export default function AdminHotels() {
@@ -367,7 +449,7 @@ export default function AdminHotels() {
     beds: '1 cama doble',
     basePrice: 0,
     originalPrice: 0,
-    includes: '',
+    includes: [] as string[],
     roomImage: '',
     roomImages: [] as string[],
     active: true,
@@ -457,7 +539,7 @@ export default function AdminHotels() {
     setShowRoomTypeForm(false);
     setRoomTypeForm({
       name: '', maxGuests: 2, beds: '1 cama doble', basePrice: 0,
-      originalPrice: 0, includes: '', roomImage: '', roomImages: [], active: true,
+      originalPrice: 0, includes: [] as string[], roomImage: '', roomImages: [], active: true,
     });
     setRoomImageUrlInput('');
   };
@@ -582,7 +664,7 @@ export default function AdminHotels() {
           beds: roomTypeForm.beds,
           basePrice: roomTypeForm.basePrice,
           originalPrice: roomTypeForm.originalPrice,
-          includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
+          includes: roomTypeForm.includes,
           roomImage: roomTypeForm.roomImage,
           roomImages: roomTypeForm.roomImages,
           active: roomTypeForm.active,
@@ -618,7 +700,7 @@ export default function AdminHotels() {
           beds: roomTypeForm.beds,
           basePrice: roomTypeForm.basePrice,
           originalPrice: roomTypeForm.originalPrice,
-          includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
+          includes: roomTypeForm.includes,
           roomImage: roomTypeForm.roomImage,
           roomImages: roomTypeForm.roomImages,
           active: roomTypeForm.active,
@@ -669,7 +751,7 @@ export default function AdminHotels() {
       beds: rt.beds,
       basePrice: rt.basePrice,
       originalPrice: rt.originalPrice,
-      includes: formatRoomTypeIncludesForForm(rt.includes),
+      includes: parseRoomTypeIncludes(rt.includes),
       roomImage: rt.roomImage,
       roomImages: initialRoomImages,
       active: rt.active,
@@ -1057,7 +1139,7 @@ export default function AdminHotels() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent topAligned className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Hotel' : 'Nuevo Hotel'}
@@ -1585,12 +1667,11 @@ export default function AdminHotels() {
                             </div>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Servicios (separados por coma)</Label>
-                            <Input
-                              value={roomTypeForm.includes}
-                              onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, includes: e.target.value }))}
-                              placeholder="Wi-Fi, Aire acondicionado, Desayuno incluido"
-                              className="text-sm h-8"
+                            <Label className="text-xs">Servicios / Qué incluye</Label>
+                            <TagInput
+                              tags={roomTypeForm.includes}
+                              onChange={(tags) => setRoomTypeForm((prev) => ({ ...prev, includes: tags }))}
+                              placeholder="Wi-Fi, Aire acondicionado, Desayuno incluido..."
                             />
                           </div>
                           <div className="space-y-3 pt-1">
