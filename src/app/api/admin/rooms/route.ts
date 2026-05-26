@@ -13,6 +13,7 @@ function formatRoom(room: any) {
   return {
     ...room,
     includes: safeJsonParse<string[]>(room.includes, []),
+    roomImages: safeJsonParse<string[]>(room.roomImages, []),
   };
 }
 

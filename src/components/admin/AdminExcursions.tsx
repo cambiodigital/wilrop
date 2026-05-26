@@ -587,7 +587,7 @@ export default function AdminExcursions() {
 
       {/* ═══ CREATE / EDIT DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Excursión' : 'Nueva Excursión'}

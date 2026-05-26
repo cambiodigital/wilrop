@@ -88,6 +88,7 @@ interface HotelRoom {
   includes: string[];
   available: number;
   roomImage: string;
+  roomImages?: string[];
 }
 
 interface Hotel {
@@ -121,43 +122,11 @@ interface RoomTypeRow {
   originalPrice: number;
   includes: string;
   roomImage: string;
+  roomImages?: string[];
   active: boolean;
 }
 
-// ─── Default Room Template ───────────────────────────────────────
-
-const DEFAULT_ROOM: HotelRoom = {
-  id: 'room-default',
-  name: 'Habitación Estándar',
-  maxGuests: 2,
-  beds: '1 cama doble',
-  price: 0,
-  originalPrice: 0,
-  includes: ['Wi-Fi', 'Aire acondicionado'],
-  available: 1,
-  roomImage: '',
-};
-
-function createDefaultRoom(index: number): HotelRoom {
-  return {
-    ...DEFAULT_ROOM,
-    id: `room-new-${Date.now()}-${index}`,
-  };
-}
-
-function sanitizeRoom(room: Partial<HotelRoom>): HotelRoom {
-  return {
-    id: room.id || `room-${Date.now()}`,
-    name: room.name || 'Habitación Estándar',
-    maxGuests: Number(room.maxGuests) || 2,
-    beds: room.beds || '1 cama doble',
-    price: Number(room.price) || 0,
-    originalPrice: Number(room.originalPrice) || 0,
-    includes: Array.isArray(room.includes) ? room.includes : ['Wi-Fi'],
-    available: Number(room.available) || 1,
-    roomImage: room.roomImage || '',
-  };
-}
+// ─── Helpers ─────────────────────────────────────────────────────
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -210,92 +179,7 @@ function StarRating({ count }: { count: number }) {
   );
 }
 
-// ─── Tag Input Component ────────────────────────────────────────
 
-function TagInput({
-  tags,
-  onChange,
-  placeholder = 'Agregar servicio...',
-}: {
-  tags: string[];
-  onChange: (tags: string[]) => void;
-  placeholder?: string;
-}) {
-  const [inputValue, setInputValue] = useState('');
-
-  const addTag = () => {
-    const trimmed = inputValue.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      onChange([...tags, trimmed]);
-      setInputValue('');
-    }
-  };
-
-  const removeTag = (index: number) => {
-    onChange(tags.filter((_, i) => i !== index));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTag();
-    }
-    if (e.key === 'Backspace' && inputValue === '' && tags.length > 0) {
-      removeTag(tags.length - 1);
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className="flex-1"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addTag}
-          disabled={!inputValue.trim()}
-          className="shrink-0"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Agregar
-        </Button>
-      </div>
-      {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {tags.map((tag, idx) => (
-            <Badge
-              key={idx}
-              variant="secondary"
-              className="pl-2 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground hover:bg-accent"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => removeTag(idx)}
-                className="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
-                aria-label={`Eliminar ${tag}`}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
-      {tags.length === 0 && (
-        <p className="text-xs text-muted-foreground">
-          Presiona Enter para agregar un servicio
-        </p>
-      )}
-    </div>
-  );
-}
 
 // ─── Image Upload Component ──────────────────────────────────────
 
@@ -455,178 +339,7 @@ function ImageUpload({
   );
 }
 
-// ─── Room Editor Card Component ──────────────────────────────────
 
-function RoomEditorCard({
-  room,
-  index,
-  onUpdate,
-  onRemove,
-  canRemove,
-}: {
-  room: HotelRoom;
-  index: number;
-  onUpdate: (updated: HotelRoom) => void;
-  onRemove: () => void;
-  canRemove: boolean;
-}) {
-  const [expanded, setExpanded] = useState(true);
-
-  const updateField = <K extends keyof HotelRoom>(key: K, value: HotelRoom[K]) => {
-    onUpdate({ ...room, [key]: value });
-  };
-
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="p-4 pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <BedDouble className="w-4 h-4 text-primary" />
-            Habitación {index + 1}
-            {room.name !== 'Habitación Estándar' && (
-              <span className="text-xs text-muted-foreground font-normal">
-                — {room.name}
-              </span>
-            )}
-          </CardTitle>
-          <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setExpanded(!expanded)}
-            >
-              {expanded ? (
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              )}
-            </Button>
-            {canRemove && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                onClick={onRemove}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-
-      {expanded && (
-        <CardContent className="p-4 pt-0 space-y-4">
-          {/* Room Image */}
-          <ImageUpload
-            value={room.roomImage}
-            onChange={(url) => updateField('roomImage', url)}
-            label="Imagen de la habitación"
-          />
-
-          <Separator />
-
-          {/* Room Name & Beds */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="label-muted">Nombre de la habitación</Label>
-              <Input
-                value={room.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="Habitación Doble Deluxe"
-                className="text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="label-muted">Camas</Label>
-              <Input
-                value={room.beds}
-                onChange={(e) => updateField('beds', e.target.value)}
-                placeholder="1 cama king"
-                className="text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Max Guests & Available */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="label-muted flex items-center gap-1">
-                <Users className="w-3 h-3" /> Max. Huéspedes
-              </Label>
-              <Input
-                type="number"
-                min="1"
-                max="10"
-                value={room.maxGuests}
-                onChange={(e) => updateField('maxGuests', Number(e.target.value))}
-                className="text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="label-muted">Disponibles</Label>
-              <Input
-                type="number"
-                min="0"
-                value={room.available}
-                onChange={(e) => updateField('available', Number(e.target.value))}
-                className="text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Prices */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="label-muted flex items-center gap-1">
-                <DollarSign className="w-3 h-3" /> Precio (COP)
-              </Label>
-              <Input
-                type="number"
-                min="0"
-                value={room.price}
-                onChange={(e) => updateField('price', Number(e.target.value))}
-                placeholder="720000"
-                className="text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="label-muted">Precio Original (COP)</Label>
-              <Input
-                type="number"
-                min="0"
-                value={room.originalPrice || ''}
-                onChange={(e) =>
-                  updateField(
-                    'originalPrice',
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                placeholder="850000 (opcional)"
-                className="text-sm"
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Includes (Tags) */}
-          <div className="space-y-1.5">
-            <Label className="label-muted">Servicios incluidos</Label>
-            <TagInput
-              tags={room.includes}
-              onChange={(includes) => updateField('includes', includes)}
-              placeholder="Ej: Desayuno, Wi-Fi, Minibar..."
-            />
-          </div>
-        </CardContent>
-      )}
-    </Card>
-  );
-}
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -656,11 +369,19 @@ export default function AdminHotels() {
     originalPrice: 0,
     includes: '',
     roomImage: '',
+    roomImages: [] as string[],
     active: true,
   });
   const [savingRoomType, setSavingRoomType] = useState(false);
   const [roomTypeDeleteId, setRoomTypeDeleteId] = useState<string | null>(null);
   const [showRoomTypeForm, setShowRoomTypeForm] = useState(false);
+
+  // ── RoomType Image Upload state ──
+  const [roomImgUploading, setRoomImgUploading] = useState(false);
+  const [roomImgDragOver, setRoomImgDragOver] = useState(false);
+  const [draggedRoomImgIdx, setDraggedRoomImgIdx] = useState<number | null>(null);
+  const [roomImageUrlInput, setRoomImageUrlInput] = useState('');
+  const roomImagesInputRef = useRef<HTMLInputElement>(null);
 
   // ── Images state ──
   const [imagesUploading, setImagesUploading] = useState(false);
@@ -736,8 +457,113 @@ export default function AdminHotels() {
     setShowRoomTypeForm(false);
     setRoomTypeForm({
       name: '', maxGuests: 2, beds: '1 cama doble', basePrice: 0,
-      originalPrice: 0, includes: '', roomImage: '', active: true,
+      originalPrice: 0, includes: '', roomImage: '', roomImages: [], active: true,
     });
+    setRoomImageUrlInput('');
+  };
+
+  // ── Room Image Upload Handlers ──
+  const handleRoomImgUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar los 5 MB');
+      return;
+    }
+
+    setRoomImgUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'rooms');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      const data = await res.json();
+      setRoomTypeForm((prev) => {
+        const nextImages = [...prev.roomImages, data.url];
+        return {
+          ...prev,
+          roomImages: nextImages,
+          roomImage: prev.roomImage || data.url,
+        };
+      });
+      toast.success('Imagen subida correctamente');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir';
+      toast.error(msg);
+    } finally {
+      setRoomImgUploading(false);
+    }
+  };
+
+  const handleRoomImgDropZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    setRoomImgDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleRoomImgUpload(file);
+  };
+
+  const handleRoomImgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleRoomImgUpload(file);
+  };
+
+  const handleRoomImgDragStart = (e: React.DragEvent, idx: number) => {
+    setDraggedRoomImgIdx(idx);
+    e.dataTransfer.setData('text/plain', idx.toString());
+  };
+
+  const handleRoomImgDrop = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    if (draggedRoomImgIdx === null) return;
+    const newImages = [...roomTypeForm.roomImages];
+    const [draggedItem] = newImages.splice(draggedRoomImgIdx, 1);
+    newImages.splice(targetIdx, 0, draggedItem);
+    setRoomTypeForm((prev) => {
+      const nextImages = newImages;
+      return {
+        ...prev,
+        roomImages: nextImages,
+        roomImage: nextImages[0] || '',
+      };
+    });
+    setDraggedRoomImgIdx(null);
+  };
+
+  const removeRoomImg = (idx: number) => {
+    setRoomTypeForm((prev) => {
+      const nextImages = prev.roomImages.filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        roomImages: nextImages,
+        roomImage: prev.roomImage === prev.roomImages[idx] ? (nextImages[0] || '') : prev.roomImage,
+      };
+    });
+  };
+
+  const addRoomImgByUrl = () => {
+    if (!roomImageUrlInput.trim()) return;
+    setRoomTypeForm((prev) => {
+      const nextImages = [...prev.roomImages, roomImageUrlInput.trim()];
+      return {
+        ...prev,
+        roomImages: nextImages,
+        roomImage: prev.roomImage || roomImageUrlInput.trim(),
+      };
+    });
+    setRoomImageUrlInput('');
+    toast.success('Imagen agregada por URL');
   };
 
   const handleCreateRoomType = async () => {
@@ -758,6 +584,7 @@ export default function AdminHotels() {
           originalPrice: roomTypeForm.originalPrice,
           includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
           roomImage: roomTypeForm.roomImage,
+          roomImages: roomTypeForm.roomImages,
           active: roomTypeForm.active,
         }),
       });
@@ -793,6 +620,7 @@ export default function AdminHotels() {
           originalPrice: roomTypeForm.originalPrice,
           includes: parseRoomTypeIncludesFromForm(roomTypeForm.includes),
           roomImage: roomTypeForm.roomImage,
+          roomImages: roomTypeForm.roomImages,
           active: roomTypeForm.active,
         }),
       });
@@ -826,21 +654,15 @@ export default function AdminHotels() {
     }
   };
 
-  const handleSyncRoomTypesCache = () => {
-    if (roomTypes.length === 0) {
-      toast.error('No hay RoomTypes para sincronizar. Crea al menos uno primero.');
-      return;
-    }
-    const synced = syncRoomTypesToHotelRooms(roomTypes);
-    setForm((prev) => ({ ...prev, rooms: synced }));
-    toast.success(
-      `${synced.length} RoomType(s) sincronizado(s) al caché JSON de habitaciones.`
-    );
-  };
 
   const openEditRoomType = (rt: RoomTypeRow) => {
     setEditingRoomTypeId(rt.id);
     setShowRoomTypeForm(true);
+    const initialRoomImages = rt.roomImages && rt.roomImages.length > 0
+      ? rt.roomImages
+      : rt.roomImage
+        ? [rt.roomImage]
+        : [];
     setRoomTypeForm({
       name: rt.name,
       maxGuests: rt.maxGuests,
@@ -849,6 +671,7 @@ export default function AdminHotels() {
       originalPrice: rt.originalPrice,
       includes: formatRoomTypeIncludesForForm(rt.includes),
       roomImage: rt.roomImage,
+      roomImages: initialRoomImages,
       active: rt.active,
     });
   };
@@ -860,17 +683,12 @@ export default function AdminHotels() {
   // ── Ensure rooms are always sanitized on open ──
   const handleOpenCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyHotel, rooms: [createDefaultRoom(0)] });
+    setForm({ ...emptyHotel, rooms: [] });
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (hotel: Hotel) => {
     setEditingId(hotel.id);
-    // Sanitize rooms: ensure each room has all required fields
-    const safeRooms =
-      Array.isArray(hotel.rooms) && hotel.rooms.length > 0
-        ? hotel.rooms.map((r) => sanitizeRoom(r))
-        : [createDefaultRoom(0)];
     setForm({
       name: hotel.name,
       slug: hotel.slug,
@@ -882,7 +700,7 @@ export default function AdminHotels() {
       description: hotel.description,
       images: hotel.images,
       amenities: hotel.amenities,
-      rooms: safeRooms,
+      rooms: hotel.rooms || [],
       rating: hotel.rating,
       reviewCount: hotel.reviewCount,
       priceFrom: hotel.priceFrom,
@@ -913,7 +731,7 @@ export default function AdminHotels() {
       const roomsPayload =
         activeRoomTypes.length > 0
           ? syncRoomTypesToHotelRooms(activeRoomTypes)
-          : form.rooms;
+          : [];
 
       const payload = {
         ...form,
@@ -1084,38 +902,7 @@ export default function AdminHotels() {
     createCtaLabel: 'Crear destino',
   });
 
-  // ── Room management helpers ──
-  const addRoom = () => {
-    const newRoom = createDefaultRoom(form.rooms.length);
-    setForm((prev) => ({ ...prev, rooms: [...prev.rooms, newRoom] }));
-  };
 
-  const updateRoom = (index: number, updated: HotelRoom) => {
-    setForm((prev) => {
-      const rooms = [...prev.rooms];
-      rooms[index] = updated;
-      return { ...prev, rooms };
-    });
-  };
-
-  const removeRoom = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      rooms: prev.rooms.filter((_, i) => i !== index),
-    }));
-  };
-
-  const duplicateRoom = (index: number) => {
-    const source = form.rooms[index];
-    const copy: HotelRoom = {
-      ...sanitizeRoom(source),
-      id: generateId(),
-      name: `${source.name} (copia)`,
-    };
-    const rooms = [...form.rooms];
-    rooms.splice(index + 1, 0, copy);
-    setForm((prev) => ({ ...prev, rooms }));
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -1270,7 +1057,7 @@ export default function AdminHotels() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Hotel' : 'Nuevo Hotel'}
@@ -1294,11 +1081,8 @@ export default function AdminHotels() {
                 Servicios
               </TabsTrigger>
               <TabsTrigger value="rooms" className="flex-1">
+                <BedDouble className="w-3.5 h-3.5 mr-1" />
                 Habitaciones
-              </TabsTrigger>
-              <TabsTrigger value="roomtypes" className="flex-1">
-                <Database className="w-3.5 h-3.5 mr-1" />
-                RoomTypes
               </TabsTrigger>
               <TabsTrigger value="extra" className="flex-1">
                 Extra
@@ -1680,133 +1464,46 @@ export default function AdminHotels() {
               </div>
             </TabsContent>
 
-            {/* ─── ROOMS TAB (Dynamic Form — JSON Cache / Legado) ─── */}
+            {/* ─── ROOMS TAB (Relational, primary source) ─── */}
             <TabsContent value="rooms" className="space-y-4 mt-4">
-              <div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs text-amber-800 dark:text-amber-200 space-y-1">
-                <p className="font-medium">⚠️ Caché JSON — compatibilidad</p>
-                <p>
-                  Esta pestaña gestiona el campo <code>Hotel.rooms</code> (JSON).
-                  La fuente primaria de habitaciones son los{' '}
-                  <strong>RoomTypes relacionales</strong> en la pestaña contigua.
-                  Edita aquí solo si necesitas ajustar la caché manualmente.
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Habitaciones del hotel
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {form.rooms.length} habitación
-                    {form.rooms.length !== 1 ? 'es' : ''} configurada
-                    {form.rooms.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addRoom}
-                >
-                  <Plus className="w-4 h-4 mr-1.5" />
-                  Agregar habitación
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {form.rooms.map((room, idx) => (
-                  <RoomEditorCard
-                    key={room.id}
-                    room={room}
-                    index={idx}
-                    onUpdate={(updated) => updateRoom(idx, updated)}
-                    onRemove={() => removeRoom(idx)}
-                    canRemove={form.rooms.length > 1}
-                  />
-                ))}
-              </div>
-
-              {form.rooms.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No hay habitaciones configuradas</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addRoom}
-                    className="mt-3"
-                  >
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Agregar primera habitación
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* ─── ROOMTYPES TAB (Relational, primary source) ─── */}
-            <TabsContent value="roomtypes" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                    <Database className="w-4 h-4 text-primary" />
-                    RoomTypes del hotel
+                    <BedDouble className="w-4 h-4 text-primary" />
+                    Habitaciones del hotel
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {editingId
-                      ? `${roomTypes.length} RoomType(s) en base de datos — fuente primaria de habitaciones`
-                      : 'Guarda el hotel primero para gestionar RoomTypes'}
+                      ? `${roomTypes.length} habitación(es) registradas en el sistema`
+                      : 'Guarda el hotel primero para gestionar las habitaciones'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   {editingId && (
-                    <>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSyncRoomTypesCache}
-                        disabled={roomTypes.length === 0}
-                        title="Derivar caché JSON de habitaciones desde RoomTypes"
-                      >
-                        <ArrowRightLeft className="w-3.5 h-3.5 mr-1" />
-                        Sincronizar caché
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          resetRoomTypeForm();
-                          setShowRoomTypeForm(true);
-                        }}
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Nuevo RoomType
-                      </Button>
-                    </>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        resetRoomTypeForm();
+                        setShowRoomTypeForm(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Nueva habitación
+                    </Button>
                   )}
                 </div>
               </div>
 
-              {/* Info banner */}
-              <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
-                <p className="font-medium text-foreground/80">Modelo relacional — fuente primaria</p>
-                <p>
-                  Los <strong>RoomTypes</strong> se guardan como filas reales en la base de datos y
-                  son la fuente autoritativa para allotments, paquetes y precios.
-                </p>
-                <p>
-                  La pestaña <strong>Habitaciones</strong> gestiona el campo JSON{' '}
-                  <code>Hotel.rooms</code> que funciona como caché de compatibilidad.
-                  Usa &ldquo;Sincronizar caché&rdquo; para mantener ambos en consistencia.
-                </p>
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                Define las habitaciones y sus precios. Los cambios y la disponibilidad se sincronizan automáticamente.
               </div>
 
               {!editingId ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Guarda el hotel primero para gestionar RoomTypes</p>
+                  <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Guarda el hotel primero para gestionar las habitaciones</p>
                 </div>
               ) : roomTypesLoading ? (
                 <div className="space-y-2">
@@ -1821,13 +1518,13 @@ export default function AdminHotels() {
                     <Card className="border-primary/30">
                         <CardHeader className="p-3 pb-1">
                           <CardTitle className="text-sm font-semibold">
-                            {editingRoomTypeId ? 'Editar RoomType' : 'Nuevo RoomType'}
+                            {editingRoomTypeId ? 'Editar Habitación' : 'Nueva Habitación'}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-3 pt-1 space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Nombre</Label>
+                              <Label className="text-xs label-required">Nombre de la habitación</Label>
                               <Input
                                 value={roomTypeForm.name}
                                 onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -1840,7 +1537,7 @@ export default function AdminHotels() {
                               <Input
                                 value={roomTypeForm.beds}
                                 onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, beds: e.target.value }))}
-                                placeholder="1 cama king"
+                                placeholder="1 cama king o 2 camas dobles"
                                 className="text-sm h-8"
                               />
                             </div>
@@ -1860,7 +1557,7 @@ export default function AdminHotels() {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Precio (COP)</Label>
+                              <Label className="text-xs label-required">Precio Base (COP)</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1872,7 +1569,7 @@ export default function AdminHotels() {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Precio Orig.</Label>
+                              <Label className="text-xs">Precio Original (COP)</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1892,9 +1589,153 @@ export default function AdminHotels() {
                             <Input
                               value={roomTypeForm.includes}
                               onChange={(e) => setRoomTypeForm((prev) => ({ ...prev, includes: e.target.value }))}
-                              placeholder="Wi-Fi, Aire acondicionado, Desayuno"
+                              placeholder="Wi-Fi, Aire acondicionado, Desayuno incluido"
                               className="text-sm h-8"
                             />
+                          </div>
+                          <div className="space-y-3 pt-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="text-xs font-semibold">Fotos de la habitación</Label>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {roomTypeForm.roomImages.length} foto(s) subida(s) · Arrastra para ordenar
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs px-2"
+                                onClick={() => roomImagesInputRef.current?.click()}
+                              >
+                                <Upload className="w-3 h-3 mr-1" />
+                                Subir foto
+                              </Button>
+                            </div>
+
+                            {/* Drop Zone */}
+                            <div
+                              onDrop={handleRoomImgDropZone}
+                              onDragOver={(e) => { e.preventDefault(); setRoomImgDragOver(true); }}
+                              onDragLeave={() => setRoomImgDragOver(false)}
+                              onClick={() => roomImagesInputRef.current?.click()}
+                              className={cn(
+                                'border border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors',
+                                roomImgDragOver
+                                  ? 'border-ring bg-accent'
+                                  : 'border-border hover:border-ring/60 hover:bg-accent/30',
+                                roomImgUploading && 'pointer-events-none opacity-60'
+                              )}
+                            >
+                              {roomImgUploading ? (
+                                <div className="space-y-1">
+                                  <div className="animate-spin w-4 h-4 border-2 border-ring border-t-transparent rounded-full mx-auto" />
+                                  <p className="text-xs text-muted-foreground">Subiendo...</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-1">
+                                  <ImagePlus className="w-6 h-6 text-muted-foreground mx-auto" />
+                                  <p className="text-xs text-muted-foreground">
+                                    Arrastra imágenes aquí o <span className="text-primary font-medium font-semibold">haz clic</span>
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              ref={roomImagesInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleRoomImgFileChange}
+                              className="hidden"
+                            />
+
+                            {/* Images Grid */}
+                            {roomTypeForm.roomImages.length > 0 && (
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {roomTypeForm.roomImages.map((img, idx) => (
+                                  <div
+                                    key={`${img}-${idx}`}
+                                    draggable
+                                    onDragStart={(e) => handleRoomImgDragStart(e, idx)}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={(e) => handleRoomImgDrop(e, idx)}
+                                    className={cn(
+                                      'relative group rounded-md overflow-hidden border border-border transition-all bg-muted/20',
+                                      'hover:shadow-xs hover:border-ring/40',
+                                      draggedRoomImgIdx === idx && 'opacity-50 ring-1 ring-ring'
+                                    )}
+                                  >
+                                    <img
+                                      src={img}
+                                      alt={`Foto ${idx + 1}`}
+                                      className="w-full h-20 object-cover"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '';
+                                        (e.target as HTMLImageElement).alt = 'No disponible';
+                                        (e.target as HTMLImageElement).className = 'w-full h-20 bg-muted flex items-center justify-center text-[10px]';
+                                      }}
+                                    />
+                                    {/* Grip indicator and index */}
+                                    <div className="absolute top-1 left-1 bg-black/60 text-white text-[9px] font-medium rounded-sm px-1 py-0.2 flex items-center gap-0.5 pointer-events-none">
+                                      <GripVertical className="w-2.5 h-2.5" />
+                                      {idx + 1}
+                                    </div>
+                                    {/* Cover photo indicator */}
+                                    {roomTypeForm.roomImage === img && (
+                                      <div className="absolute bottom-1 left-1 bg-amber-500 text-white text-[8px] font-bold rounded-sm px-1 py-0.2">
+                                        Portada
+                                      </div>
+                                    )}
+                                    {/* Remove button */}
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="destructive"
+                                      className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeRoomImg(idx);
+                                      }}
+                                    >
+                                      <X className="w-2.5 h-2.5" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Add by URL */}
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Link2 className="w-2.5 h-2.5" />
+                                Agregar foto por URL
+                              </Label>
+                              <div className="flex gap-1.5">
+                                <Input
+                                  value={roomImageUrlInput}
+                                  onChange={(e) => setRoomImageUrlInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addRoomImgByUrl();
+                                    }
+                                  }}
+                                  placeholder="https://ejemplo.com/room.jpg"
+                                  className="flex-1 text-xs h-7"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={addRoomImgByUrl}
+                                  disabled={!roomImageUrlInput.trim()}
+                                  className="shrink-0 h-7 text-xs px-2"
+                                >
+                                  <Plus className="w-3 h-3 mr-0.5" />
+                                  Agregar
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
@@ -1940,9 +1781,9 @@ export default function AdminHotels() {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="text-xs">Nombre</TableHead>
-                          <TableHead className="text-xs">Tipo</TableHead>
-                          <TableHead className="text-xs">Cap.</TableHead>
-                          <TableHead className="text-xs">Precio</TableHead>
+                          <TableHead className="text-xs">Camas</TableHead>
+                          <TableHead className="text-xs">Capacidad</TableHead>
+                          <TableHead className="text-xs">Precio Base</TableHead>
                           <TableHead className="text-xs">Estado</TableHead>
                           <TableHead className="text-xs text-right">Acciones</TableHead>
                         </TableRow>
@@ -1990,10 +1831,10 @@ export default function AdminHotels() {
                   )}
 
                   {roomTypes.length === 0 && !editingRoomTypeId && (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Database className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm">No hay RoomTypes registrados para este hotel</p>
-                      <p className="text-xs mt-1">Crea un RoomType para empezar a usar el modelo relacional</p>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">No hay habitaciones registradas para este hotel</p>
+                      <p className="text-xs mt-1">Crea una habitación para configurar precios y disponibilidad</p>
                     </div>
                   )}
                 </>

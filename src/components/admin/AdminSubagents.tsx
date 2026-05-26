@@ -537,7 +537,7 @@ export default function AdminSubagents() {
 
       {/* ═══ CREATE / EDIT DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Subagente' : 'Nuevo Subagente'}

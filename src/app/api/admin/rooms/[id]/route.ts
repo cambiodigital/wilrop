@@ -13,8 +13,38 @@ function formatRoom(room: any) {
   return {
     ...room,
     includes: safeJsonParse<string[]>(room.includes, []),
+    roomImages: safeJsonParse<string[]>(room.roomImages, []),
   };
 }
+
+async function syncHotelRoomsCache(hotelId: string) {
+  const roomTypes = await db.roomType.findMany({
+    where: { hotelId },
+  });
+
+  const formattedRooms = roomTypes
+    .filter((rt) => rt.active)
+    .map((rt) => ({
+      id: rt.id,
+      name: rt.name,
+      maxGuests: rt.maxGuests,
+      beds: rt.beds,
+      price: rt.basePrice,
+      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
+      includes: safeJsonParse<string[]>(rt.includes, []),
+      available: 1,
+      roomImage: rt.roomImage,
+      roomImages: safeJsonParse<string[]>(rt.roomImages, []),
+    }));
+
+  await db.hotel.update({
+    where: { id: hotelId },
+    data: {
+      rooms: JSON.stringify(formattedRooms),
+    },
+  });
+}
+
 
 // POST: Create a room for a hotel. The [id] param is the hotelId.
 export async function POST(
@@ -41,8 +71,12 @@ export async function POST(
       originalPrice,
       includes,
       roomImage,
+      roomImages,
       active,
     } = body;
+
+    const finalRoomImages = roomImages || [];
+    const finalRoomImage = roomImage || finalRoomImages[0] || '';
 
     const room = await db.roomType.create({
       data: {
@@ -53,7 +87,8 @@ export async function POST(
         basePrice: basePrice ?? 0,
         originalPrice: originalPrice ?? 0,
         includes: JSON.stringify(includes || []),
-        roomImage: roomImage ?? '',
+        roomImage: finalRoomImage,
+        roomImages: JSON.stringify(finalRoomImages),
         active: active ?? true,
       },
       include: {
@@ -62,6 +97,8 @@ export async function POST(
         },
       },
     });
+
+    await syncHotelRoomsCache(hotelId);
 
     return NextResponse.json(
       { success: true, data: formatRoom(room) },
@@ -101,6 +138,12 @@ export async function PUT(
     if (body.basePrice !== undefined) updates.basePrice = body.basePrice;
     if (body.originalPrice !== undefined) updates.originalPrice = body.originalPrice;
     if (body.includes !== undefined) updates.includes = JSON.stringify(body.includes);
+    if (body.roomImages !== undefined) {
+      updates.roomImages = JSON.stringify(body.roomImages);
+      if (body.roomImage === undefined) {
+        updates.roomImage = body.roomImages[0] || '';
+      }
+    }
     if (body.roomImage !== undefined) updates.roomImage = body.roomImage;
     if (body.active !== undefined) updates.active = body.active;
 
@@ -113,6 +156,8 @@ export async function PUT(
         },
       },
     });
+
+    await syncHotelRoomsCache(existing.hotelId);
 
     return NextResponse.json({ success: true, data: formatRoom(room) });
   } catch (error: any) {
@@ -141,6 +186,8 @@ export async function DELETE(
     }
 
     await db.roomType.delete({ where: { id } });
+
+    await syncHotelRoomsCache(existing.hotelId);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

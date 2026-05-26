@@ -96,6 +96,7 @@ model RoomType {
   originalPrice Int         @default(0)
   includes      String      @default("[]") // JSON array
   roomImage     String      @default("")
+  roomImages    String      @default("[]") // JSON array
   active        Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

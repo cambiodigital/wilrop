@@ -25,6 +25,7 @@ export interface HotelRoom {
   includes: string[]
   available: number
   roomImage: string
+  roomImages?: string[]
 }
 
 export interface Hotel {

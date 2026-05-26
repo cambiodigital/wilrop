@@ -806,7 +806,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ PROVIDER DIALOG ═══ */}
       <Dialog open={providerDialogOpen} onOpenChange={setProviderDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingProvider ? 'Editar Proveedor' : 'Nuevo Proveedor'}
@@ -934,7 +934,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
       {/* ═══ SERVICE DIALOG ═══ */}
       <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingService ? 'Editar Servicio' : 'Nuevo Servicio'}

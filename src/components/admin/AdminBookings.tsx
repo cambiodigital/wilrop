@@ -431,7 +431,7 @@ export default function AdminBookings() {
 
       {/* ═══ DETAIL DIALOG ═══ */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
           {selectedBooking && (
             <>
               <DialogHeader>

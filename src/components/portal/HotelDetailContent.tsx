@@ -19,7 +19,11 @@ import {
   Clock,
   Plane,
   Eye,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -185,90 +189,164 @@ export default function HotelDetailContent({
             </div>
 
             <div className="space-y-3">
-              {hotel.rooms.map((room) => {
-                const discount = room.originalPrice
-                  ? Math.round(((room.originalPrice - room.price) / room.originalPrice) * 100)
-                  : 0
-                const roomCanHostSelection = totalGuests <= room.maxGuests
-
-                return (
-                  <div
-                    key={room.id}
-                    className="rounded-xl border border-neutral-200 p-4 transition-all hover:border-amber-300 hover:shadow-sm"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-neutral-900">{room.name}</h3>
-                          {discount > 0 ? (
-                            <Badge className="rounded-full border-transparent bg-red-100 text-xs text-red-700">
-                              -{discount}%
-                            </Badge>
-                          ) : null}
-                        </div>
-
-                        <div className="mt-2 flex items-center gap-4 text-sm text-neutral-500">
-                          <span className="flex items-center gap-1">
-                            <Users className="size-3.5" />
-                            {room.maxGuests} huésped{room.maxGuests !== 1 ? 'es' : ''}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Bed className="size-3.5" />
-                            {room.beds}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {room.includes.map((item) => (
-                            <span
-                              key={item}
-                              className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
-                            >
-                              <Check className="size-3" />
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="mt-2 flex items-center gap-3 sm:mt-0 sm:flex-col sm:items-end sm:gap-1 sm:text-right">
-                        {room.originalPrice ? (
-                          <span className="text-sm text-neutral-400 line-through">
-                            {formatCOP(room.originalPrice)}
-                          </span>
-                        ) : null}
-                        <div>
-                          <span className="text-xl font-bold text-amber-600">{formatCOP(room.price)}</span>
-                          <span className="text-xs text-neutral-400"> / noche</span>
-                        </div>
-                        {nights > 1 ? (
-                          <p className="text-xs text-neutral-500">Total: {formatCOP(room.price * nights)}</p>
-                        ) : null}
-
-                        <div className="mt-1">
-                          {room.available <= 3 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600">
-                              <span className="size-1.5 animate-pulse rounded-full bg-red-500" />
-                              Quedan {room.available} hab.
-                            </span>
-                          ) : (
-                            <span className="text-xs text-neutral-400">{room.available} disponibles</span>
-                          )}
-                        </div>
-
-                        <Button
-                          className="mt-1 rounded-xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-amber-600"
-                          onClick={() => onSelectRoom(room)}
-                          disabled={!roomCanHostSelection}
-                        >
-                          {!roomCanHostSelection ? 'No disponible para esta ocupación' : 'Reservar'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+              {hotel.rooms.map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  totalGuests={totalGuests}
+                  nights={nights}
+                  onSelectRoom={onSelectRoom}
+                />
+              ))}
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface RoomCardProps {
+  room: HotelRoom
+  totalGuests: number
+  nights: number
+  onSelectRoom: (room: HotelRoom) => void
+}
+
+function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
+  const [currentImgIdx, setCurrentImgIdx] = useState(0)
+
+  const images = room.roomImages && Array.isArray(room.roomImages) && room.roomImages.length > 0
+    ? room.roomImages
+    : room.roomImage
+      ? [room.roomImage]
+      : []
+
+  const discount = room.originalPrice
+    ? Math.round(((room.originalPrice - room.price) / room.originalPrice) * 100)
+    : 0
+  const roomCanHostSelection = totalGuests <= room.maxGuests
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImgIdx((prev) => (prev + 1) % images.length)
+  }
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImgIdx((prev) => (prev - 1 + images.length) % images.length)
+  }
+
+  return (
+    <div className="rounded-xl border border-neutral-200 p-4 transition-all hover:border-amber-300 hover:shadow-md bg-white">
+      <div className="flex flex-col gap-4 md:flex-row">
+        {/* Room Images Carousel */}
+        {images.length > 0 ? (
+          <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-lg md:h-32 md:w-48 bg-neutral-100 group shadow-sm border border-neutral-100">
+            <img
+              src={images[currentImgIdx]}
+              alt={`${room.name} - Imagen ${currentImgIdx + 1}`}
+              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  className="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 cursor-pointer"
+                  aria-label="Imagen anterior"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100 cursor-pointer"
+                  aria-label="Siguiente imagen"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+                <div className="absolute bottom-2 right-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  {currentImgIdx + 1} / {images.length}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex h-48 w-full shrink-0 flex-col items-center justify-center rounded-lg bg-neutral-50 text-neutral-400 md:h-32 md:w-48 border border-neutral-100">
+            <ImageIcon className="size-8 stroke-1" />
+            <span className="mt-1 text-[11px]">Sin fotos</span>
+          </div>
+        )}
+
+        {/* Room Details & Pricing */}
+        <div className="flex flex-1 flex-col justify-between sm:flex-row sm:items-start sm:gap-4">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-semibold text-neutral-900 text-base">{room.name}</h3>
+              {discount > 0 ? (
+                <Badge className="rounded-full border-transparent bg-red-100 text-xs text-red-700">
+                  -{discount}%
+                </Badge>
+              ) : null}
+            </div>
+
+            <div className="mt-2 flex items-center gap-4 text-xs text-neutral-500">
+              <span className="flex items-center gap-1">
+                <Users className="size-3.5" />
+                {room.maxGuests} huésped{room.maxGuests !== 1 ? 'es' : ''}
+              </span>
+              <span className="flex items-center gap-1">
+                <Bed className="size-3.5" />
+                {room.beds}
+              </span>
+            </div>
+
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {room.includes.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700"
+                >
+                  <Check className="size-3" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-3 sm:mt-0 sm:flex-col sm:items-end sm:gap-1 sm:text-right">
+            {room.originalPrice ? (
+              <span className="text-xs text-neutral-400 line-through">
+                {formatCOP(room.originalPrice)}
+              </span>
+            ) : null}
+            <div>
+              <span className="text-xl font-bold text-amber-600">{formatCOP(room.price)}</span>
+              <span className="text-xs text-neutral-400"> / noche</span>
+            </div>
+            {nights > 1 ? (
+              <p className="text-[11px] text-neutral-500">Total: {formatCOP(room.price * nights)}</p>
+            ) : null}
+
+            <div className="mt-1">
+              {room.available <= 3 ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600">
+                  <span className="size-1.5 animate-pulse rounded-full bg-red-500" />
+                  Quedan {room.available} hab.
+                </span>
+              ) : (
+                <span className="text-[11px] text-neutral-400">{room.available} disponibles</span>
+              )}
+            </div>
+
+            <Button
+              className="mt-1.5 rounded-xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-amber-600 shadow-xs cursor-pointer"
+              onClick={() => onSelectRoom(room)}
+              disabled={!roomCanHostSelection}
+            >
+              {!roomCanHostSelection ? 'No disponible para esta ocupación' : 'Reservar'}
+            </Button>
           </div>
         </div>
       </div>

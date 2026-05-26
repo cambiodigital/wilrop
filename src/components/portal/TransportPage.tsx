@@ -338,7 +338,7 @@ export default function TransportPage() {
 
       {/* ─── Booking Dialog ──────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Bus className="size-5 text-amber-500" />

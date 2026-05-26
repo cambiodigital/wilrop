@@ -36,9 +36,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatCOP } from '@/data/packages';
-import { Plus, Search, Pencil, Trash2, Star, MapPin, Upload, ImagePlus, X } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Star, MapPin, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  getPackageRelationSelectorSmokeState,
+  normalizePackageRelationOptions,
+  toggleSelectedId,
+  type PackageRelationOption,
+} from '@/lib/admin/package-relation-ui';
 
 interface Destination {
   id: string;
@@ -92,6 +98,65 @@ export default function AdminDestinations() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyDestination);
 
+  // Relational options
+  const [packageOptions, setPackageOptions] = useState<PackageRelationOption[]>([]);
+  const [hotelOptions, setHotelOptions] = useState<PackageRelationOption[]>([]);
+  const [excursionOptions, setExcursionOptions] = useState<PackageRelationOption[]>([]);
+  const [transportOptions, setTransportOptions] = useState<PackageRelationOption[]>([]);
+
+  // Selected relational IDs for current destination
+  const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
+  const [selectedHotelIds, setSelectedHotelIds] = useState<string[]>([]);
+  const [selectedExcursionIds, setSelectedExcursionIds] = useState<string[]>([]);
+  const [selectedTransportIds, setSelectedTransportIds] = useState<string[]>([]);
+
+  const [selectorLoading, setSelectorLoading] = useState<Record<string, boolean>>({});
+  const [selectorErrors, setSelectorErrors] = useState<Record<string, string | null>>({});
+
+  const fetchDestinationRelations = useCallback(async (destinationId: string) => {
+    try {
+      const res = await fetch(`/api/admin/destinations/${destinationId}/relations`);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) return;
+      
+      const rels = json.data;
+      setSelectedPackageIds((rels.packages || []).map((r: any) => r.packageId));
+      setSelectedHotelIds((rels.hotels || []).map((r: any) => r.hotelId));
+      setSelectedExcursionIds((rels.excursions || []).map((r: any) => r.excursionId));
+      setSelectedTransportIds((rels.transportServices || []).map((r: any) => r.transportServiceId));
+    } catch (err) {
+      console.error('Error fetching destination relations:', err);
+    }
+  }, []);
+
+  const fetchRelationOptions = useCallback(async (
+    key: 'packages' | 'hotels' | 'excursions' | 'transportServices',
+    url: string,
+    setter: (options: PackageRelationOption[]) => void,
+  ) => {
+    setSelectorLoading((prev) => ({ ...prev, [key]: true }));
+    setSelectorErrors((prev) => ({ ...prev, [key]: null }));
+    try {
+      const res = await fetch(url);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) throw new Error(json.error || 'Error al cargar opciones');
+      setter(normalizePackageRelationOptions(json));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al cargar opciones';
+      setSelectorErrors((prev) => ({ ...prev, [key]: msg }));
+    } finally {
+      setSelectorLoading((prev) => ({ ...prev, [key]: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+    fetchRelationOptions('packages', '/api/admin/relation-options/packages?active=all', setPackageOptions);
+    fetchRelationOptions('hotels', '/api/admin/relation-options/hotels?active=all', setHotelOptions);
+    fetchRelationOptions('excursions', '/api/admin/relation-options/excursions?active=all', setExcursionOptions);
+    fetchRelationOptions('transportServices', '/api/admin/relation-options/transport-services?active=all', setTransportOptions);
+  }, [dialogOpen, fetchRelationOptions]);
+
   const fetchDestinations = useCallback(async () => {
     setLoading(true);
     try {
@@ -118,6 +183,10 @@ export default function AdminDestinations() {
   const handleOpenCreate = () => {
     setEditingId(null);
     setForm({ ...emptyDestination });
+    setSelectedPackageIds([]);
+    setSelectedHotelIds([]);
+    setSelectedExcursionIds([]);
+    setSelectedTransportIds([]);
     setDialogOpen(true);
   };
 
@@ -136,7 +205,12 @@ export default function AdminDestinations() {
       active: dest.active,
       order: dest.order,
     });
+    setSelectedPackageIds([]);
+    setSelectedHotelIds([]);
+    setSelectedExcursionIds([]);
+    setSelectedTransportIds([]);
     setDialogOpen(true);
+    fetchDestinationRelations(dest.id);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -213,6 +287,26 @@ export default function AdminDestinations() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Error al guardar');
       }
+
+      const saved = await res.json();
+      const destId = saved?.data?.id ?? editingId;
+      if (!destId) throw new Error('No se pudo resolver el destino guardado');
+
+      const relationRes = await fetch(`/api/admin/destinations/${destId}/relations`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          packageIds: selectedPackageIds,
+          hotelIds: selectedHotelIds,
+          excursionIds: selectedExcursionIds,
+          transportServiceIds: selectedTransportIds,
+        }),
+      });
+      if (!relationRes.ok) {
+        const data = await relationRes.json().catch(() => ({}));
+        throw new Error(data.error || 'El destino se guardó, pero no se pudieron guardar las relaciones');
+      }
+
       toast.success(isEditing ? 'Destino actualizado correctamente' : 'Destino creado correctamente');
       setDialogOpen(false);
       fetchDestinations();
@@ -250,6 +344,93 @@ export default function AdminDestinations() {
       }
       return next;
     });
+  };
+
+  const toggleRelation = (key: 'packages' | 'hotels' | 'excursions' | 'transportServices', id: string) => {
+    if (key === 'packages') {
+      setSelectedPackageIds((prev) => toggleSelectedId(prev, id));
+    } else if (key === 'hotels') {
+      setSelectedHotelIds((prev) => toggleSelectedId(prev, id));
+    } else if (key === 'excursions') {
+      setSelectedExcursionIds((prev) => toggleSelectedId(prev, id));
+    } else if (key === 'transportServices') {
+      setSelectedTransportIds((prev) => toggleSelectedId(prev, id));
+    }
+  };
+
+  const renderOptionGroup = (
+    key: 'packages' | 'hotels' | 'excursions' | 'transportServices',
+    label: string,
+    options: PackageRelationOption[],
+    selectedIds: string[],
+    ctaHref: string,
+    ctaLabel: string,
+  ) => {
+    const selectorState = getPackageRelationSelectorSmokeState({
+      options,
+      selectedIds,
+      isLoading: Boolean(selectorLoading[key]),
+      error: selectorErrors[key],
+      createCtaHref: ctaHref,
+      createCtaLabel: ctaLabel,
+    });
+
+    const setters = {
+      packages: setPackageOptions,
+      hotels: setHotelOptions,
+      excursions: setExcursionOptions,
+      transportServices: setTransportOptions,
+    };
+
+    return (
+      <div className="rounded-md border border-border p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="font-semibold text-neutral-800">{label}</Label>
+          {selectorState.hasRetry && (
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              const urls = {
+                packages: '/api/admin/relation-options/packages?active=all',
+                hotels: '/api/admin/relation-options/hotels?active=all',
+                excursions: '/api/admin/relation-options/excursions?active=all',
+                transportServices: '/api/admin/relation-options/transport-services?active=all',
+              };
+              if (urls[key]) fetchRelationOptions(key, urls[key], setters[key]);
+            }}>
+              <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
+            </Button>
+          )}
+        </div>
+        {selectorState.status === 'loading' && <p className="text-xs text-muted-foreground">{selectorState.statusLabel}</p>}
+        {selectorState.status === 'error' && <p className="text-xs text-destructive">{selectorState.statusLabel}</p>}
+        {selectorState.status === 'empty' && selectorState.createCta && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>{selectorState.statusLabel}</span>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={selectorState.createCta.href}><ExternalLink className="w-3 h-3 mr-1" /> {selectorState.createCta.label}</a>
+            </Button>
+          </div>
+        )}
+        {selectorState.status === 'ready' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
+            {selectorState.options.map((option) => (
+              <label key={option.id} className="flex items-start gap-2 rounded border border-border/60 p-2 text-xs hover:bg-neutral-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                  checked={option.selected}
+                  onChange={() => toggleRelation(key, option.id)}
+                />
+                <span>
+                  <span className="font-medium text-foreground">{option.label}</span>
+                  {option.subtitle && <span className="block text-muted-foreground text-[10px]">{option.subtitle}</span>}
+                  {option.stateLabel && <span className="block text-muted-foreground text-[10px]">{option.stateLabel}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -373,7 +554,7 @@ export default function AdminDestinations() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto admin-dialog">
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Destino' : 'Nuevo Destino'}
@@ -570,6 +751,21 @@ export default function AdminDestinations() {
                   value={form.order}
                   onChange={(e) => updateField('order', Number(e.target.value))}
                 />
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <div>
+                <div className="form-section-title">Composición relacional del destino</div>
+                <p className="text-xs text-muted-foreground">
+                  Asocia paquetes, hoteles, excursiones y servicios de transporte a este destino.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {renderOptionGroup('packages', 'Paquetes en destino', packageOptions, selectedPackageIds, '/admin/paquetes', 'Crear paquete')}
+                {renderOptionGroup('hotels', 'Hoteles en destino', hotelOptions, selectedHotelIds, '/admin/hoteles', 'Crear hotel')}
+                {renderOptionGroup('excursions', 'Excursiones en destino', excursionOptions, selectedExcursionIds, '/admin/excursiones', 'Crear excursión')}
+                {renderOptionGroup('transportServices', 'Transporte en destino', transportOptions, selectedTransportIds, '/admin/transportes/servicios', 'Crear servicio')}
               </div>
             </div>
 

@@ -15,6 +15,7 @@ export interface AdminHotelRoom {
   includes: string[];
   available: number;
   roomImage: string;
+  roomImages?: string[];
 }
 
 export interface RoomTypeLike {
@@ -26,20 +27,47 @@ export interface RoomTypeLike {
   originalPrice: number;
   includes: string; // JSON string
   roomImage: string;
+  roomImages?: string | string[]; // JSON string or array
   active: boolean;
 }
 
 /**
- * Parse a RoomType.includes JSON string into a string array.
- * Returns [] on any parse failure.
+ * Parse a RoomType.includes JSON string or array into a string array.
  */
-export function parseRoomTypeIncludes(raw: string): string[] {
+export function parseRoomTypeIncludes(raw: any): string[] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string' || !raw) return [];
   try {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+}
+
+/**
+ * Parse a RoomType.roomImages JSON string or array into a string array.
+ */
+export function parseRoomImages(raw: any): string[] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string' || !raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Retrieve room images with a fallback to the single roomImage if roomImages is empty.
+ */
+export function getRoomImages(room: { roomImage?: string; roomImages?: any }): string[] {
+  const images = parseRoomImages(room.roomImages);
+  if (images.length === 0 && room.roomImage) {
+    return [room.roomImage];
+  }
+  return images;
 }
 
 /**
@@ -59,6 +87,7 @@ export function syncRoomTypesToHotelRooms(rtList: RoomTypeLike[]): AdminHotelRoo
       includes: parseRoomTypeIncludes(rt.includes),
       available: 1,
       roomImage: rt.roomImage,
+      roomImages: getRoomImages(rt),
     }));
 }
 
