@@ -22,7 +22,10 @@ async function getHotelData(hotelId: string) {
 
   const hotel = await db.hotel.findFirst({
     where: {
-      id: hotelId,
+      OR: [
+        { id: hotelId },
+        { slug: hotelId },
+      ],
       active: true,
       isTemplate: isTemplateQuery,
     },

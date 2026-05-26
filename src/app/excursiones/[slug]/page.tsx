@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin, Clock, Star, ArrowLeft, Check, X } from 'lucide-react'
 import PortalShell from '@/components/portal/PortalShell'
+import ExcursionGallery from '@/components/portal/ExcursionGallery'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 
@@ -81,12 +82,8 @@ export default async function ExcursionDetailRoutePage({ params }: ExcursionDeta
 
           <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
             <div className="relative h-72 sm:h-96">
-              {excursion.images.length > 0 ? (
-                <img src={excursion.images[0]} alt={excursion.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <ExcursionGallery images={excursion.images} name={excursion.name} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
               <div className="absolute bottom-0 left-0 right-0 p-6 text-white sm:p-8">
                 <p className="text-xs uppercase tracking-widest text-white/80">Excursión</p>
                 <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{excursion.name}</h1>

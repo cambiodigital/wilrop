@@ -139,7 +139,10 @@ export default function HotelsPage() {
     }
 
     // Price filter
-    result = result.filter((h) => h.priceFrom >= priceRange[0] && h.priceFrom <= priceRange[1])
+    result = result.filter((h) => {
+      if (h.priceFrom === 0) return true
+      return h.priceFrom >= priceRange[0] && h.priceFrom <= priceRange[1]
+    })
 
     // Star filter
     if (starFilters.length > 0) {
@@ -157,7 +160,7 @@ export default function HotelsPage() {
     }
 
     // Guest capacity
-    if (totalGuests > 0) {
+    if (hasSearched && totalGuests > 0) {
       result = result.filter((h) => h.rooms.some((r) => r.maxGuests >= totalGuests))
     }
 
