@@ -556,11 +556,11 @@ function TransportCard({ service, onBook }: { service: TransportService; onBook:
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Badge variant="secondary" className="rounded-full bg-neutral-100 text-neutral-600 border-transparent text-xs">
             <Users className="mr-1 size-3" />
-            {service.provider.capacity} pasajeros
+            {(service.provider?.capacity ?? 4)} pasajeros
           </Badge>
           <Badge variant="secondary" className="rounded-full bg-neutral-100 text-neutral-600 border-transparent text-xs">
-            {vehicleTypeIcons[service.provider.vehicleType]}
-            <span className="ml-1">{vehicleTypeLabels[service.provider.vehicleType]}</span>
+            {vehicleTypeIcons[service.provider?.vehicleType || 'auto']}
+            <span className="ml-1">{vehicleTypeLabels[service.provider?.vehicleType || 'auto'] || service.provider?.vehicleType}</span>
           </Badge>
           {service.cityName && (
             <Badge variant="secondary" className="rounded-full bg-neutral-100 text-neutral-600 border-transparent text-xs">
@@ -591,7 +591,7 @@ function TransportCard({ service, onBook }: { service: TransportService; onBook:
         {/* Provider */}
         <p className="text-xs text-neutral-400 flex items-center gap-1">
           <Phone className="size-3" />
-          Operado por {service.provider.name}
+          Operado por {service.provider?.name || 'Proveedor no especificado'}
         </p>
       </div>
 

@@ -59,6 +59,15 @@ export function usePortalNavigation() {
       case 'portal-transport':
         router.push(portalPaths.transport)
         return
+      case 'portal-cruises':
+        router.push(portalPaths.cruises)
+        return
+      case 'portal-cruise-detail':
+        router.push(entityId ? portalPaths.cruiseDetail(entityId) : portalPaths.cruises)
+        return
+      case 'portal-cruise-booking':
+        router.push(entityId ? portalPaths.cruiseBooking(entityId) : portalPaths.cruises)
+        return
       case 'admin-login':
         router.push(portalPaths.adminLogin)
         return

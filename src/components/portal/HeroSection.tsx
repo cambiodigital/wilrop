@@ -37,6 +37,7 @@ const itemVariants = {
 export default function HeroSection() {
   const { navigate } = usePortalNavigation()
   const [selectedDest, setSelectedDest] = useState('')
+  const [selectedDate, setSelectedDate] = useState('')
   const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
   const [stats, setStats] = useState<StatItem[]>(() => [
     { label: 'Viajeros Felices', value: '—', icon: Users },
@@ -133,7 +134,7 @@ export default function HeroSection() {
                   </label>
                   <Select value={selectedDest} onValueChange={setSelectedDest}>
                     <SelectTrigger className="w-full rounded-xl border-white/20 bg-white/15 text-sm shadow-inner backdrop-blur-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-amber-400/50 [&>svg]:text-white [&>span]:text-white" style={{ height: '44px', minHeight: '44px' }}>
-                      <SelectValue placeholder="¿A dónde quieres ir?" />
+                      <SelectValue placeholder="Elige un destino (cualquiera)" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-neutral-200 bg-white shadow-xl">
                       {destinationsList.map((d) => (
@@ -159,15 +160,29 @@ export default function HeroSection() {
                     <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/60" />
                     <Input
                       type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
                       className="w-full rounded-xl border-white/20 bg-white/15 pl-9 text-sm text-white shadow-inner backdrop-blur-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-amber-400/50 [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:top-1/2 [&::-webkit-calendar-picker-indicator]:-translate-y-1/2 [&::-webkit-calendar-picker-indicator]:size-5 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    style={{ height: '44px', minHeight: '44px' }}
+                      style={{ height: '44px', minHeight: '44px' }}
                     />
                   </div>
                 </div>
 
                 {/* Search Button */}
                 <Button
-                  onClick={() => navigate('portal-destinations')}
+                  onClick={() => {
+                    if (selectedDest) {
+                      const path = selectedDate
+                        ? `/destinos/${selectedDest}?date=${selectedDate}`
+                        : `/destinos/${selectedDest}`
+                      navigate(path)
+                    } else {
+                      const path = selectedDate
+                        ? `/destinos?date=${selectedDate}`
+                        : `/destinos`
+                      navigate(path)
+                    }
+                  }}
                   className="shrink-0 rounded-xl bg-amber-500 px-6 text-sm font-semibold text-white shadow-lg shadow-amber-600/30 transition-all duration-300 hover:bg-amber-600 hover:shadow-xl hover:shadow-amber-600/40 active:scale-[0.98] sm:self-end"
                   style={{ height: '44px', minHeight: '44px' }}
                 >

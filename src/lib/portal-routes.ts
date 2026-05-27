@@ -15,6 +15,9 @@ export type PortalView =
   | 'portal-transport'
   | 'portal-transport-detail'
   | 'portal-destination-detail'
+  | 'portal-cruises'
+  | 'portal-cruise-detail'
+  | 'portal-cruise-booking'
   | 'admin-login'
   | 'reseller-login'
   | 'admin-dashboard'
@@ -28,6 +31,7 @@ export const portalPaths = {
   contact: '/contacto',
   excursions: '/excursiones',
   transport: '/transportes',
+  cruises: '/cruceros',
   excursionDetail: (slug: string) => `/excursiones/${slug}`,
   transportDetail: (serviceId: string) => `/transportes/${serviceId}`,
   destinationDetail: (destinationId: string) => `/destinos/${destinationId}`,
@@ -35,6 +39,8 @@ export const portalPaths = {
   packageBooking: (packageId: string) => `/paquetes/${packageId}/reserva`,
   hotelDetail: (hotelId: string) => `/hoteles/${hotelId}`,
   hotelBooking: (hotelId: string) => `/hoteles/${hotelId}/reserva`,
+  cruiseDetail: (slug: string) => `/cruceros/${slug}`,
+  cruiseBooking: (slug: string) => `/cruceros/${slug}/reserva`,
   orderDetail: (bookingCode: string) => `/pedidos/${bookingCode}`,
   adminLogin: '/admin/login',
   resellerLogin: '/reseller/login',
@@ -46,6 +52,8 @@ export function getPortalViewFromPath(pathname: string): PortalView {
   if (pathname === portalPaths.hotels) return 'portal-hotels'
   if (pathname.startsWith('/paquetes/')) return pathname.endsWith('/reserva') ? 'portal-booking' : 'portal-package-detail'
   if (pathname.startsWith('/hoteles/')) return pathname.endsWith('/reserva') ? 'portal-hotel-booking' : 'portal-hotel-detail'
+  if (pathname.startsWith('/cruceros/')) return pathname.endsWith('/reserva') ? 'portal-cruise-booking' : 'portal-cruise-detail'
+  if (pathname === portalPaths.cruises) return 'portal-cruises'
   if (pathname === portalPaths.about) return 'portal-about'
   if (pathname === portalPaths.contact) return 'portal-contact'
   if (pathname.startsWith('/excursiones/')) return 'portal-excursion-detail'

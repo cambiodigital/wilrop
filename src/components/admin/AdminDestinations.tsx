@@ -112,6 +112,7 @@ export default function AdminDestinations() {
 
   const [selectorLoading, setSelectorLoading] = useState<Record<string, boolean>>({});
   const [selectorErrors, setSelectorErrors] = useState<Record<string, string | null>>({});
+  const [highlightsStr, setHighlightsStr] = useState('');
 
   const fetchDestinationRelations = useCallback(async (destinationId: string) => {
     try {
@@ -187,6 +188,7 @@ export default function AdminDestinations() {
     setSelectedHotelIds([]);
     setSelectedExcursionIds([]);
     setSelectedTransportIds([]);
+    setHighlightsStr('');
     setDialogOpen(true);
   };
 
@@ -209,6 +211,7 @@ export default function AdminDestinations() {
     setSelectedHotelIds([]);
     setSelectedExcursionIds([]);
     setSelectedTransportIds([]);
+    setHighlightsStr(dest.highlights.join(', '));
     setDialogOpen(true);
     fetchDestinationRelations(dest.id);
   };
@@ -710,13 +713,14 @@ export default function AdminDestinations() {
               <Label htmlFor="dest-highlights">Highlights (separados por coma)</Label>
               <Input
                 id="dest-highlights"
-                value={form.highlights.join(', ')}
-                onChange={(e) =>
+                value={highlightsStr}
+                onChange={(e) => {
+                  setHighlightsStr(e.target.value);
                   updateField(
                     'highlights',
                     e.target.value.split(',').map((h) => h.trim()).filter(Boolean)
-                  )
-                }
+                  );
+                }}
                 placeholder="Ciudad Amurallada, Playas, Castillo San Felipe"
               />
             </div>

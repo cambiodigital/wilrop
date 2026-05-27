@@ -199,11 +199,32 @@ export interface NormalizedTransport {
   active: boolean
   isTemplate: boolean
   providerId: string
+  provider: {
+    id: string
+    name: string
+    vehicleType: string
+    capacity: number
+  }
 }
 
 export function normalizeTransport(
   transport: Record<string, unknown>,
 ): NormalizedTransport {
+  const providerData = transport.provider as Record<string, unknown> | null | undefined
+  const provider = providerData
+    ? {
+        id: String(providerData.id ?? ''),
+        name: String(providerData.name ?? 'Proveedor no especificado'),
+        vehicleType: String(providerData.vehicleType ?? 'auto'),
+        capacity: Number(providerData.capacity ?? 4),
+      }
+    : {
+        id: '',
+        name: 'Proveedor no especificado',
+        vehicleType: 'auto',
+        capacity: 4,
+      }
+
   return {
     id: String(transport.id ?? ''),
     name: String(transport.name ?? ''),
@@ -220,6 +241,90 @@ export function normalizeTransport(
     active: Boolean(transport.active ?? true),
     isTemplate: Boolean(transport.isTemplate ?? true),
     providerId: String(transport.providerId ?? ''),
+    provider,
+  }
+}
+
+// ─── Cruise normalization ───────────────────────────────────────────
+
+export interface NormalizedCruiseCabin {
+  id: string
+  cruiseId: string
+  name: string
+  capacity: number
+  beds: string
+  basePrice: number
+  originalPrice: number | null
+  includes: string[]
+  cabinImage: string
+  active: boolean
+}
+
+export function normalizeCruiseCabin(
+  cabin: Record<string, unknown>,
+): NormalizedCruiseCabin {
+  return {
+    id: String(cabin.id ?? ''),
+    cruiseId: String(cabin.cruiseId ?? ''),
+    name: String(cabin.name ?? ''),
+    capacity: Number(cabin.capacity ?? 2),
+    beds: String(cabin.beds ?? '2 camas individuales'),
+    basePrice: Number(cabin.basePrice ?? 0),
+    originalPrice: cabin.originalPrice != null ? Number(cabin.originalPrice) : null,
+    includes: parseJsonArray<string>(String(cabin.includes ?? '[]')),
+    cabinImage: String(cabin.cabinImage ?? ''),
+    active: Boolean(cabin.active ?? true),
+  }
+}
+
+export interface NormalizedCruise {
+  id: string
+  slug: string
+  name: string
+  description: string
+  shipName: string
+  operator: string
+  durationDays: number
+  images: string[]
+  includes: string[]
+  itinerary: unknown[]
+  rating: number
+  reviewCount: number
+  priceFrom: number
+  tags: string[]
+  featured: boolean
+  active: boolean
+  isTemplate: boolean
+  primaryDestinationId: string | null
+  cabins: NormalizedCruiseCabin[]
+}
+
+export function normalizeCruise(
+  cruise: Record<string, unknown>,
+): NormalizedCruise {
+  const cabinsData = Array.isArray(cruise.cabins) ? cruise.cabins : []
+  const normalizedCabins = cabinsData.map((c) => normalizeCruiseCabin(c as Record<string, unknown>))
+
+  return {
+    id: String(cruise.id ?? ''),
+    slug: String(cruise.slug ?? ''),
+    name: String(cruise.name ?? ''),
+    description: String(cruise.description ?? ''),
+    shipName: String(cruise.shipName ?? ''),
+    operator: String(cruise.operator ?? ''),
+    durationDays: Number(cruise.durationDays ?? 3),
+    images: parseJsonArray<string>(String(cruise.images ?? '[]')),
+    includes: parseJsonArray<string>(String(cruise.includes ?? '[]')),
+    itinerary: parseJsonArray<unknown>(String(cruise.itinerary ?? '[]')),
+    rating: Number(cruise.rating ?? 0),
+    reviewCount: Number(cruise.reviewCount ?? 0),
+    priceFrom: Number(cruise.priceFrom ?? 0),
+    tags: parseJsonArray<string>(String(cruise.tags ?? '[]')),
+    featured: Boolean(cruise.featured),
+    active: Boolean(cruise.active ?? true),
+    isTemplate: Boolean(cruise.isTemplate ?? true),
+    primaryDestinationId: cruise.primaryDestinationId ? String(cruise.primaryDestinationId) : null,
+    cabins: normalizedCabins,
   }
 }
 

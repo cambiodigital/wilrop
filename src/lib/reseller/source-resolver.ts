@@ -177,6 +177,18 @@ export function resolveSourceFields(
       }
       break
     }
+    case 'cruise': {
+      base.title = (sourceData.name as string) ?? ''
+      base.image = parseFirstImage(sourceData.images) ?? ''
+      base.price = (sourceData.priceFrom as number) ?? 0
+      base.location = (sourceData.operator as string) ?? ''
+      base.description = (sourceData.description as string) ?? ''
+      base.metadata = {
+        shipName: sourceData.shipName ?? '',
+        durationDays: sourceData.durationDays ?? 3,
+      }
+      break
+    }
   }
 
   return base

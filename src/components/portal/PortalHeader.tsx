@@ -35,6 +35,7 @@ const navLinks = [
   { label: 'Inicio', view: 'portal-home', href: portalPaths.home },
   { label: 'Destinos', view: 'portal-destinations', href: portalPaths.destinations },
   { label: 'Hoteles', view: 'portal-hotels', href: portalPaths.hotels },
+  { label: 'Cruceros', view: 'portal-cruises', href: portalPaths.cruises },
   { label: 'Sobre Nosotros', view: 'portal-about', href: portalPaths.about },
 ]
 

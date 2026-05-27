@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Users,
   Compass,
+  Ship,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +46,7 @@ const menuItems: MenuItem[] = [
   { id: 'excursions', label: 'Excursiones', icon: <Compass className="w-5 h-5" />, href: '/admin/excursiones' },
   { id: 'packages', label: 'Paquetes', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes' },
   { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/admin/transportes' },
+  { id: 'cruises', label: 'Cruceros', icon: <Ship className="w-5 h-5" />, href: '/admin/cruceros' },
   { id: 'marketing', label: 'Marketing', icon: <Megaphone className="w-5 h-5" />, href: '/admin/marketing-modal' },
 ];
 

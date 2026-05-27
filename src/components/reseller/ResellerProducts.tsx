@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Bed, Bus, MapPin, Mountain, Package, Search, Star } from 'lucide-react';
+import { Bed, Bus, MapPin, Mountain, Package, Search, Star, Ship } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,10 +50,24 @@ interface TransportProduct {
   provider?: { name: string; capacity: number; vehicleType: string };
 }
 
+interface CruiseProduct {
+  id: string;
+  slug: string;
+  name: string;
+  shipName: string;
+  operator: string;
+  durationDays: number;
+  priceFrom: number;
+  images: string[];
+  featured: boolean;
+  cabins: Array<{ id: string; name: string; basePrice: number }>;
+}
+
 const productTabs = [
   { value: 'hotels', label: 'Hoteles', icon: Bed },
   { value: 'excursions', label: 'Excursiones', icon: Mountain },
   { value: 'transport', label: 'Transporte', icon: Bus },
+  { value: 'cruises', label: 'Cruceros', icon: Ship },
 ];
 
 function includesSearch(values: string[], search: string) {
@@ -80,6 +94,7 @@ export default function ResellerProducts() {
   const [hotels, setHotels] = useState<HotelProduct[]>([]);
   const [excursions, setExcursions] = useState<ExcursionProduct[]>([]);
   const [transport, setTransport] = useState<TransportProduct[]>([]);
+  const [cruises, setCruises] = useState<CruiseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -87,19 +102,22 @@ export default function ResellerProducts() {
     async function fetchProducts() {
       setLoading(true);
       try {
-        const [hotelRes, excursionRes, transportRes] = await Promise.all([
+        const [hotelRes, excursionRes, transportRes, cruiseRes] = await Promise.all([
           fetch('/api/public/hotels'),
           fetch('/api/public/excursions'),
           fetch('/api/public/transport'),
+          fetch('/api/public/cruises'),
         ]);
-        const [hotelJson, excursionJson, transportJson] = await Promise.all([
+        const [hotelJson, excursionJson, transportJson, cruiseJson] = await Promise.all([
           hotelRes.json(),
           excursionRes.json(),
           transportRes.json(),
+          cruiseRes.json(),
         ]);
         if (hotelJson.success) setHotels(hotelJson.data);
         if (excursionJson.success) setExcursions(excursionJson.data);
         if (transportJson.success) setTransport(transportJson.data);
+        if (cruiseJson.success) setCruises(cruiseJson.data);
       } finally {
         setLoading(false);
       }
@@ -119,6 +137,10 @@ export default function ResellerProducts() {
   const filteredTransport = useMemo(
     () => transport.filter((service) => includesSearch([service.name, service.origin, service.destination, service.cityName], search)),
     [transport, search],
+  );
+  const filteredCruises = useMemo(
+    () => cruises.filter((cruise) => includesSearch([cruise.name, cruise.shipName, cruise.operator], search)),
+    [cruises, search],
   );
 
   return (
@@ -141,7 +163,7 @@ export default function ResellerProducts() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <Bed className="size-8 rounded-lg bg-blue-100 p-1.5 text-blue-700" />
@@ -166,6 +188,15 @@ export default function ResellerProducts() {
             <div>
               <p className="text-xl font-bold">{transport.length}</p>
               <p className="text-xs text-gray-500">traslados activos</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <Ship className="size-8 rounded-lg bg-indigo-100 p-1.5 text-indigo-700" />
+            <div>
+              <p className="text-xl font-bold">{cruises.length}</p>
+              <p className="text-xs text-gray-500">cruceros activos</p>
             </div>
           </CardContent>
         </Card>
@@ -253,6 +284,31 @@ export default function ResellerProducts() {
                   <p className="text-sm font-semibold text-gray-900">Desde {formatCOP(service.basePrice)}</p>
                   <Button asChild variant="outline" className="w-full">
                     <Link href={`/transportes/${service.id}`}>Ver traslado</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </ProductGrid>
+        </TabsContent>
+
+        <TabsContent value="cruises" className="mt-5">
+          <ProductGrid loading={loading} empty={!filteredCruises.length}>
+            {filteredCruises.map((cruise) => (
+              <Card key={cruise.id} className="overflow-hidden">
+                <ProductImage src={cruise.images[0]} alt={cruise.name} icon={Ship} />
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="font-semibold text-gray-900">{cruise.name}</h2>
+                      <p className="mt-1 text-xs text-gray-500">{cruise.shipName} · {cruise.operator}</p>
+                    </div>
+                    {cruise.featured && <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Destacado</Badge>}
+                  </div>
+                  <p className="text-xs text-gray-500">{cruise.durationDays} días de duración</p>
+                  <p className="text-sm font-semibold text-gray-900">Desde {formatCOP(cruise.priceFrom)}</p>
+                  <p className="text-xs text-gray-500">{cruise.cabins?.length || 0} categorías de cabina cargadas</p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/cruceros/${cruise.slug}`}>Ver crucero</Link>
                   </Button>
                 </CardContent>
               </Card>

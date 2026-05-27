@@ -12,6 +12,9 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // ─── Clean existing data ─────────────────────────────────────
+  await db.destinationCruise.deleteMany();
+  await db.cruiseCabin.deleteMany();
+  await db.cruise.deleteMany();
   await db.transportService.deleteMany();
   await db.transportProvider.deleteMany();
   await db.excursion.deleteMany();
@@ -771,6 +774,121 @@ async function main() {
     await db.travelPackage.create({ data: { ...pkg, isTemplate: true } });
   }
   console.log(`✅ ${packageData.length} travel packages created`);
+
+  // ─── Cruises ──────────────────────────────────────────────────
+  const cartagena = await db.destination.findUnique({ where: { slug: 'cartagena' } });
+  const sanAndres = await db.destination.findUnique({ where: { slug: 'san-andres' } });
+
+  const cruiseData = [
+    {
+      slug: 'caribe-premium',
+      name: 'Caribe Premium',
+      description: 'Disfruta de una experiencia de crucero inolvidable navegando por las aguas turquesas del Caribe. Este crucero incluye shows en vivo, múltiples piscinas, restaurantes buffet y a la carta, y paradas de ensueño.',
+      shipName: 'Monarch of the Seas',
+      operator: 'Pullmantur',
+      durationDays: 5,
+      images: JSON.stringify(['/images/cruceros.png']),
+      includes: JSON.stringify(['Pensión completa', 'Bebidas ilimitadas', 'Acceso a shows', 'Piscinas', 'Gimnasio']),
+      itinerary: JSON.stringify([
+        { day: 1, stop: 'Cartagena (Embarque)' },
+        { day: 2, stop: 'Navegación' },
+        { day: 3, stop: 'San Andrés (Parada)' },
+        { day: 4, stop: 'Navegación' },
+        { day: 5, stop: 'Cartagena (Desembarque)' },
+      ]),
+      rating: 4.8,
+      reviewCount: 145,
+      priceFrom: 2350000,
+      tags: JSON.stringify(['Premium', 'Popular']),
+      featured: true,
+      active: true,
+      primaryDestinationId: cartagena?.id,
+      cabins: [
+        { name: 'Camarote Interior Estándar', capacity: 2, beds: '2 camas individuales', basePrice: 2350000, originalPrice: 2800000, includes: JSON.stringify(['Servicio de limpieza diario', 'TV satelital', 'Wi-Fi prepagado']), cabinImage: '/images/cruceros.png' },
+        { name: 'Camarote Exterior con Vista al Mar', capacity: 2, beds: '1 cama doble', basePrice: 2950000, originalPrice: 3500000, includes: JSON.stringify(['Ventana al océano', 'Servicio de limpieza diario', 'TV satelital', 'Wi-Fi prepagado']), cabinImage: '/images/cruceros.png' },
+        { name: 'Suite de Lujo con Balcón', capacity: 3, beds: '1 cama doble king + sofá cama', basePrice: 4200000, includes: JSON.stringify(['Balcón privado', 'Acceso preferente', 'Servicio a la habitación 24/7', 'Minibar premium']), cabinImage: '/images/cruceros.png' },
+      ],
+      destinationIds: [cartagena?.id, sanAndres?.id].filter(Boolean) as string[],
+    },
+    {
+      slug: 'san-andres-express',
+      name: 'San Andrés Express',
+      description: 'Una escapada rápida para explorar los cayos y arrecifes de coral en los alrededores de la isla de San Andrés.',
+      shipName: 'Sea Explorer',
+      operator: 'Caribbean Cruises',
+      durationDays: 3,
+      images: JSON.stringify(['/images/cruceros.png']),
+      includes: JSON.stringify(['Alojamiento a bordo', 'Desayuno y almuerzo buffet', 'Actividades de snorkel']),
+      itinerary: JSON.stringify([
+        { day: 1, stop: 'San Andrés (Embarque)' },
+        { day: 2, stop: 'Johnny Cay y Haynes Cay' },
+        { day: 3, stop: 'San Andrés (Desembarque)' },
+      ]),
+      rating: 4.5,
+      reviewCount: 82,
+      priceFrom: 1450000,
+      tags: JSON.stringify(['Express']),
+      featured: false,
+      active: true,
+      primaryDestinationId: sanAndres?.id,
+      cabins: [
+        { name: 'Camarote Estándar Vista al Mar', capacity: 2, beds: '2 camas individuales', basePrice: 1450000, originalPrice: 1800000, includes: JSON.stringify(['TV satelital', 'Aire acondicionado']), cabinImage: '/images/cruceros.png' },
+      ],
+      destinationIds: [sanAndres?.id].filter(Boolean) as string[],
+    },
+    {
+      slug: 'islas-del-rosario-day-cruise',
+      name: 'Islas del Rosario Day Cruise',
+      description: 'Pasa un día espectacular navegando a bordo de nuestro exclusivo catamarán. Disfruta de barra libre nacional, almuerzo típico y desembarque en playa privada.',
+      shipName: 'Catamarán Bora Bora',
+      operator: 'Bora Bora S.A.',
+      durationDays: 1,
+      images: JSON.stringify(['/images/cruceros.png']),
+      includes: JSON.stringify(['Barra libre nacional', 'Almuerzo típico', 'Equipos de snorkel', 'Acceso a playa privada']),
+      itinerary: JSON.stringify([
+        { day: 1, stop: 'Muelle de Cartagena (Salida: 8:00 AM) -> Recorrido Islas del Rosario -> Playa Privada -> Retorno Cartagena (5:00 PM)' },
+      ]),
+      rating: 4.7,
+      reviewCount: 210,
+      priceFrom: 680000,
+      tags: JSON.stringify(['Day Cruise', 'Nuevo']),
+      featured: false,
+      active: true,
+      primaryDestinationId: cartagena?.id,
+      cabins: [
+        { name: 'Pase de Pasadía Estándar', capacity: 1, beds: 'Asiento reservado', basePrice: 680000, includes: JSON.stringify(['Coctel de bienvenida', 'Almuerzo tradicional']), cabinImage: '/images/cruceros.png' },
+      ],
+      destinationIds: [cartagena?.id].filter(Boolean) as string[],
+    },
+  ];
+
+  for (const cruise of cruiseData) {
+    const { cabins, destinationIds, ...cruiseFields } = cruise;
+    const createdCruise = await db.cruise.create({
+      data: {
+        ...cruiseFields,
+        isTemplate: true,
+        cabins: {
+          create: cabins.map((c) => ({
+            ...c,
+            includes: c.includes,
+          })),
+        },
+      },
+    });
+
+    for (const destinationId of destinationIds) {
+      await db.destinationCruise.create({
+        data: {
+          destinationId,
+          cruiseId: createdCruise.id,
+          active: true,
+        },
+      });
+    }
+  }
+
+  console.log(`✅ ${cruiseData.length} cruises created`);
 
   console.log('\n🎉 Seed completed successfully!');
 }

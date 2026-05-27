@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { destinations as staticDestinations } from '@/data/destinations'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { useSearchParams } from 'next/navigation'
 
 const categories = ['Todos', 'Playa', 'Aventura', 'Cultural', 'Naturaleza', 'Relax'] as const
 
@@ -30,8 +31,15 @@ interface DestinationsSectionProps {
 
 export default function DestinationsSection({ limit }: DestinationsSectionProps) {
   const { navigate } = usePortalNavigation()
+  const searchParams = useSearchParams()
+  const dateParam = searchParams ? searchParams.get('date') : null
   const [activeCategory, setActiveCategory] = useState<string>('Todos')
   const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+
+  const handleNavigateDetail = (destinationId: string) => {
+    const path = dateParam ? `/destinos/${destinationId}?date=${dateParam}` : `/destinos/${destinationId}`
+    navigate(path)
+  }
   const isPreview = typeof limit === 'number'
 
   useEffect(() => {
@@ -115,7 +123,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
                 layout
               >
                 <Card
-                  onClick={() => navigate('portal-destination-detail', destination.id)}
+                  onClick={() => handleNavigateDetail(destination.id)}
                   className="group cursor-pointer overflow-hidden border-neutral-200 py-0 transition-all hover:shadow-lg hover:-translate-y-1"
                 >
                 {/* Image */}
@@ -160,7 +168,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
                   <div
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate('portal-destination-detail', destination.id)
+                      handleNavigateDetail(destination.id)
                     }}
                   >
                     <Button

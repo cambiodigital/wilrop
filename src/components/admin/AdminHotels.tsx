@@ -472,6 +472,8 @@ export default function AdminHotels() {
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [pendingUploads, setPendingUploads] = useState(0);
   const imagesInputRef = useRef<HTMLInputElement>(null);
+  const [amenitiesStr, setAmenitiesStr] = useState('');
+  const [tagsStr, setTagsStr] = useState('');
 
   const fetchHotels = useCallback(async () => {
     setLoading(true);
@@ -766,6 +768,8 @@ export default function AdminHotels() {
   const handleOpenCreate = () => {
     setEditingId(null);
     setForm({ ...emptyHotel, rooms: [] });
+    setAmenitiesStr('');
+    setTagsStr('');
     setDialogOpen(true);
   };
 
@@ -790,6 +794,8 @@ export default function AdminHotels() {
       featured: hotel.featured,
       active: hotel.active,
     });
+    setAmenitiesStr(hotel.amenities.join(', '));
+    setTagsStr(hotel.tags.join(', '));
     setDialogOpen(true);
   };
 
@@ -1490,16 +1496,17 @@ export default function AdminHotels() {
                 </Label>
                 <Input
                   id="hotel-amenities"
-                  value={form.amenities.join(', ')}
-                  onChange={(e) =>
+                  value={amenitiesStr}
+                  onChange={(e) => {
+                    setAmenitiesStr(e.target.value);
                     updateField(
                       'amenities',
                       e.target.value
                         .split(',')
                         .map((a) => a.trim())
                         .filter(Boolean)
-                    )
-                  }
+                    );
+                  }}
                   placeholder="wifi, pool, restaurant, spa, gym, parking"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -1512,16 +1519,17 @@ export default function AdminHotels() {
                 <Label htmlFor="hotel-tags">Tags (separados por coma)</Label>
                 <Input
                   id="hotel-tags"
-                  value={form.tags.join(', ')}
-                  onChange={(e) =>
+                  value={tagsStr}
+                  onChange={(e) => {
+                    setTagsStr(e.target.value);
                     updateField(
                       'tags',
                       e.target.value
                         .split(',')
                         .map((t) => t.trim())
                         .filter(Boolean)
-                    )
-                  }
+                    );
+                  }}
                   placeholder="Lujo, Popular, Nuevo, Descuento"
                 />
               </div>

@@ -40,11 +40,13 @@ model Destination {
   packages               DestinationPackage[]
   excursions             DestinationExcursion[]
   transportServices      DestinationTransportService[]
+  cruises                DestinationCruise[]
   hotelPrimaryRefs       Hotel[]                 @relation("HotelPrimaryDestination")
   packagePrimaryRefs     TravelPackage[]         @relation("PackagePrimaryDestination")
   excursionPrimaryRefs   Excursion[]             @relation("ExcursionPrimaryDestination")
   transportOriginRefs    TransportService[]      @relation("TransportOriginDestination")
   transportDestinationRefs TransportService[]    @relation("TransportTargetDestination")
+  cruisePrimaryRefs      Cruise[]                @relation("CruisePrimaryDestination")
 
   @@index([active, isTemplate])
   @@index([order])
@@ -669,4 +671,73 @@ model PackageIncludedService {
 
   @@unique([packageId, serviceType, name])
   @@index([packageId, active, sortOrder])
+}
+
+// ─── Cruises ──────────────────────────────────────────────────────
+model Cruise {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String   @default("")
+  shipName        String   @default("")
+  operator        String   @default("")
+  durationDays    Int      @default(3)
+  images          String   @default("[]") // JSON array of image URLs
+  includes        String   @default("[]") // JSON array
+  itinerary       String   @default("[]") // JSON array of stops
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0)
+  priceFrom       Int      @default(0)
+  tags            String   @default("[]") // JSON array
+  featured        Boolean  @default(false)
+  active          Boolean  @default(true)
+  isTemplate      Boolean  @default(true)
+  primaryDestinationId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  primaryDestination Destination? @relation("CruisePrimaryDestination", fields: [primaryDestinationId], references: [id], onDelete: SetNull)
+  destinations       DestinationCruise[]
+  cabins             CruiseCabin[]
+
+  @@index([primaryDestinationId])
+  @@index([active, isTemplate])
+  @@index([featured, active])
+}
+
+model CruiseCabin {
+  id            String   @id @default(cuid())
+  cruiseId      String
+  name          String
+  capacity      Int      @default(2)
+  beds          String   @default("2 camas individuales")
+  basePrice     Int      @default(0)
+  originalPrice Int      @default(0)
+  includes      String   @default("[]") // JSON array
+  cabinImage    String   @default("")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cruise        Cruise   @relation(fields: [cruiseId], references: [id], onDelete: Cascade)
+
+  @@index([cruiseId, active])
+}
+
+model DestinationCruise {
+  id            String      @id @default(cuid())
+  destinationId String
+  cruiseId      String
+  featured      Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  cruise        Cruise      @relation(fields: [cruiseId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, cruiseId])
+  @@index([destinationId, active, sortOrder])
+  @@index([cruiseId])
 }

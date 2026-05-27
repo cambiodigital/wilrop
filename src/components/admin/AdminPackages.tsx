@@ -138,6 +138,7 @@ export default function AdminPackages() {
   const [transportOptions, setTransportOptions] = useState<PackageRelationOption[]>([]);
   const [selectorLoading, setSelectorLoading] = useState<Record<string, boolean>>({});
   const [selectorErrors, setSelectorErrors] = useState<Record<string, string | null>>({});
+  const [departureDatesStr, setDepartureDatesStr] = useState('');
 
   const fetchPackages = useCallback(async () => {
     setLoading(true);
@@ -265,6 +266,7 @@ export default function AdminPackages() {
     setEditingId(null);
     setForm({ ...emptyPackage });
     setComposition({ ...emptyCompositionSelection });
+    setDepartureDatesStr('');
     setDialogOpen(true);
   };
 
@@ -291,6 +293,7 @@ export default function AdminPackages() {
       active: pkg.active,
     });
     setComposition({ ...emptyCompositionSelection, destinationId: pkg.destinationId });
+    setDepartureDatesStr(pkg.departureDates.join(', '));
     setDialogOpen(true);
     fetchPackageDestinationRelation(pkg.id);
   };
@@ -993,13 +996,14 @@ export default function AdminPackages() {
             <div>
               <div className="form-section-title">Fechas de Salida</div>
               <Input
-                value={form.departureDates.join(', ')}
-                onChange={(e) =>
+                value={departureDatesStr}
+                onChange={(e) => {
+                  setDepartureDatesStr(e.target.value);
                   updateField(
                     'departureDates',
                     e.target.value.split(',').map((d) => d.trim()).filter(Boolean)
-                  )
-                }
+                  );
+                }}
                 placeholder="2025-07-15, 2025-08-10, 2025-09-05"
               />
               <p className="text-xs text-muted-foreground mt-1">Fechas separadas por coma (YYYY-MM-DD)</p>

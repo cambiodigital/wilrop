@@ -109,9 +109,10 @@ const steps = [
 interface BookingFlowProps {
   packageId?: string
   pkg?: any
+  defaultDate?: string
 }
 
-export default function BookingFlow({ packageId, pkg: initialPkg }: BookingFlowProps) {
+export default function BookingFlow({ packageId, pkg: initialPkg, defaultDate }: BookingFlowProps) {
   const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
   const { navigate, openOrderDetail } = usePortalNavigation()
   const [currentStep, setCurrentStep] = useState(1)
@@ -152,6 +153,16 @@ export default function BookingFlow({ packageId, pkg: initialPkg }: BookingFlowP
       photoPackage: isPhotoIncluded ? true : prev.photoPackage,
     }))
   }, [isInsuranceIncluded, isTransferIncluded, isPhotoIncluded])
+
+  // Sync defaultDate from query param to booking form
+  useEffect(() => {
+    if (defaultDate && pkg?.departureDates?.includes(defaultDate)) {
+      setForm((prev) => ({
+        ...prev,
+        departureDate: defaultDate,
+      }))
+    }
+  }, [defaultDate, pkg])
 
   const insurancePrice = isInsuranceIncluded ? 0 : (getAddon('travel-insurance')?.price ?? 0)
   const transferPrice = isTransferIncluded ? 0 : (getAddon('airport-transfer')?.price ?? 0)

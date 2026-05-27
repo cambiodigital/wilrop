@@ -6,7 +6,7 @@ const addonSchema = z.object({
 })
 
 const bookingItemSchema = z.object({
-  itemType: z.enum(['hotel', 'transport', 'excursion', 'package']),
+  itemType: z.enum(['hotel', 'transport', 'excursion', 'package', 'cruise']),
   serviceId: z.string().min(1),
   serviceName: z.string().optional(),
   roomTypeId: z.string().optional(),

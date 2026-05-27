@@ -1148,6 +1148,12 @@ test('normalizeTransport parses includes JSON array and preserves display fields
     active: true,
     isTemplate: false,
     providerId: 'provider-1',
+    provider: {
+      id: 'prov-123',
+      name: 'Transportes Cartagena S.A.S.',
+      vehicleType: 'van',
+      capacity: 8
+    }
   }
 
   const result = normalizeTransport(raw)
@@ -1161,6 +1167,12 @@ test('normalizeTransport parses includes JSON array and preserves display fields
   assert.deepEqual(result.includes, ['Traslado puerta a puerta', 'Agua'])
   assert.equal(result.active, true)
   assert.equal(result.isTemplate, false)
+  assert.deepEqual(result.provider, {
+    id: 'prov-123',
+    name: 'Transportes Cartagena S.A.S.',
+    vehicleType: 'van',
+    capacity: 8
+  })
 })
 
 test('normalizeTransport handles missing optional fields with safe defaults', () => {
@@ -1175,6 +1187,12 @@ test('normalizeTransport handles missing optional fields with safe defaults', ()
   assert.equal(result.durationMins, 0)
   assert.deepEqual(result.includes, [])
   assert.equal(result.isTemplate, true)
+  assert.deepEqual(result.provider, {
+    id: '',
+    name: 'Proveedor no especificado',
+    vehicleType: 'auto',
+    capacity: 4
+  })
 })
 
 // ── resolvePackageDestinationIds ─────────────────────────────────────

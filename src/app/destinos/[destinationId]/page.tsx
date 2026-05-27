@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MapPin, Star, ArrowRight, Building2, Compass, Bus } from 'lucide-react'
+import { ArrowLeft, MapPin, Star, ArrowRight, Building2, Compass, Bus, Ship } from 'lucide-react'
 import PortalShell from '@/components/portal/PortalShell'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
@@ -12,20 +12,24 @@ import {
   normalizeHotel,
   normalizeExcursion,
   normalizeTransport,
+  normalizeCruise,
   extractEntitiesFromJoinRows,
 } from '@/lib/catalog/public-hydration'
-import type { NormalizedPackage, NormalizedHotel, NormalizedExcursion, NormalizedTransport } from '@/lib/catalog/public-hydration'
+import type { NormalizedPackage, NormalizedHotel, NormalizedExcursion, NormalizedTransport, NormalizedCruise } from '@/lib/catalog/public-hydration'
 
 interface DestinationDetailRouteProps {
   params: Promise<{
     destinationId: string
+  }>
+  searchParams: Promise<{
+    date?: string
   }>
 }
 
 // ─── isTemplate resolution ─────────────────────────────────────────
 
 async function resolveTemplateFallbackForEntity(
-  model: 'destination' | 'package' | 'hotel' | 'excursion' | 'transport',
+  model: 'destination' | 'package' | 'hotel' | 'excursion' | 'transport' | 'cruise',
 ): Promise<boolean> {
   const where = { active: true, isTemplate: false }
   let count: number
@@ -44,6 +48,9 @@ async function resolveTemplateFallbackForEntity(
       break
     case 'transport':
       count = await db.transportService.count({ where })
+      break
+    case 'cruise':
+      count = await db.cruise.count({ where })
       break
   }
   return resolveIsTemplateFallback(count)
@@ -176,7 +183,15 @@ async function getRelatedTransportServices(
   // 1. Try DestinationTransportService join model first
   const joinRows = await db.destinationTransportService.findMany({
     where: { destinationId, active: true },
-    include: { transportService: true },
+    include: {
+      transportService: {
+        include: {
+          provider: {
+            select: { id: true, name: true, vehicleType: true, capacity: true },
+          },
+        },
+      },
+    },
     orderBy: { sortOrder: 'asc' },
   })
 
@@ -197,6 +212,11 @@ async function getRelatedTransportServices(
         { destinationDestinationId: destinationId },
       ],
     },
+    include: {
+      provider: {
+        select: { id: true, name: true, vehicleType: true, capacity: true },
+      },
+    },
   })
   if (viaFk.length > 0) {
     return viaFk.map((t) => normalizeTransport(t as unknown as Record<string, unknown>))
@@ -209,8 +229,42 @@ async function getRelatedTransportServices(
       isTemplate: isTemplateFallback,
       OR: [{ cityId: destinationId }, { cityName: destinationName }],
     },
+    include: {
+      provider: {
+        select: { id: true, name: true, vehicleType: true, capacity: true },
+      },
+    },
   })
   return viaLegacy.map((t) => normalizeTransport(t as unknown as Record<string, unknown>))
+}
+
+// ─── Relational cruise hydration ───────────────────────────────────
+
+async function getRelatedCruises(
+  destinationId: string,
+  isTemplateFallback: boolean,
+): Promise<NormalizedCruise[]> {
+  // 1. Try DestinationCruise join model first
+  const joinRows = await db.destinationCruise.findMany({
+    where: { destinationId, active: true },
+    include: { cruise: { include: { cabins: true } } },
+    orderBy: { sortOrder: 'asc' },
+  })
+
+  if (joinRows.length > 0) {
+    const fromJoin = extractEntitiesFromJoinRows(joinRows, 'cruise', isTemplateFallback)
+    if (fromJoin.length > 0) {
+      return (fromJoin as Array<Record<string, unknown>>).map(normalizeCruise)
+    }
+  }
+
+  // 2. Fallback: primary destination ID on Cruise
+  const viaFk = await db.cruise.findMany({
+    where: { primaryDestinationId: destinationId, active: true, isTemplate: isTemplateFallback },
+    include: { cabins: true },
+  })
+  
+  return viaFk.map((c) => normalizeCruise(c as unknown as Record<string, unknown>))
 }
 
 // ─── Main data loader ───────────────────────────────────────────────
@@ -234,12 +288,14 @@ async function getDestinationData(destinationId: string) {
   const hotelsIsTemplate = await resolveTemplateFallbackForEntity('hotel')
   const excursionsIsTemplate = await resolveTemplateFallbackForEntity('excursion')
   const transportIsTemplate = await resolveTemplateFallbackForEntity('transport')
+  const cruisesIsTemplate = await resolveTemplateFallbackForEntity('cruise')
 
-  const [packages, hotels, excursions, transportServices] = await Promise.all([
+  const [packages, hotels, excursions, transportServices, cruises] = await Promise.all([
     getRelatedPackages(destination.id, packagesIsTemplate),
     getRelatedHotels(destination.id, destination.name, hotelsIsTemplate),
     getRelatedExcursions(destination.id, destination.name, excursionsIsTemplate),
     getRelatedTransportServices(destination.id, destination.name, transportIsTemplate),
+    getRelatedCruises(destination.id, cruisesIsTemplate),
   ])
 
   return {
@@ -251,6 +307,7 @@ async function getDestinationData(destinationId: string) {
     hotels,
     excursions,
     transportServices,
+    cruises,
   }
 }
 
@@ -281,15 +338,20 @@ export async function generateMetadata({ params }: DestinationDetailRouteProps):
 
 // ─── Page Component ─────────────────────────────────────────────────
 
-export default async function DestinationDetailRoutePage({ params }: DestinationDetailRouteProps) {
+export default async function DestinationDetailRoutePage({ params, searchParams }: DestinationDetailRouteProps) {
   const { destinationId } = await params
+  const { date } = await searchParams
   const data = await getDestinationData(destinationId)
 
   if (!data) {
     notFound()
   }
 
-  const { destination, packages, hotels, excursions, transportServices } = data
+  const { destination, packages, hotels, excursions, transportServices, cruises } = data
+
+  const filteredPackages = date
+    ? packages.filter((pkg) => pkg.departureDates.includes(date))
+    : packages
 
   return (
     <PortalShell>
@@ -347,18 +409,54 @@ export default async function DestinationDetailRoutePage({ params }: Destination
             <div className="mb-5 flex items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Paquetes en {destination.name}</h2>
-                <p className="mt-1 text-sm text-neutral-500">{packages.length} opciones disponibles</p>
+                <p className="mt-1 text-sm text-neutral-500">
+                  {date 
+                    ? `${filteredPackages.length} de ${packages.length} opciones disponibles para esta fecha`
+                    : `${packages.length} opciones disponibles`
+                  }
+                </p>
               </div>
             </div>
 
-            {packages.length === 0 ? (
+            {date && (
+              <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50/50 p-4 text-sm text-amber-900">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span>
+                    Mostrando paquetes disponibles para la fecha de salida: <strong>{date}</strong>
+                  </span>
+                </div>
+                <Link
+                  href={`/destinos/${destination.id}`}
+                  className="font-semibold text-amber-700 underline hover:text-amber-800 transition-colors"
+                >
+                  Ver todas las fechas
+                </Link>
+              </div>
+            )}
+
+            {filteredPackages.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
-                Aún no hay paquetes activos para este destino.
+                {date ? (
+                  <div>
+                    <p>No hay paquetes programados para salir el <strong>{date}</strong> en este destino.</p>
+                    <div className="mt-4">
+                      <Link
+                        href={`/destinos/${destination.id}`}
+                        className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 shadow-md shadow-amber-500/10"
+                      >
+                        Ver todos los paquetes (otras fechas)
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  "Aún no hay paquetes activos para este destino."
+                )}
               </div>
             ) : (
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {packages.map((pkg) => (
-                  <article key={pkg.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                {filteredPackages.map((pkg) => (
+                  <article key={pkg.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-md">
                     <img src={pkg.image} alt={pkg.title} className="h-44 w-full object-cover" />
                     <div className="p-4">
                       <p className="text-xs uppercase tracking-wide text-amber-600">{pkg.category}</p>
@@ -375,7 +473,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                           Ver detalle
                         </Link>
                         <Link
-                          href={`/paquetes/${pkg.id}/reserva`}
+                          href={`/paquetes/${pkg.id}/reserva${date ? `?date=${date}` : ''}`}
                           className="inline-flex flex-1 items-center justify-center rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
                         >
                           Reservar
@@ -547,6 +645,59 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                         Ver servicio
                         <ArrowRight className="ml-1.5 size-4" />
                       </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── Cruises Section ──────────────────────────────── */}
+          <section className="mt-10">
+            <div className="mb-5">
+              <div className="flex items-center gap-2">
+                <Ship className="size-5 text-amber-600" />
+                <h2 className="text-2xl font-bold text-neutral-900">Cruceros en {destination.name}</h2>
+              </div>
+              <p className="mt-1 text-sm text-neutral-500">{cruises.length} cruceros disponibles</p>
+            </div>
+
+            {cruises.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
+                Aún no hay cruceros activos zarpando o visitando este destino.
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {cruises.map((cruise) => (
+                  <article key={cruise.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm flex flex-col justify-between">
+                    <img
+                      src={cruise.images[0] ?? '/images/cruceros.png'}
+                      alt={cruise.name}
+                      className="h-44 w-full object-cover"
+                    />
+                    <div className="p-4 flex-1 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-wide text-amber-600">{cruise.operator}</p>
+                        <h3 className="text-lg font-semibold text-neutral-900 leading-snug">{cruise.name}</h3>
+                        <p className="text-xs text-neutral-500">Barco: <span className="font-semibold">{cruise.shipName}</span></p>
+                        <p className="line-clamp-2 text-sm text-neutral-600">{cruise.description}</p>
+                        <div className="flex flex-wrap gap-2 text-xs text-neutral-500">
+                          <span className="rounded-full bg-neutral-100 px-2.5 py-0.5">{cruise.durationDays} días / {cruise.durationDays - 1} noches</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] text-neutral-400 block">Desde</span>
+                          <span className="text-lg font-extrabold text-sky-800">${cruise.priceFrom.toLocaleString('es-CO')}</span>
+                        </div>
+                        <Link
+                          href={`/cruceros/${cruise.slug || cruise.id}`}
+                          className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-600"
+                        >
+                          Ver crucero
+                          <ArrowRight className="ml-1.5 size-4" />
+                        </Link>
+                      </div>
                     </div>
                   </article>
                 ))}

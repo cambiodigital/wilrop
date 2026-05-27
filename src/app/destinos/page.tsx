@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import PortalShell from '@/components/portal/PortalShell'
 import DestinationsSection from '@/components/portal/DestinationsSection'
+import RouteLoading from '@/components/portal/RouteLoading'
 import { buildPublicMetadata } from '@/lib/seo'
 
 export const metadata = buildPublicMetadata({
@@ -11,7 +13,9 @@ export const metadata = buildPublicMetadata({
 export default function DestinationsPage() {
   return (
     <PortalShell>
-      <DestinationsSection />
+      <Suspense fallback={<RouteLoading />}>
+        <DestinationsSection />
+      </Suspense>
     </PortalShell>
   )
 }

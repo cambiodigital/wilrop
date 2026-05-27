@@ -9,6 +9,9 @@ interface PackageBookingRouteProps {
   params: Promise<{
     packageId: string
   }>
+  searchParams: Promise<{
+    date?: string
+  }>
 }
 
 async function getPackageData(packageId: string) {
@@ -66,17 +69,18 @@ export async function generateMetadata({ params }: PackageBookingRouteProps): Pr
   })
 }
 
-export default async function PackageBookingRoutePage({ params }: PackageBookingRouteProps) {
+export default async function PackageBookingRoutePage({ params, searchParams }: PackageBookingRouteProps) {
   const { packageId } = await params
+  const { date } = await searchParams
   const travelPackage = await getPackageData(packageId)
-
+  
   if (!travelPackage) {
     notFound()
   }
 
   return (
     <PortalShell>
-      <BookingFlow packageId={packageId} pkg={travelPackage} />
+      <BookingFlow packageId={packageId} pkg={travelPackage} defaultDate={date} />
     </PortalShell>
   )
 }
