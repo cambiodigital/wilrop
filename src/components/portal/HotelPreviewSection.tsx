@@ -76,10 +76,10 @@ export default function HotelPreviewSection() {
   const [hotelsList, setHotelsList] = useState<any[]>([])
 
   useEffect(() => {
-    fetch('/api/public/hotels')
+    fetch('/api/public/hotels?featured=true&limit=4')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setHotelsList(res.data)
         }
       })
@@ -88,7 +88,7 @@ export default function HotelPreviewSection() {
 
   const featuredHotels = useMemo(() => {
     if (hotelsList.length > 0) {
-      return hotelsList.filter((h) => h.featured).slice(0, 4)
+      return hotelsList
     }
     return getFeaturedHotels()
   }, [hotelsList])

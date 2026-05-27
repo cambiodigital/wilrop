@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { teamAssets } from '@/lib/team'
+import { useState, useEffect } from 'react'
 
 const values = [
   {
@@ -53,16 +55,36 @@ const values = [
 ]
 
 const team = [
-  { name: 'Carolina Mejía', role: 'Fundadora & CEO', initials: 'CM' },
-  { name: 'Andrés Ríos', role: 'Director de Operaciones', initials: 'AR' },
-  { name: 'Valentina Duque', role: 'Diseñadora de Experiencias', initials: 'VD' },
-  { name: 'Santiago Peña', role: 'Guía Principal', initials: 'SP' },
+  {
+    name: teamAssets.founder.name,
+    role: 'Fundador & CEO',
+    imageSrc: teamAssets.founder.imageSrc,
+    initials: 'WB',
+  },
+  {
+    name: 'Administradora Ejecutiva',
+    role: 'Administración y Finanzas',
+    imageSrc: '/images/personal/administradora-ejecutiva-wilrop.jpeg',
+    initials: 'AE',
+  },
+  {
+    name: 'Asesora Ejecutiva',
+    role: 'Asesoría y Experiencias',
+    imageSrc: '/images/personal/asesora-ejecutiva-wilrop.jpeg',
+    initials: 'AE',
+  },
+  {
+    name: 'Asesor Comercial',
+    role: 'Gestión Comercial',
+    imageSrc: '/images/personal/asesor-comercial-wilrop.jpeg',
+    initials: 'AC',
+  },
 ]
 
-const achievements = [
+const initialAchievements = [
   { icon: Users, value: '500+', label: 'Viajeros Felices' },
   { icon: Globe, value: '6', label: 'Destinos en Colombia' },
-  { icon: Award, value: '10+', label: 'Años de Experiencia' },
+  { icon: Award, value: '15+', label: 'Años de Experiencia' },
   { icon: MapPin, value: '50+', label: 'Paquetes Disponibles' },
 ]
 
@@ -81,6 +103,23 @@ const itemVariants = {
 
 export default function AboutSection() {
   const { navigate } = usePortalNavigation()
+  const [achievements, setAchievements] = useState(initialAchievements)
+
+  useEffect(() => {
+    fetch('/api/public/stats')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          setAchievements([
+            { icon: Users, value: `${res.data.totalBookings || 0}+`, label: 'Viajeros Felices' },
+            { icon: Globe, value: `${res.data.totalDestinations || 0}`, label: 'Destinos en Colombia' },
+            { icon: Award, value: '15+', label: 'Años de Experiencia' },
+            { icon: MapPin, value: `${res.data.totalPackages || 0}+`, label: 'Paquetes Disponibles' },
+          ])
+        }
+      })
+      .catch((err) => console.error('Error fetching about page stats:', err))
+  }, [])
 
   return (
     <section className="py-20 bg-white">
@@ -121,7 +160,7 @@ export default function AboutSection() {
               />
             </div>
             <div className="absolute -bottom-6 -right-4 rounded-2xl bg-amber-500 p-4 text-white shadow-lg sm:p-6">
-              <p className="text-3xl font-extrabold">10+</p>
+              <p className="text-3xl font-extrabold">15+</p>
               <p className="text-sm text-amber-100">Años de Experiencia</p>
             </div>
           </div>
@@ -206,15 +245,33 @@ export default function AboutSection() {
           <p className="mt-2 text-neutral-500">
             Apasionados por crear las mejores experiencias de viaje
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-4">
             {team.map((member) => (
-              <div key={member.name} className="flex flex-col items-center">
-                <div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-lg font-bold text-white shadow-md">
-                  {member.initials}
+              <motion.div
+                key={member.name}
+                whileHover={{ y: -5 }}
+                className="flex flex-col items-center group animate-fadeIn"
+              >
+                <div className="relative size-28 overflow-hidden rounded-full border-4 border-amber-100 shadow-lg transition-all duration-300 group-hover:border-amber-400 group-hover:shadow-xl">
+                  {member.imageSrc ? (
+                    <img
+                      src={member.imageSrc}
+                      alt={member.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-xl font-bold text-white">
+                      {member.initials}
+                    </div>
+                  )}
                 </div>
-                <p className="mt-3 text-sm font-semibold text-neutral-900">{member.name}</p>
-                <p className="text-xs text-neutral-500">{member.role}</p>
-              </div>
+                <p className="mt-4 text-base font-bold text-neutral-950 transition-colors group-hover:text-amber-600">
+                  {member.name}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-amber-600/90 tracking-wide uppercase">
+                  {member.role}
+                </p>
+              </motion.div>
             ))}
           </div>
         </motion.div>

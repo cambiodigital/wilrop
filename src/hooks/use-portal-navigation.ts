@@ -25,6 +25,9 @@ export function usePortalNavigation() {
       case 'portal-hotels':
         router.push(portalPaths.hotels)
         return
+      case 'portal-hotel-detail':
+        router.push(entityId ? portalPaths.hotelDetail(entityId) : portalPaths.hotels)
+        return
       case 'portal-about':
         router.push(portalPaths.about)
         return

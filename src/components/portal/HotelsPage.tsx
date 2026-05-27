@@ -84,18 +84,8 @@ const staggerItem = {
 // ─── Main Component ─────────────────────────────────────────
 export default function HotelsPage() {
   const { goBack, openHotelDetail } = usePortalNavigation()
-  const [hotelsList, setHotelsList] = useState<any[]>(allHotels)
-
-  useEffect(() => {
-    fetch('/api/public/hotels')
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          setHotelsList(res.data)
-        }
-      })
-      .catch((err) => console.error('Error fetching hotels:', err))
-  }, [])
+  const [hotelsList, setHotelsList] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Search state
   const [selectedCity, setSelectedCity] = useState<string>('')
@@ -111,6 +101,11 @@ export default function HotelsPage() {
   const [amenityFilters, setAmenityFilters] = useState<string[]>([])
   const [minRating, setMinRating] = useState(0)
   const [sortBy, setSortBy] = useState<string>('recommended')
+
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [paginationInfo, setPaginationInfo] = useState<any>(null)
+  const limit = 10
 
   // Mobile filter sheet
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
@@ -129,65 +124,55 @@ export default function HotelsPage() {
 
   const totalGuests = adults + children
 
-  // Filter & sort hotels
-  const filteredHotels = useMemo(() => {
-    let result = [...hotelsList]
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [selectedCity, priceRange, starFilters, amenityFilters, minRating, sortBy, hasSearched])
 
-    // City filter
-    if (selectedCity) {
-      result = result.filter((h) => h.cityId === selectedCity)
-    }
+  // Debounced server fetch triggered on any query filter change
+  useEffect(() => {
+    setLoading(true)
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams()
+      if (selectedCity) params.append('cityId', selectedCity)
+      params.append('priceMin', String(priceRange[0]))
+      params.append('priceMax', String(priceRange[1]))
+      if (starFilters.length > 0) params.append('stars', starFilters.join(','))
+      if (amenityFilters.length > 0) params.append('amenities', amenityFilters.join(','))
+      if (minRating > 0) params.append('minRating', String(minRating))
+      if (sortBy) params.append('sortBy', sortBy)
+      if (hasSearched && totalGuests > 0) params.append('guests', String(totalGuests))
+      params.append('page', String(page))
+      params.append('limit', String(limit))
 
-    // Price filter
-    result = result.filter((h) => {
-      if (h.priceFrom === 0) return true
-      return h.priceFrom >= priceRange[0] && h.priceFrom <= priceRange[1]
-    })
-
-    // Star filter
-    if (starFilters.length > 0) {
-      result = result.filter((h) => starFilters.includes(h.stars))
-    }
-
-    // Amenity filter
-    if (amenityFilters.length > 0) {
-      result = result.filter((h) => amenityFilters.every((a) => h.amenities.includes(a)))
-    }
-
-    // Rating filter
-    if (minRating > 0) {
-      result = result.filter((h) => h.rating >= minRating)
-    }
-
-    // Guest capacity
-    if (hasSearched && totalGuests > 0) {
-      result = result.filter((h) => h.rooms.some((r) => r.maxGuests >= totalGuests))
-    }
-
-    // Sort
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.priceFrom - b.priceFrom)
-        break
-      case 'price-desc':
-        result.sort((a, b) => b.priceFrom - a.priceFrom)
-        break
-      case 'stars':
-        result.sort((a, b) => b.stars - a.stars)
-        break
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
-        break
-      default:
-        // Recommended: featured first, then by rating
-        result.sort((a, b) => {
-          if (a.featured !== b.featured) return a.featured ? -1 : 1
-          return b.rating - a.rating
+      fetch(`/api/public/hotels?${params.toString()}`)
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setHotelsList(res.data)
+            if (res.pagination) {
+              setPaginationInfo(res.pagination)
+            }
+          }
         })
-    }
+        .catch((err) => console.error('Error fetching hotels:', err))
+        .finally(() => setLoading(false))
+    }, 300) // 300ms debounce
 
-    return result
-  }, [hotelsList, selectedCity, priceRange, starFilters, amenityFilters, minRating, sortBy, totalGuests])
+    return () => clearTimeout(timer)
+  }, [
+    selectedCity,
+    priceRange,
+    starFilters,
+    amenityFilters,
+    minRating,
+    sortBy,
+    hasSearched,
+    totalGuests,
+    page,
+  ])
+
+  const filteredHotels = hotelsList
 
   // Toggle helpers
   const toggleStar = useCallback((star: number) => {
@@ -206,6 +191,7 @@ export default function HotelsPage() {
     setAmenityFilters([])
     setMinRating(0)
     setSelectedCity('')
+    setPage(1)
   }, [])
 
   const handleSearch = useCallback(() => {
@@ -502,7 +488,7 @@ export default function HotelsPage() {
                 {hasSearched || selectedCity ? 'Hoteles' : 'Todos los hoteles'}
               </h1>
               <p className="mt-1 text-sm text-neutral-500">
-                <span className="font-semibold text-neutral-700">{filteredHotels.length}</span>{' '}
+                <span className="font-semibold text-neutral-700">{paginationInfo?.total ?? filteredHotels.length}</span>{' '}
                 hoteles encontrados en{' '}
                 <span className="font-medium text-amber-600">{cityName}</span>
                 {nights > 1 && (
@@ -545,7 +531,16 @@ export default function HotelsPage() {
           {/* ─── Hotel Listing ────────────────────────────── */}
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
-              {filteredHotels.length === 0 ? (
+              {loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-48 w-full md:h-56 rounded-xl bg-neutral-100 animate-pulse border border-neutral-200"
+                    />
+                  ))}
+                </div>
+              ) : filteredHotels.length === 0 ? (
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0 }}
@@ -566,22 +561,69 @@ export default function HotelsPage() {
                   </Button>
                 </motion.div>
               ) : (
-                <motion.div
-                  key="list"
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                  className="space-y-4"
-                >
-                  {filteredHotels.map((hotel) => (
-                    <HotelListingCard
-                      key={hotel.id}
-                      hotel={hotel}
-                      nights={nights}
-                      onClick={() => openHotelDetail(hotel.id)}
-                    />
-                  ))}
-                </motion.div>
+                <div className="space-y-6">
+                  <motion.div
+                    key="list"
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                    className="space-y-4"
+                  >
+                    {filteredHotels.map((hotel) => (
+                      <HotelListingCard
+                        key={hotel.id}
+                        hotel={hotel}
+                        nights={nights}
+                        onClick={() => openHotelDetail(hotel.id)}
+                      />
+                    ))}
+                  </motion.div>
+
+                  {/* Pagination Controls */}
+                  {paginationInfo && paginationInfo.totalPages > 1 && (
+                    <div className="mt-8 flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl border-neutral-200"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        Anterior
+                      </Button>
+                      
+                      {Array.from({ length: paginationInfo.totalPages }).map((_, idx) => {
+                        const pageNum = idx + 1
+                        const isCurrent = page === pageNum
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={isCurrent ? 'default' : 'outline'}
+                            size="sm"
+                            className={`rounded-xl h-8 w-8 p-0 ${
+                              isCurrent
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                            }`}
+                            onClick={() => setPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      })}
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl border-neutral-200"
+                        onClick={() => setPage((p) => Math.min(paginationInfo.totalPages, p + 1))}
+                        disabled={page === paginationInfo.totalPages}
+                      >
+                        Siguiente
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </AnimatePresence>
           </div>

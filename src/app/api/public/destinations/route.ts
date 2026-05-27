@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { resolveIsTemplateFallback } from '@/lib/catalog/public-hydration';
 
@@ -10,19 +10,53 @@ function parseHighlights(highlights: string): string[] {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined;
+    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : undefined;
+
     const realCount = await db.destination.count({
       where: { active: true, isTemplate: false },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
+    const categoryFilter = category
+      ? {
+          OR: [
+            {
+              packages: {
+                some: {
+                  active: true,
+                  package: {
+                    category: category,
+                    active: true,
+                  },
+                },
+              },
+            },
+            {
+              packagePrimaryRefs: {
+                some: {
+                  category: category,
+                  active: true,
+                },
+              },
+            },
+          ],
+        }
+      : {};
+
     const destinations = await db.destination.findMany({
       where: {
         active: true,
         isTemplate: isTemplateFallback,
+        ...categoryFilter,
       },
       orderBy: { order: 'asc' },
+      ...(limit !== undefined ? { take: limit } : {}),
+      ...(offset !== undefined ? { skip: offset } : {}),
       include: {
         _count: {
           select: {

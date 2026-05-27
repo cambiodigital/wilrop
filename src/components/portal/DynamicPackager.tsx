@@ -209,10 +209,11 @@ export default function DynamicPackager() {
     } catch { /* ignore */ } finally { setLoadingTransport(false) }
   }, [])
 
-  const fetchHotels = useCallback(async () => {
+  const fetchHotels = useCallback(async (cityId?: string) => {
     setLoadingHotels(true)
     try {
-      const res = await fetch('/api/public/hotels')
+      const url = cityId ? `/api/public/hotels?cityId=${cityId}` : '/api/public/hotels'
+      const res = await fetch(url)
       const json = await res.json()
       if (json.success) setHotels(json.data)
     } catch { /* ignore */ } finally { setLoadingHotels(false) }
@@ -229,9 +230,15 @@ export default function DynamicPackager() {
 
   useEffect(() => {
     fetchTransport()
-    fetchHotels()
     fetchExcursions()
-  }, [fetchTransport, fetchHotels, fetchExcursions])
+  }, [fetchTransport, fetchExcursions])
+
+  // Refetch hotels on city or step change
+  useEffect(() => {
+    if (currentStep === 2) {
+      fetchHotels(hCity)
+    }
+  }, [hCity, currentStep, fetchHotels])
 
   // Refetch transport on city change
   useEffect(() => {
