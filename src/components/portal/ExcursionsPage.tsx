@@ -613,17 +613,11 @@ function ExcursionCard({ excursion, onBook }: { excursion: Excursion; onBook: (e
     <div className="group flex flex-col rounded-xl border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-md overflow-hidden">
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
-        {excursion.images && excursion.images.length > 0 ? (
-          <img
-            src={excursion.images[0]}
-            alt={excursion.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-            <Mountain className="size-12 text-white/60" />
-          </div>
-        )}
+        <img
+          src={excursion.images?.[0] || '/placeholder-excursion.png'}
+          alt={excursion.name}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Badges overlay */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">

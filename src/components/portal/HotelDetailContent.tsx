@@ -196,9 +196,11 @@ export default function HotelDetailContent({
             )}
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400">
-            <ImageIcon className="size-12 stroke-1" />
-          </div>
+          <img
+            src="/placeholder-hotel.png"
+            alt={hotel.name}
+            className="h-full w-full object-cover"
+          />
         )}
 
         {/* Gradient Overlay */}

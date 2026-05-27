@@ -13,9 +13,11 @@ export default function ExcursionGallery({ images, name }: ExcursionGalleryProps
 
   if (images.length === 0) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-        <ImageIcon className="size-12 stroke-1 opacity-70" />
-      </div>
+      <img
+        src="/placeholder-excursion.png"
+        alt={name}
+        className="h-full w-full object-cover"
+      />
     )
   }
 

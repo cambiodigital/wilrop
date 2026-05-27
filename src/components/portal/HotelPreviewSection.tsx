@@ -152,7 +152,7 @@ function HotelCard({ hotel, gradient }: { hotel: Hotel; gradient: string }) {
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
         <img
-          src={hotel.images[0]}
+          src={hotel.images[0] || '/placeholder-hotel.png'}
           alt={hotel.name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />

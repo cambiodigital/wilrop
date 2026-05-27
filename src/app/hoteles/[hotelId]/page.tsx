@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: HotelDetailRouteProps): Promi
     title: `${hotel.name} | Hoteles WILROP`,
     description: `Revisa detalles de ${hotel.name} en ${hotel.cityName} y reserva tu estadía con WILROP.`,
     path: `/hoteles/${hotelId}`,
-    ogImage: hotel.images[0],
+    ogImage: hotel.images[0] || '/placeholder-hotel.png',
   })
 }
 

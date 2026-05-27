@@ -633,7 +633,7 @@ export default function HotelBookingFlow({
           <div className="lg:col-span-1">
             <Card className="sticky top-24 border-neutral-200 p-0 overflow-hidden">
               <div className="relative h-40">
-                <img src={hotel.images[0]} alt={hotel.name} className="h-full w-full object-cover" />
+                <img src={hotel.images[0] || '/placeholder-hotel.png'} alt={hotel.name} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-3 left-3">
                   <div className="flex gap-0.5">{Array.from({ length: hotel.stars }).map((_, i) => <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />)}</div>

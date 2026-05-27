@@ -408,7 +408,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                 {hotels.map((hotel) => (
                   <article key={hotel.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
                     <img
-                      src={hotel.images[0] ?? '/placeholder-hotel.jpg'}
+                      src={hotel.images[0] ?? '/placeholder-hotel.png'}
                       alt={hotel.name}
                       className="h-44 w-full object-cover"
                     />
@@ -467,7 +467,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                 {excursions.map((exc) => (
                   <article key={exc.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
                     <img
-                      src={exc.images[0] ?? '/placeholder-excursion.jpg'}
+                      src={exc.images[0] ?? '/placeholder-excursion.png'}
                       alt={exc.name}
                       className="h-44 w-full object-cover"
                     />
@@ -518,7 +518,7 @@ export default async function DestinationDetailRoutePage({ params }: Destination
                 {transportServices.map((ts) => (
                   <article key={ts.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
                     <img
-                      src="/placeholder-transport.jpg"
+                      src="/placeholder-transport.png"
                       alt={ts.name}
                       className="h-44 w-full object-cover"
                     />

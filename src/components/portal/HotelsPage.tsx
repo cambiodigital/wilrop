@@ -676,7 +676,7 @@ function HotelListingCard({
         {/* Image */}
         <div className="relative h-48 w-full flex-shrink-0 md:h-56 md:w-56">
           <img
-            src={hotel.images[0]}
+            src={hotel.images[0] || '/placeholder-hotel.png'}
             alt={hotel.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: ExcursionDetailRouteProps): P
     title: `${excursion.name} | Excursiones WILROP`,
     description: excursion.shortDesc || `Conoce la excursión ${excursion.name} y planea tu experiencia en ${excursion.destinationName}.`,
     path: `/excursiones/${slug}`,
-    ogImage: excursion.images[0],
+    ogImage: excursion.images[0] || '/placeholder-excursion.png',
   })
 }
 
