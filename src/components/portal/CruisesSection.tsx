@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Ship, Clock, ArrowRight, Sparkles, Anchor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { formatCOP } from '@/data/packages'
+import { getFeaturedCruises } from '@/data/cruises'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,7 +39,7 @@ export default function CruisesSection() {
       try {
         const res = await fetch('/api/public/cruises')
         const json = await res.json()
-        if (json.success) {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setCruises(json.data)
         }
       } catch (err) {
@@ -50,8 +51,15 @@ export default function CruisesSection() {
     loadCruises()
   }, [])
 
-  const heroCruise = cruises.find((c) => c.featured) || cruises[0]
-  const listCruises = cruises.slice(0, 3)
+  const displayedCruises = useMemo(() => {
+    if (cruises.length > 0) {
+      return cruises
+    }
+    return getFeaturedCruises()
+  }, [cruises])
+
+  const heroCruise = displayedCruises.find((c) => c.featured) || displayedCruises[0]
+  const listCruises = displayedCruises.slice(0, 3)
 
   if (loading) {
     return (
@@ -70,7 +78,7 @@ export default function CruisesSection() {
     )
   }
 
-  if (cruises.length === 0) {
+  if (displayedCruises.length === 0) {
     return null
   }
 

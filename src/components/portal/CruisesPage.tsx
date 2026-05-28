@@ -15,7 +15,12 @@ import {
   Anchor,
   Sparkles,
   HelpCircle,
+  Calendar,
+  Users,
+  Minus,
+  Plus,
 } from 'lucide-react'
+import { cruises as fallbackCruises } from '@/data/cruises'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -73,6 +78,13 @@ export default function CruisesPage() {
   const [sortBy, setSortBy] = useState<string>('recommended')
   const [searchTerm, setSearchTerm] = useState('')
 
+  // Sticky Search Bar extra state
+  const [departureDate, setDepartureDate] = useState('')
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [guestsOpen, setGuestsOpen] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+
   // Pagination state
   const [page, setPage] = useState(1)
   const [paginationInfo, setPaginationInfo] = useState<any>(null)
@@ -129,17 +141,40 @@ export default function CruisesPage() {
     return () => clearTimeout(timer)
   }, [selectedDestination, priceRange, durationDays, sortBy, page])
 
-  // In-memory text filter for name/ship/operator
+  // In-memory filter with support for static fallbackCruises
   const filteredCruises = useMemo(() => {
-    if (!searchTerm.trim()) return cruisesList
-    const query = searchTerm.toLowerCase().trim()
-    return cruisesList.filter(
-      (c) =>
-        c.name.toLowerCase().includes(query) ||
-        c.shipName.toLowerCase().includes(query) ||
-        c.operator.toLowerCase().includes(query)
-    )
-  }, [cruisesList, searchTerm])
+    const sourceList = cruisesList.length > 0 ? cruisesList : fallbackCruises
+    return sourceList.filter((c) => {
+      // Free text search (name, ship, operator)
+      if (searchTerm.trim()) {
+        const query = searchTerm.toLowerCase().trim()
+        const matchesSearch =
+          c.name.toLowerCase().includes(query) ||
+          c.shipName.toLowerCase().includes(query) ||
+          c.operator.toLowerCase().includes(query)
+        if (!matchesSearch) return false
+      }
+
+      // If database returns no active cruises (or failed connection), apply options client-side
+      if (cruisesList.length === 0) {
+        if (
+          selectedDestination &&
+          selectedDestination !== 'all' &&
+          c.primaryDestinationId !== selectedDestination
+        ) {
+          return false
+        }
+        if (c.priceFrom < priceRange[0] || c.priceFrom > priceRange[1]) {
+          return false
+        }
+        if (durationDays !== null && c.durationDays !== durationDays) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [cruisesList, searchTerm, selectedDestination, priceRange, durationDays])
 
   const clearFilters = useCallback(() => {
     setPriceRange([500000, 6000000])
@@ -147,6 +182,10 @@ export default function CruisesPage() {
     setSelectedDestination('all')
     setSortBy('recommended')
     setSearchTerm('')
+    setDepartureDate('')
+    setAdults(2)
+    setChildren(0)
+    setHasSearched(false)
     setPage(1)
   }, [])
 
@@ -192,7 +231,7 @@ export default function CruisesPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-neutral-900">Rango de Precios</h3>
-          <span className="text-xs font-semibold text-sky-600">COP</span>
+          <span className="text-xs font-semibold text-amber-600">COP</span>
         </div>
         <Slider
           min={500000}
@@ -251,31 +290,176 @@ export default function CruisesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-neutral-50/50 pb-20">
-      {/* Premium Hero Banner */}
-      <div className="relative overflow-hidden bg-slate-900 pt-28 pb-16 text-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-sky-950/80 to-slate-900/90 z-10" />
-        <div className="absolute -right-20 -top-20 size-[350px] rounded-full bg-sky-500/10 blur-[80px]" />
-        <div className="absolute -left-20 -bottom-20 size-[350px] rounded-full bg-indigo-500/10 blur-[80px]" />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-20">
-          <div className="max-w-2xl">
-            <Badge className="mb-4 rounded-full bg-sky-500/20 text-sky-200 border-sky-400/20 text-xs font-semibold px-3 py-1">
-              <Ship className="mr-1.5 size-3" />
-              Vacaciones Soñadas
-            </Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Cruceros por el Caribe
-            </h1>
-            <p className="mt-4 text-base text-sky-100/80 sm:text-lg">
-              Descubre itinerarios espectaculares zarpando desde los puertos colombianos.
-              Compara camarotes, navieras y reserva tu próximo gran viaje todo incluido.
-            </p>
+    <div className="min-h-screen bg-neutral-50 pb-20">
+      {/* ─── Sticky Search/Filter Bar ──────────────────────── */}
+      <div className="sticky top-16 z-40 border-b border-neutral-200 bg-white shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            {/* Destination */}
+            <div className="flex-1">
+              <Select
+                value={selectedDestination || 'all'}
+                onValueChange={(v) => setSelectedDestination(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="w-full rounded-xl border-neutral-200 bg-white">
+                  <MapPin className="mr-2 size-4 text-amber-500" />
+                  <SelectValue placeholder="¿A dónde viajas?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los destinos</SelectItem>
+                  {destinations.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Departure Date */}
+            <div className="lg:w-40">
+              <Input
+                type="date"
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
+                className="[color-scheme:light] rounded-xl border-neutral-200 bg-white"
+                placeholder="Fecha de salida"
+              />
+            </div>
+
+            {/* Duration */}
+            <div className="lg:w-48">
+              <Select
+                value={durationDays ? String(durationDays) : 'all'}
+                onValueChange={(v) => setDurationDays(v === 'all' ? null : Number(v))}
+              >
+                <SelectTrigger className="w-full rounded-xl border-neutral-200 bg-white">
+                  <Clock className="mr-2 size-4 text-amber-500" />
+                  <SelectValue placeholder="Duración del viaje" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Cualquier duración</SelectItem>
+                  {[3, 4, 5, 7, 10].map((days) => (
+                    <SelectItem key={days} value={String(days)}>
+                      {days} días ({days - 1} noches)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Passengers */}
+            <div className="relative lg:w-48">
+              <button
+                onClick={() => setGuestsOpen(!guestsOpen)}
+                className="flex w-full items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm transition-colors hover:border-amber-300"
+              >
+                <Users className="size-4 text-amber-500" />
+                <span className="text-neutral-700">
+                  {adults} adulto{adults !== 1 ? 's' : ''}
+                  {children > 0 ? `, ${children} niño${children !== 1 ? 's' : ''}` : ''}
+                </span>
+                <ChevronDown className="ml-auto size-4 text-neutral-400" />
+              </button>
+              <AnimatePresence>
+                {guestsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute top-full left-0 z-50 mt-2 w-full rounded-xl border border-neutral-200 bg-white p-4 shadow-lg"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-700">Adultos</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                            className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
+                          >
+                            <Minus className="size-3" />
+                          </button>
+                          <span className="w-6 text-center text-sm font-semibold">{adults}</span>
+                          <button
+                            onClick={() => setAdults(Math.min(10, adults + 1))}
+                            className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
+                          >
+                            <Plus className="size-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-700">Niños</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
+                          >
+                            <Minus className="size-3" />
+                          </button>
+                          <span className="w-6 text-center text-sm font-semibold">{children}</span>
+                          <button
+                            onClick={() => setChildren(Math.min(6, children + 1))}
+                            className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
+                          >
+                            <Plus className="size-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <Button
+                        className="mt-2 w-full rounded-xl bg-amber-500 text-white hover:bg-amber-600"
+                        size="sm"
+                        onClick={() => setGuestsOpen(false)}
+                      >
+                        Aplicar
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Search Button */}
+            <Button
+              onClick={() => setHasSearched(true)}
+              className="rounded-xl bg-amber-500 px-6 py-2 font-semibold text-white shadow-md shadow-amber-500/20 transition-all hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/30 lg:w-auto w-full"
+            >
+              <Search className="mr-2 size-4" />
+              Buscar Cruceros
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Main Catalog Area */}
+      {/* ─── Main Content ──────────────────────────────────── */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Back + Results Header */}
+        <motion.div {...fadeInUp} className="mb-6">
+          <button
+            onClick={() => navigate('/')}
+            className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-amber-600"
+          >
+            ← Volver al inicio
+          </button>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
+                {hasSearched || selectedDestination ? 'Cruceros' : 'Todos los cruceros'}
+              </h1>
+              <p className="mt-1 text-sm text-neutral-500">
+                <span className="font-semibold text-neutral-700">{filteredCruises.length}</span>{' '}
+                cruceros encontrados en{' '}
+                <span className="font-medium text-amber-600">
+                  {selectedDestination && selectedDestination !== 'all'
+                    ? destinations.find((d) => d.id === selectedDestination)?.name ?? 'Colombia'
+                    : 'Colombia'}
+                </span>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Sidebar Filters */}
           <aside className="hidden w-64 shrink-0 lg:block">
@@ -372,7 +556,7 @@ export default function CruisesPage() {
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-400 to-indigo-500 text-white">
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-400 to-orange-500 text-white">
                             <Ship className="size-12 opacity-40" />
                           </div>
                         )}
@@ -393,18 +577,18 @@ export default function CruisesPage() {
                       <div className="flex-1 p-5 flex flex-col justify-between">
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-bold text-neutral-900 group-hover:text-sky-600 transition-colors text-base line-clamp-1">
+                            <h3 className="font-bold text-neutral-900 group-hover:text-amber-600 transition-colors text-base line-clamp-1">
                               {cruise.name}
                             </h3>
                           </div>
                           
                           <p className="text-xs text-neutral-500 flex items-center gap-1">
-                            <Anchor className="size-3 text-sky-500" />
+                            <Anchor className="size-3 text-amber-500" />
                             Barco: <span className="font-semibold text-neutral-800">{cruise.shipName}</span>
                           </p>
 
                           <div className="flex flex-wrap gap-1.5 py-1">
-                            <Badge variant="outline" className="text-[10px] bg-sky-50/50 text-sky-700 border-sky-100 flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] bg-amber-50/50 text-amber-700 border-amber-100 flex items-center gap-1">
                               <Clock className="size-3" />
                               {cruise.durationDays} días / {cruise.durationDays - 1} noches
                             </Badge>
@@ -422,7 +606,7 @@ export default function CruisesPage() {
                           <div className="flex items-end justify-between">
                             <div>
                               <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Tarifa desde</span>
-                              <span className="text-lg font-extrabold text-sky-800">{formatCOP(cruise.priceFrom)}</span>
+                              <span className="text-lg font-extrabold text-amber-600">{formatCOP(cruise.priceFrom)}</span>
                             </div>
                             <Button
                               onClick={() => navigate('portal-cruise-detail', cruise.slug)}
