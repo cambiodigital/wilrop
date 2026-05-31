@@ -72,6 +72,8 @@ const {
   normalizeExcursion,
   normalizeTransport,
   extractEntitiesFromJoinRows,
+  normalizeCruise,
+  normalizeCruiseCabin,
 } = require('../src/lib/catalog/public-hydration.ts')
 const {
   parseRoomTypeIncludes,
@@ -1314,4 +1316,83 @@ test('formatRoomTypeIncludesForForm joins JSON includes with comma for form disp
   assert.equal(formatRoomTypeIncludesForForm('["Wi-Fi","Desayuno"]'), 'Wi-Fi, Desayuno')
   assert.equal(formatRoomTypeIncludesForForm('[]'), '')
   assert.equal(formatRoomTypeIncludesForForm('not-json'), '')
+})
+
+// ── Cruises & Cabins Normalization ───────────────────────────────────
+
+test('normalizeCruise parses image, includes, itinerary, and tags JSON arrays and maps cabins', () => {
+  const raw = {
+    id: 'cruise-1',
+    slug: 'caribe-premium',
+    name: 'Caribe Premium',
+    description: 'Un crucero espectacular',
+    shipName: 'Monarch',
+    operator: 'Pullmantur',
+    durationDays: 5,
+    images: '["/img/c1.jpg"]',
+    includes: '["all-inclusive","pool"]',
+    itinerary: '[{"day":1,"stop":"Cartagena"}]',
+    rating: 4.8,
+    reviewCount: 145,
+    priceFrom: 2350000,
+    tags: '["Premium"]',
+    featured: true,
+    active: true,
+    isTemplate: false,
+    primaryDestinationId: 'dest-cartagena',
+    cabins: [
+      {
+        id: 'cabin-1',
+        cruiseId: 'cruise-1',
+        name: 'Camarote Interior',
+        capacity: 2,
+        beds: '2 individuales',
+        basePrice: 2350000,
+        originalPrice: 2800000,
+        includes: '["limpieza"]',
+        cabinImage: '/img/cabin.jpg',
+        active: true
+      }
+    ]
+  }
+
+  const result = normalizeCruise(raw)
+
+  assert.equal(result.id, 'cruise-1')
+  assert.equal(result.slug, 'caribe-premium')
+  assert.equal(result.durationDays, 5)
+  assert.deepEqual(result.images, ['/img/c1.jpg'])
+  assert.deepEqual(result.includes, ['all-inclusive', 'pool'])
+  assert.deepEqual(result.itinerary, [{ day: 1, stop: 'Cartagena' }])
+  assert.deepEqual(result.tags, ['Premium'])
+  assert.equal(result.featured, true)
+  assert.equal(result.primaryDestinationId, 'dest-cartagena')
+  assert.equal(result.cabins.length, 1)
+
+  const cabin = result.cabins[0]
+  assert.equal(cabin.id, 'cabin-1')
+  assert.equal(cabin.name, 'Camarote Interior')
+  assert.equal(cabin.capacity, 2)
+  assert.equal(cabin.basePrice, 2350000)
+  assert.equal(cabin.originalPrice, 2800000)
+  assert.deepEqual(cabin.includes, ['limpieza'])
+  assert.equal(cabin.cabinImage, '/img/cabin.jpg')
+  assert.equal(cabin.active, true)
+})
+
+test('normalizeCruise handles missing and optional fields with defaults', () => {
+  const raw = { id: 'minimal-cruise' }
+  const result = normalizeCruise(raw)
+
+  assert.equal(result.id, 'minimal-cruise')
+  assert.equal(result.slug, '')
+  assert.equal(result.durationDays, 3)
+  assert.deepEqual(result.images, [])
+  assert.deepEqual(result.includes, [])
+  assert.deepEqual(result.itinerary, [])
+  assert.deepEqual(result.tags, [])
+  assert.equal(result.featured, false)
+  assert.equal(result.isTemplate, true)
+  assert.equal(result.primaryDestinationId, null)
+  assert.deepEqual(result.cabins, [])
 })
