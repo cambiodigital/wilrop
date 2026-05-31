@@ -33,7 +33,18 @@ export async function getResellerCatalog(resellerId: string, filters?: CatalogFi
   })
 
   const items = await Promise.all(catalog.map(async (item) => {
+    const isDestination = item.sourceType === 'destination'
+    const hasAssignedParent = isDestination || await validateParentDestination(
+      resellerId,
+      item.sourceType,
+      item.sourceId,
+    )
+
+    if (!hasAssignedParent) return null
+
     const sourceData = await fetchSourceData(item.sourceType, item.sourceId)
+    if (Object.keys(sourceData).length === 0) return null
+
     return {
       id: item.id,
       sourceType: item.sourceType,
@@ -48,7 +59,7 @@ export async function getResellerCatalog(resellerId: string, filters?: CatalogFi
     }
   }))
 
-  return items
+  return items.filter((item): item is CatalogItemWithSource => item !== null)
 }
 
 export async function addToCatalog(resellerId: string, input: CatalogItemInput): Promise<CatalogItemWithSource> {
@@ -83,7 +94,7 @@ export async function addToCatalog(resellerId: string, input: CatalogItemInput):
 }
 
 export async function updateCatalogItem(
-  _resellerId: string,
+  resellerId: string,
   itemId: string,
   input: UpdateCatalogItemInput,
 ): Promise<CatalogItemWithSource> {
@@ -91,8 +102,8 @@ export async function updateCatalogItem(
     where: { id: itemId },
   })
 
-  if (!existing) {
-    throw new Error('Item de catálogo no encontrado')
+  if (!existing || existing.resellerId !== resellerId) {
+    throw new Error('Item de catálogo no encontrado o sin permisos')
   }
 
   const catalog = await db.resellerCatalog.update({
@@ -173,6 +184,79 @@ export async function getCatalogCount(resellerId: string): Promise<number> {
   })
 }
 
+/**
+ * Validate that a non-destination product has at least one parent destination
+ * already assigned to the reseller's catalog. Returns true if valid.
+ * Destinations themselves skip this check.
+ */
+export async function validateParentDestination(
+  resellerId: string,
+  sourceType: string,
+  sourceId: string,
+): Promise<boolean> {
+  const sourceData = await fetchSourceData(sourceType, sourceId);
+  if (Object.keys(sourceData).length === 0) return false;
+
+  if (sourceType === 'destination') return true;
+
+  const assignedDests = await db.resellerCatalog.findMany({
+    where: { resellerId, sourceType: 'destination', active: true },
+    select: { sourceId: true },
+  });
+  if (assignedDests.length === 0) return false;
+
+  const destIds = new Set(assignedDests.map((d) => d.sourceId));
+
+  switch (sourceType) {
+    case 'hotel': {
+      const join = await db.destinationHotel.findFirst({
+        where: {
+          hotelId: sourceId,
+          active: true,
+          destinationId: { in: [...destIds] },
+        },
+        select: { id: true },
+      });
+      return !!join;
+    }
+    case 'excursion': {
+      const join = await db.destinationExcursion.findFirst({
+        where: {
+          excursionId: sourceId,
+          active: true,
+          destinationId: { in: [...destIds] },
+        },
+        select: { id: true },
+      });
+      return !!join;
+    }
+    case 'package': {
+      const join = await db.destinationPackage.findFirst({
+        where: {
+          packageId: sourceId,
+          active: true,
+          destinationId: { in: [...destIds] },
+        },
+        select: { id: true },
+      });
+      return !!join;
+    }
+    case 'transport': {
+      const join = await db.destinationTransportService.findFirst({
+        where: {
+          transportServiceId: sourceId,
+          active: true,
+          destinationId: { in: [...destIds] },
+        },
+        select: { id: true },
+      });
+      return !!join;
+    }
+    default:
+      return false;
+  }
+}
+
 async function fetchSourceData(sourceType: string, sourceId: string): Promise<Record<string, unknown>> {
   try {
     switch (sourceType) {
@@ -181,7 +265,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
           where: { id: sourceId },
           select: { id: true, name: true, cityName: true, stars: true, priceFrom: true, images: true, description: true, active: true, isTemplate: true },
         })
-        if (!hotel || hotel.isTemplate) return {}
+        if (!hotel || !hotel.active || hotel.isTemplate) return {}
         return {
           ...hotel,
           images: JSON.parse(hotel.images || '[]') as string[],
@@ -192,7 +276,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
           where: { id: sourceId },
           select: { id: true, name: true, cityName: true, basePrice: true, images: true, description: true, category: true, active: true, isTemplate: true },
         })
-        if (!excursion || excursion.isTemplate) return {}
+        if (!excursion || !excursion.active || excursion.isTemplate) return {}
         return {
           ...excursion,
           images: JSON.parse(excursion.images || '[]') as string[],
@@ -203,7 +287,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
           where: { id: sourceId },
           select: { id: true, title: true, destinationName: true, price: true, image: true, description: true, category: true, active: true, isTemplate: true },
         })
-        if (!pkg || pkg.isTemplate) return {}
+        if (!pkg || !pkg.active || pkg.isTemplate) return {}
         return { ...pkg }
       }
       case 'transport': {
@@ -222,7 +306,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
             provider: { select: { name: true, vehicleType: true, capacity: true } },
           },
         })
-        if (!transport || transport.isTemplate) return {}
+        if (!transport || !transport.active || transport.isTemplate) return {}
         return { ...transport }
       }
       case 'destination': {
@@ -230,7 +314,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
           where: { id: sourceId },
           select: { id: true, name: true, region: true, description: true, image: true, priceFrom: true, active: true, isTemplate: true },
         })
-        if (!dest || dest.isTemplate) return {}
+        if (!dest || !dest.active || dest.isTemplate) return {}
         return { ...dest }
       }
       case 'room': {
@@ -247,7 +331,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
             hotel: { select: { name: true, cityName: true } },
           },
         })
-        if (!room) return {}
+        if (!room || !room.active) return {}
         return { ...room }
       }
       default:

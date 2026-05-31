@@ -60,7 +60,6 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
   const isPreview = typeof limit === 'number'
 
   useEffect(() => {
-    setLoading(true)
     const params = new URLSearchParams()
     if (activeCategory && activeCategory !== 'Todos') {
       params.append('category', activeCategory)
@@ -69,6 +68,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
       params.append('limit', String(limit))
     }
 
+    requestAnimationFrame(() => setLoading(true))
     fetch(`/api/public/destinations?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {

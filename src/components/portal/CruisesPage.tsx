@@ -65,133 +65,32 @@ const staggerItem = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 }
 
-export default function CruisesPage() {
-  const { navigate } = usePortalNavigation()
-  
-  // List states
-  const [cruisesList, setCruisesList] = useState<any[]>([])
-  const [destinations, setDestinations] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+interface SidebarFiltersProps {
+  searchTerm: string
+  setSearchTerm: (v: string) => void
+  selectedDestination: string
+  setSelectedDestination: (v: string) => void
+  destinations: any[]
+  priceRange: [number, number]
+  setPriceRange: (v: [number, number]) => void
+  durationDays: number | null
+  setDurationDays: (v: number | null) => void
+  clearFilters: () => void
+}
 
-  // Search & Filter state
-  const [selectedDestination, setSelectedDestination] = useState<string>('all')
-  const [priceRange, setPriceRange] = useState<[number, number]>([500000, 6000000])
-  const [durationDays, setDurationDays] = useState<number | null>(null)
-  const [sortBy, setSortBy] = useState<string>('recommended')
-  const [searchTerm, setSearchTerm] = useState('')
-
-  // Sticky Search Bar extra state
-  const [departureDate, setDepartureDate] = useState('')
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [guestsOpen, setGuestsOpen] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
-
-  // Pagination state
-  const [page, setPage] = useState(1)
-  const [paginationInfo, setPaginationInfo] = useState<any>(null)
-  const limit = 9
-
-  // Mobile filter sheet
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
-
-  // Load Destinations on mount
-  useEffect(() => {
-    fetch('/api/public/destinations')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setDestinations(data.data)
-        }
-      })
-      .catch(err => console.error('Error loading public destinations:', err))
-  }, [])
-
-  // Debounced server fetch triggered on search/filter changes
-  useEffect(() => {
-    setLoading(true)
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams()
-      if (selectedDestination && selectedDestination !== 'all') {
-        params.append('destinationId', selectedDestination)
-      }
-      params.append('priceMin', String(priceRange[0]))
-      params.append('priceMax', String(priceRange[1]))
-      if (durationDays !== null) {
-        params.append('durationDays', String(durationDays))
-      }
-      if (sortBy) {
-        params.append('sortBy', sortBy)
-      }
-      params.append('page', String(page))
-      params.append('limit', String(limit))
-
-      fetch(`/api/public/cruises?${params.toString()}`)
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.success && Array.isArray(res.data)) {
-            setCruisesList(res.data)
-            if (res.pagination) {
-              setPaginationInfo(res.pagination)
-            }
-          }
-        })
-        .catch((err) => console.error('Error fetching public cruises:', err))
-        .finally(() => setLoading(false))
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [selectedDestination, priceRange, durationDays, sortBy, page])
-
-  // In-memory filter with support for static fallbackCruises
-  const filteredCruises = useMemo(() => {
-    const sourceList = cruisesList.length > 0 ? cruisesList : fallbackCruises
-    return sourceList.filter((c) => {
-      // Free text search (name, ship, operator)
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase().trim()
-        const matchesSearch =
-          c.name.toLowerCase().includes(query) ||
-          c.shipName.toLowerCase().includes(query) ||
-          c.operator.toLowerCase().includes(query)
-        if (!matchesSearch) return false
-      }
-
-      // If database returns no active cruises (or failed connection), apply options client-side
-      if (cruisesList.length === 0) {
-        if (
-          selectedDestination &&
-          selectedDestination !== 'all' &&
-          c.primaryDestinationId !== selectedDestination
-        ) {
-          return false
-        }
-        if (c.priceFrom < priceRange[0] || c.priceFrom > priceRange[1]) {
-          return false
-        }
-        if (durationDays !== null && c.durationDays !== durationDays) {
-          return false
-        }
-      }
-
-      return true
-    })
-  }, [cruisesList, searchTerm, selectedDestination, priceRange, durationDays])
-
-  const clearFilters = useCallback(() => {
-    setPriceRange([500000, 6000000])
-    setDurationDays(null)
-    setSelectedDestination('all')
-    setSortBy('recommended')
-    setSearchTerm('')
-    setDepartureDate('')
-    setAdults(2)
-    setChildren(0)
-    setHasSearched(false)
-    setPage(1)
-  }, [])
-
-  const SidebarFilters = () => (
+function SidebarFilters({
+  searchTerm,
+  setSearchTerm,
+  selectedDestination,
+  setSelectedDestination,
+  destinations,
+  priceRange,
+  setPriceRange,
+  durationDays,
+  setDurationDays,
+  clearFilters,
+}: SidebarFiltersProps) {
+  return (
     <div className="space-y-6">
       {/* Search Input */}
       <div>
@@ -290,6 +189,133 @@ export default function CruisesPage() {
       </Button>
     </div>
   )
+}
+
+export default function CruisesPage() {
+  const { navigate } = usePortalNavigation()
+  
+  // List states
+  const [cruisesList, setCruisesList] = useState<any[]>([])
+  const [destinations, setDestinations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Search & Filter state
+  const [selectedDestination, setSelectedDestination] = useState<string>('all')
+  const [priceRange, setPriceRange] = useState<[number, number]>([500000, 6000000])
+  const [durationDays, setDurationDays] = useState<number | null>(null)
+  const [sortBy, setSortBy] = useState<string>('recommended')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Sticky Search Bar extra state
+  const [departureDate, setDepartureDate] = useState('')
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [guestsOpen, setGuestsOpen] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [paginationInfo, setPaginationInfo] = useState<any>(null)
+  const limit = 9
+
+  // Mobile filter sheet
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+
+  // Load Destinations on mount
+  useEffect(() => {
+    fetch('/api/public/destinations')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setDestinations(data.data)
+        }
+      })
+      .catch(err => console.error('Error loading public destinations:', err))
+  }, [])
+
+  // Debounced server fetch triggered on search/filter changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (selectedDestination && selectedDestination !== 'all') {
+        params.append('destinationId', selectedDestination)
+      }
+      params.append('priceMin', String(priceRange[0]))
+      params.append('priceMax', String(priceRange[1]))
+      if (durationDays !== null) {
+        params.append('durationDays', String(durationDays))
+      }
+      if (sortBy) {
+        params.append('sortBy', sortBy)
+      }
+      params.append('page', String(page))
+      params.append('limit', String(limit))
+
+      fetch(`/api/public/cruises?${params.toString()}`)
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setCruisesList(res.data)
+            if (res.pagination) {
+              setPaginationInfo(res.pagination)
+            }
+          }
+        })
+        .catch((err) => console.error('Error fetching public cruises:', err))
+        .finally(() => setLoading(false))
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [selectedDestination, priceRange, durationDays, sortBy, page])
+
+  // In-memory filter with support for static fallbackCruises
+  const filteredCruises = useMemo(() => {
+    const sourceList = cruisesList.length > 0 ? cruisesList : fallbackCruises
+    return sourceList.filter((c) => {
+      // Free text search (name, ship, operator)
+      if (searchTerm.trim()) {
+        const query = searchTerm.toLowerCase().trim()
+        const matchesSearch =
+          c.name.toLowerCase().includes(query) ||
+          c.shipName.toLowerCase().includes(query) ||
+          c.operator.toLowerCase().includes(query)
+        if (!matchesSearch) return false
+      }
+
+      // If database returns no active cruises (or failed connection), apply options client-side
+      if (cruisesList.length === 0) {
+        if (
+          selectedDestination &&
+          selectedDestination !== 'all' &&
+          c.primaryDestinationId !== selectedDestination
+        ) {
+          return false
+        }
+        if (c.priceFrom < priceRange[0] || c.priceFrom > priceRange[1]) {
+          return false
+        }
+        if (durationDays !== null && c.durationDays !== durationDays) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [cruisesList, searchTerm, selectedDestination, priceRange, durationDays])
+
+  const clearFilters = useCallback(() => {
+    setPriceRange([500000, 6000000])
+    setDurationDays(null)
+    setSelectedDestination('all')
+    setSortBy('recommended')
+    setSearchTerm('')
+    setDepartureDate('')
+    setAdults(2)
+    setChildren(0)
+    setHasSearched(false)
+    setPage(1)
+  }, [])
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
@@ -466,7 +492,18 @@ export default function CruisesPage() {
           {/* Desktop Sidebar Filters */}
           <aside className="hidden w-64 shrink-0 lg:block">
             <Card className="sticky top-24 border-neutral-200/60 bg-white/70 p-5 shadow-xs backdrop-blur-md rounded-2xl">
-              <SidebarFilters />
+                    <SidebarFilters
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      selectedDestination={selectedDestination}
+                      setSelectedDestination={setSelectedDestination}
+                      destinations={destinations}
+                      priceRange={priceRange}
+                      setPriceRange={setPriceRange}
+                      durationDays={durationDays}
+                      setDurationDays={setDurationDays}
+                      clearFilters={clearFilters}
+                    />
             </Card>
           </aside>
 
@@ -494,7 +531,18 @@ export default function CruisesPage() {
                     <SheetHeader className="mb-4">
                       <SheetTitle className="text-left font-bold">Filtros de Búsqueda</SheetTitle>
                     </SheetHeader>
-                    <SidebarFilters />
+              <SidebarFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedDestination={selectedDestination}
+                setSelectedDestination={setSelectedDestination}
+                destinations={destinations}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                durationDays={durationDays}
+                setDurationDays={setDurationDays}
+                clearFilters={clearFilters}
+              />
                   </SheetContent>
                 </Sheet>
 

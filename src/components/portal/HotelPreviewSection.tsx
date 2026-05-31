@@ -80,7 +80,7 @@ export default function HotelPreviewSection() {
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    setLoading(true)
+    requestAnimationFrame(() => setLoading(true))
     fetch('/api/public/hotels?featured=true&limit=4')
       .then((res) => res.json())
       .then((res) => {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth'
-import { getResellerCatalog, addToCatalog, getCatalogCount } from '@/lib/reseller/catalog'
+import { getResellerCatalog, addToCatalog, getCatalogCount, validateParentDestination } from '@/lib/reseller/catalog'
 import { catalogItemSchema, catalogFiltersSchema } from '@/lib/reseller/catalog-validators'
 import { getResellerCapabilities } from '@/lib/reseller-access'
 import { db } from '@/lib/db'
@@ -90,6 +90,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Este producto ya está en tu catálogo' },
         { status: 409 },
+      )
+    }
+
+    // Strict descent validation: non-destination products require a parent
+    // destination already in the reseller's catalog.
+    const parentValid = await validateParentDestination(
+      session.id,
+      validationResult.data.sourceType,
+      validationResult.data.sourceId,
+    )
+    if (!parentValid) {
+      return NextResponse.json(
+        { success: false, error: 'No puedes agregar este producto: su destino padre no está en tu catálogo' },
+        { status: 403 },
       )
     }
 

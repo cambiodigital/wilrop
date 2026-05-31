@@ -15,6 +15,7 @@ import {
   Menu,
   Settings,
   ListFilter,
+  BookOpen,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +48,7 @@ const menuItems: MenuItem[] = [
   { id: 'clients', label: 'Mis Clientes', icon: <Users className="w-5 h-5" />, href: '/reseller/clientes' },
   { id: 'whitelabel', label: 'Marca Blanca', icon: <Palette className="w-5 h-5" />, href: '/reseller/whitelabel', requiresWhiteLabel: true },
   { id: 'settings', label: 'Configuración', icon: <Settings className="w-5 h-5" />, href: '/reseller/settings' },
+  { id: 'documentation', label: 'Documentación', icon: <BookOpen className="w-5 h-5" />, href: '/reseller/documentacion' },
 ];
 
 function SidebarNav({

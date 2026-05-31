@@ -120,15 +120,10 @@ export default function HotelsPage() {
 
   const totalGuests = adults + children
 
-  // Reset page to 1 when filters change
-  useEffect(() => {
-    setPage(1)
-  }, [selectedCity, priceRange, starFilters, amenityFilters, minRating, sortBy, hasSearched])
-
   // Debounced server fetch triggered on any query filter change
   useEffect(() => {
-    setLoading(true)
     const timer = setTimeout(() => {
+      setLoading(true)
       const params = new URLSearchParams()
       if (selectedCity) params.append('cityId', selectedCity)
       params.append('priceMin', String(priceRange[0]))
@@ -173,12 +168,14 @@ export default function HotelsPage() {
   // Toggle helpers
   const toggleStar = useCallback((star: number) => {
     setStarFilters((prev) => (prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star]))
+    setPage(1)
   }, [])
 
   const toggleAmenity = useCallback((amenityId: string) => {
     setAmenityFilters((prev) =>
       prev.includes(amenityId) ? prev.filter((a) => a !== amenityId) : [...prev, amenityId],
     )
+    setPage(1)
   }, [])
 
   const clearFilters = useCallback(() => {
@@ -192,6 +189,7 @@ export default function HotelsPage() {
 
   const handleSearch = useCallback(() => {
     setHasSearched(true)
+    setPage(1)
   }, [])
 
   const cityName = selectedCity
@@ -206,7 +204,7 @@ export default function HotelsPage() {
         <h4 className="mb-3 text-sm font-semibold text-neutral-900">Rango de precio</h4>
         <Slider
           value={priceRange}
-          onValueChange={(v) => setPriceRange(v as [number, number])}
+          onValueChange={(v) => { setPriceRange(v as [number, number]); setPage(1) }}
           min={150000}
           max={1200000}
           step={50000}
@@ -280,21 +278,21 @@ export default function HotelsPage() {
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 0}
-              onCheckedChange={() => setMinRating(0)}
+              onCheckedChange={() => { setMinRating(0); setPage(1) }}
             />
             <span className="text-sm text-neutral-600">Todas</span>
           </label>
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 8}
-              onCheckedChange={() => setMinRating(minRating === 8 ? 0 : 8)}
+              onCheckedChange={() => { setMinRating(minRating === 8 ? 0 : 8); setPage(1) }}
             />
             <span className="text-sm text-neutral-600">8+ Excelente</span>
           </label>
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 9}
-              onCheckedChange={() => setMinRating(minRating === 9 ? 0 : 9)}
+              onCheckedChange={() => { setMinRating(minRating === 9 ? 0 : 9); setPage(1) }}
             />
             <span className="text-sm text-neutral-600">9+ Excepcional</span>
           </label>
@@ -323,7 +321,7 @@ export default function HotelsPage() {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             {/* City */}
             <div className="flex-1">
-              <Select value={selectedCity} onValueChange={(v) => setSelectedCity(v === 'all' ? '' : v)}>
+              <Select value={selectedCity} onValueChange={(v) => { setSelectedCity(v === 'all' ? '' : v); setPage(1) }}>
                 <SelectTrigger className="w-full rounded-xl border-neutral-200 bg-white">
                   <MapPin className="mr-2 size-4 text-amber-500" />
                   <SelectValue placeholder="¿A dónde viajas?" />
@@ -496,7 +494,7 @@ export default function HotelsPage() {
             {/* Sort */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-neutral-500 whitespace-nowrap">Ordenar:</span>
-              <Select value={sortBy} onValueChange={setSortBy}>
+              <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1) }}>
                 <SelectTrigger className="w-44 rounded-xl border-neutral-200 text-xs h-9">
                   <SelectValue />
                 </SelectTrigger>
