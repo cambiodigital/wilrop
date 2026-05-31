@@ -139,7 +139,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50/50 pb-20">
+    <div className="min-h-screen bg-neutral-50 pb-20">
       {/* Cruise Banner Carousel */}
       <div className="relative h-64 overflow-hidden sm:h-96 group bg-neutral-900 shadow-inner">
         {cruise.images && cruise.images.length > 0 ? (
@@ -240,7 +240,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
       {/* Main Grid */}
       <div className="mx-auto max-w-5xl px-5 pt-8 sm:px-6">
         {/* Title and metadata block */}
-        <div className="bg-white rounded-2xl border border-neutral-200/60 p-6 shadow-xs mb-6">
+        <div className="bg-white rounded-xl border border-neutral-200/60 p-6 shadow-xs mb-6">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -318,7 +318,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
           {/* Left Column: Description, Itinerary, Cabins */}
           <div className="lg:col-span-2 space-y-8">
             {/* Overview */}
-            <Card className="rounded-2xl border-neutral-200/60 shadow-xs bg-white">
+            <Card className="rounded-xl border-neutral-200/60 shadow-xs bg-white">
               <CardContent className="p-6 space-y-4">
                 <h2 className="text-xl font-bold text-neutral-900">Resumen del Viaje</h2>
                 <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-wrap">
@@ -338,7 +338,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
             </Card>
 
             {/* General Inclusions */}
-            <Card className="rounded-2xl border-neutral-200/60 shadow-xs bg-white">
+            <Card className="rounded-xl border-neutral-200/60 shadow-xs bg-white">
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold text-neutral-900 mb-4">¿Qué incluye esta experiencia a bordo?</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -432,7 +432,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
                   })}
                 </div>
               ) : (
-                <Card className="rounded-2xl border-neutral-200/60 shadow-xs bg-white p-6 text-center text-muted-foreground">
+                <Card className="rounded-xl border-neutral-200/60 shadow-xs bg-white p-6 text-center text-muted-foreground">
                   <Info className="size-8 mx-auto text-neutral-400 mb-2" />
                   <p className="text-sm">Consulte el itinerario detallado con nuestros asesores de reservas.</p>
                 </Card>
@@ -493,7 +493,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
                             </div>
                             <Button
                               onClick={() => handleBooking(cabin.id)}
-                              className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs shadow-xs w-full sm:w-auto cursor-pointer"
+                              className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm py-2 px-5 shadow-xs w-full sm:w-auto cursor-pointer"
                             >
                               Reservar Categoría
                               <ArrowRight className="ml-1.5 size-3.5" />
@@ -505,7 +505,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
                   ))}
                 </div>
               ) : (
-                <Card className="rounded-2xl border-neutral-200/60 shadow-xs bg-white p-6 text-center text-muted-foreground">
+                <Card className="rounded-xl border-neutral-200/60 shadow-xs bg-white p-6 text-center text-muted-foreground">
                   <AlertTriangle className="size-8 mx-auto text-amber-500 mb-2" />
                   <p className="text-sm">No hay camarotes disponibles cargados para este crucero. Comunícate con soporte.</p>
                 </Card>
@@ -515,57 +515,57 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
 
           {/* Right Column: Reservation Sidebar Card */}
           <div className="space-y-6">
-            <Card className="sticky top-24 border-neutral-200/60 shadow-md bg-white rounded-2xl overflow-hidden">
-              <div className="bg-brand-section text-white p-5">
-                <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/20 text-[10px] uppercase font-bold mb-2 hover:bg-amber-500/30">
-                  Tarifas Todo Incluido
-                </Badge>
-                <p className="text-xs text-neutral-300/85">Precios desde</p>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-3xl font-extrabold text-white">{formatCurrency(cruise.priceFrom)}</span>
-                  <span className="text-xs text-neutral-300/85">/persona</span>
+            <Card className="sticky top-24 border-neutral-200/60 shadow-md bg-white rounded-xl p-6">
+              {/* Price */}
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-neutral-900">{formatCurrency(cruise.priceFrom)}</span>
+                <span className="text-xs text-neutral-500">/persona</span>
+              </div>
+              <p className="mt-1 text-xs text-neutral-500">Precios desde (Tarifas Todo Incluido)</p>
+
+              <Separator className="my-5" />
+
+              {/* Quick Info */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-neutral-600">
+                  <Calendar className="size-4.5 text-amber-500 shrink-0" />
+                  <span>Fechas de salida: consulte disponibilidad</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-neutral-600">
+                  <Ship className="size-4.5 text-amber-500 shrink-0" />
+                  <span>Barco: <span className="font-semibold text-neutral-800">{cruise.shipName}</span></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-neutral-600">
+                  <Anchor className="size-4.5 text-amber-500 shrink-0" />
+                  <span>Naviera: <span className="font-semibold text-neutral-800">{cruise.operator}</span></span>
                 </div>
               </div>
-              <CardContent className="p-5 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-neutral-600">
-                    <Calendar className="size-4.5 text-amber-500 shrink-0" />
-                    <span>Fechas de salida disponibles: consulte disponibilidad</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-neutral-600">
-                    <Ship className="size-4.5 text-amber-500 shrink-0" />
-                    <span>Barco: <span className="font-semibold text-neutral-800">{cruise.shipName}</span></span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-neutral-600">
-                    <Anchor className="size-4.5 text-amber-500 shrink-0" />
-                    <span>Naviera: <span className="font-semibold text-neutral-800">{cruise.operator}</span></span>
-                  </div>
-                </div>
 
-                <Separator />
+              <Separator className="my-5" />
 
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Políticas de Viaje</h4>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    * Tarifas no incluyen tasas portuarias locales ni impuestos de salida turística del país si aplica.
-                  </p>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    * Se requiere pasaporte con vigencia mínima de 6 meses para itinerarios internacionales.
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Políticas de Viaje</h4>
+                <p className="text-[11px] text-neutral-500 leading-relaxed">
+                  * Tarifas no incluyen tasas portuarias locales ni impuestos de salida turística del país si aplica.
+                </p>
+                <p className="text-[11px] text-neutral-500 leading-relaxed">
+                  * Se requiere pasaporte con vigencia mínima de 6 meses para itinerarios internacionales.
+                </p>
+              </div>
 
-                {cruise.cabins && cruise.cabins.length > 0 && (
+              {cruise.cabins && cruise.cabins.length > 0 && (
+                <div className="mt-5">
                   <Button
                     onClick={() => {
                       const firstCabin = cruise.cabins.filter(c => c.active)[0] || cruise.cabins[0];
                       if (firstCabin) handleBooking(firstCabin.id);
                     }}
-                    className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-md cursor-pointer"
+                    className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-white py-3 text-sm font-semibold shadow-xs cursor-pointer"
                   >
                     Cotizar Camarotes
                   </Button>
-                )}
-              </CardContent>
+                </div>
+              )}
             </Card>
           </div>
         </div>
@@ -573,7 +573,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
 
       {/* Lightbox Gallery Dialog */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto admin-dialog rounded-2xl p-6 bg-white">
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto admin-dialog rounded-xl p-6 bg-white">
           <DialogHeader className="mb-4">
             <DialogTitle>Galería de fotos - {cruise.name}</DialogTitle>
             <DialogDescription>

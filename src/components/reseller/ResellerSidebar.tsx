@@ -168,7 +168,7 @@ export default function ResellerSidebar({
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-brand-surface-light">
+      <div className="admin-theme min-h-screen bg-background text-foreground">
         <div className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export default function ResellerSidebar({
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0 bg-card">
+              <SheetContent side="left" className="w-72 p-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
                 <SheetHeader className="sr-only">
                   <SheetTitle>Menu de Navegacion</SheetTitle>
                 </SheetHeader>
@@ -199,8 +199,8 @@ export default function ResellerSidebar({
   }
 
   return (
-    <div className="min-h-screen bg-brand-surface-light flex">
-      <aside className="w-64 bg-card border-r border-border flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <div className="admin-theme min-h-screen bg-background text-foreground flex">
+      <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
         <SidebarNav fallbackResellerName={resellerName} canUseWhiteLabel={canUseWhiteLabel} />
       </aside>
       <main className="flex-1 min-w-0">{children}</main>

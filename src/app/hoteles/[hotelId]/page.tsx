@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import PortalShell from '@/components/portal/PortalShell'
-import PortalBreadcrumbs from '@/components/portal/PortalBreadcrumbs'
 import HotelDetailPage from '@/components/portal/HotelDetailPage'
 import { db } from '@/lib/db'
 import { formatAdminHotel } from '@/lib/admin/hotels'
@@ -65,17 +64,7 @@ export default async function HotelDetailRoutePage({ params }: HotelDetailRouteP
 
   return (
     <PortalShell>
-      <div className="w-full bg-neutral-50/90 border-b border-neutral-200/50 backdrop-blur-xs pt-16 shadow-xs">
-        <div className="mx-auto max-w-5xl px-5 py-3 sm:px-6">
-          <PortalBreadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Hoteles', href: '/hoteles' },
-              { label: hotel.name },
-            ]}
-          />
-        </div>
-      </div>
+      <div className="pt-16" />
       <HotelDetailPage hotel={hotel as any} />
     </PortalShell>
   )

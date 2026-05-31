@@ -145,7 +145,7 @@ export default function ResellerSaleForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md admin-dialog">
         <DialogHeader>
           <DialogTitle>Registrar Nueva Venta</DialogTitle>
           <DialogDescription>

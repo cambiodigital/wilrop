@@ -92,7 +92,7 @@ export default function ResellerClientDetail({
 
   return (
     <Dialog open={!!client || confirmDelete} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg admin-dialog">
         <DialogHeader>
           <DialogTitle>Detalle del Cliente</DialogTitle>
           <DialogDescription>Información completa del cliente</DialogDescription>
@@ -207,7 +207,7 @@ export default function ResellerClientDetail({
       </DialogContent>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm admin-dialog">
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>

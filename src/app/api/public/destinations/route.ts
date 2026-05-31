@@ -92,7 +92,68 @@ export async function GET(request: NextRequest) {
       transportCount: dest._count.transportServices,
     }));
 
-    return NextResponse.json({ success: true, data: parsed });
+    // Fetch all active, non-template destinations to calculate dynamic categories and counts
+    const allDestinationsForCategories = await db.destination.findMany({
+      where: {
+        active: true,
+        isTemplate: isTemplateFallback,
+      },
+      include: {
+        packages: {
+          where: {
+            active: true,
+            package: { active: true },
+          },
+          select: {
+            package: {
+              select: {
+                category: true,
+              },
+            },
+          },
+        },
+        packagePrimaryRefs: {
+          where: { active: true },
+          select: {
+            category: true,
+          },
+        },
+      },
+    });
+
+    const categoryCounts: Record<string, number> = {};
+    const totalDestinationsCount = allDestinationsForCategories.length;
+
+    allDestinationsForCategories.forEach((dest) => {
+      const destCategories = new Set<string>();
+      dest.packages.forEach((dp) => {
+        if (dp.package?.category && dp.package.category.trim()) {
+          destCategories.add(dp.package.category.trim());
+        }
+      });
+      dest.packagePrimaryRefs.forEach((pkg) => {
+        if (pkg.category && pkg.category.trim()) {
+          destCategories.add(pkg.category.trim());
+        }
+      });
+
+      destCategories.forEach((cat) => {
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+      });
+    });
+
+    const dynamicCategories = [
+      { name: 'Todos', count: totalDestinationsCount },
+      ...Object.entries(categoryCounts)
+        .filter(([name]) => name.trim().length > 0)
+        .map(([name, count]) => ({
+          name,
+          count,
+        }))
+        .sort((a, b) => b.count - a.count),
+    ];
+
+    return NextResponse.json({ success: true, data: parsed, categories: dynamicCategories });
   } catch (error: any) {
     console.error('Error fetching public destinations:', error);
     return NextResponse.json(

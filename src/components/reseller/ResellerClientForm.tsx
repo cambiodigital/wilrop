@@ -91,7 +91,7 @@ export default function ResellerClientForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md admin-dialog">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}</DialogTitle>
           <DialogDescription>

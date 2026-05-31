@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CheckCircle2, CreditCard, Hotel, MapPin, Plane, ReceiptText, User } from 'lucide-react'
 import PortalShell from '@/components/portal/PortalShell'
-import PortalBreadcrumbs from '@/components/portal/PortalBreadcrumbs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -71,14 +70,6 @@ export default async function OrderDetailRoutePage({ params }: OrderDetailRouteP
     <PortalShell>
       <div className="min-h-screen bg-neutral-50 px-4 pt-24 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl space-y-6">
-          <PortalBreadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Pedidos' },
-              { label: booking.code },
-            ]}
-          />
-
           <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
               <div>

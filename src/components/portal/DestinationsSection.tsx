@@ -11,7 +11,19 @@ import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useSearchParams } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 
-const categories = ['Todos', 'Playa', 'Aventura', 'Cultural', 'Naturaleza', 'Relax'] as const
+interface CategoryItem {
+  name: string
+  count: number
+}
+
+const DEFAULT_CATEGORIES: CategoryItem[] = [
+  { name: 'Todos', count: 0 },
+  { name: 'Playa', count: 0 },
+  { name: 'Aventura', count: 0 },
+  { name: 'Cultural', count: 0 },
+  { name: 'Naturaleza', count: 0 },
+  { name: 'Relax', count: 0 }
+]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,6 +49,9 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
   const [activeCategory, setActiveCategory] = useState<string>('Todos')
   const [loading, setLoading] = useState<boolean>(true)
   const [destinationsList, setDestinationsList] = useState<any[]>([])
+  const [categoriesList, setCategoriesList] = useState<CategoryItem[]>([])
+
+  const displayCategories = categoriesList.length > 0 ? categoriesList : DEFAULT_CATEGORIES
 
   const handleNavigateDetail = (destinationId: string) => {
     const path = dateParam ? `/destinos/${destinationId}?date=${dateParam}` : `/destinos/${destinationId}`
@@ -59,6 +74,9 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setDestinationsList(res.data)
+          if (res.categories && Array.isArray(res.categories)) {
+            setCategoriesList(res.categories)
+          }
         }
       })
       .catch((err) => console.error('Error fetching destinations:', err))
@@ -103,17 +121,17 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-10 flex flex-wrap justify-center gap-2"
           >
-            {categories.map((cat) => (
+            {displayCategories.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  activeCategory === cat
+                  activeCategory === cat.name
                     ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25'
                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                 }`}
               >
-                {cat}
+                {cat.name} {cat.count > 0 ? `(${cat.count})` : ''}
               </button>
             ))}
           </motion.div>

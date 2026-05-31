@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import PortalShell from '@/components/portal/PortalShell';
-import PortalBreadcrumbs from '@/components/portal/PortalBreadcrumbs';
 import PackageDetail from '@/components/portal/PackageDetail';
 import { buildPublicMetadata } from '@/lib/seo';
 import { getPackageData } from '@/lib/catalog/packages';
@@ -52,17 +51,7 @@ export default async function PackageDetailRoutePage({
 
   return (
     <PortalShell>
-      <div className="w-full bg-neutral-50/90 border-b border-neutral-200/50 backdrop-blur-xs pt-16 shadow-xs">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <PortalBreadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Destinos', href: '/destinos' },
-              { label: travelPackage.title },
-            ]}
-          />
-        </div>
-      </div>
+      <div className="pt-16" />
       <PackageDetail
         packageId={packageId}
         pkg={travelPackage}

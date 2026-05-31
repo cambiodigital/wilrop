@@ -128,7 +128,7 @@ export default function ResellerSaleDetail({
 
   return (
     <Dialog open={!!sale || confirmDelete} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg admin-dialog">
         <DialogHeader>
           <DialogTitle>Detalle de Venta</DialogTitle>
           <DialogDescription>Información completa de la transacción</DialogDescription>
@@ -244,7 +244,7 @@ export default function ResellerSaleDetail({
       </DialogContent>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm admin-dialog">
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>

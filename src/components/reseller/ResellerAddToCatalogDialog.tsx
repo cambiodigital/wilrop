@@ -171,7 +171,7 @@ export function ResellerAddToCatalogDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent topAligned className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent topAligned className="sm:max-w-4xl max-h-[90vh] flex flex-col admin-dialog">
         <DialogHeader>
           <DialogTitle>Agregar productos al catálogo</DialogTitle>
           <DialogDescription>
