@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { destinations as staticDestinations } from '@/data/destinations'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useSearchParams } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const categories = ['Todos', 'Playa', 'Aventura', 'Cultural', 'Naturaleza', 'Relax'] as const
 
@@ -16,7 +17,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.12 },
   },
 }
 
@@ -34,7 +35,8 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
   const searchParams = useSearchParams()
   const dateParam = searchParams ? searchParams.get('date') : null
   const [activeCategory, setActiveCategory] = useState<string>('Todos')
-  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [destinationsList, setDestinationsList] = useState<any[]>([])
 
   const handleNavigateDetail = (destinationId: string) => {
     const path = dateParam ? `/destinos/${destinationId}?date=${dateParam}` : `/destinos/${destinationId}`
@@ -43,6 +45,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
   const isPreview = typeof limit === 'number'
 
   useEffect(() => {
+    setLoading(true)
     const params = new URLSearchParams()
     if (activeCategory && activeCategory !== 'Todos') {
       params.append('category', activeCategory)
@@ -59,9 +62,15 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
         }
       })
       .catch((err) => console.error('Error fetching destinations:', err))
+      .finally(() => setLoading(false))
   }, [activeCategory, limit, isPreview])
 
-  const displayDestinations = destinationsList
+  const displayDestinations = useMemo(() => {
+    if (destinationsList.length > 0) {
+      return destinationsList
+    }
+    return loading ? [] : staticDestinations
+  }, [destinationsList, loading])
 
   return (
     <section id="destinations" className="bg-brand-surface-light py-20">
@@ -112,78 +121,95 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
 
         {/* Destination Grid */}
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {displayDestinations.map((destination) => (
-              <motion.div
-                key={destination.id}
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                layout
-              >
-                <Card
-                  onClick={() => handleNavigateDetail(destination.id)}
-                  className="group cursor-pointer overflow-hidden border-neutral-200 py-0 transition-all hover:shadow-lg hover:-translate-y-1"
-                >
-                {/* Image */}
-                <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={destination.image}
-                    alt={destination.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <Badge className="absolute top-3 left-3 rounded-full bg-white/90 text-neutral-700 backdrop-blur-sm text-xs font-medium">
-                    <MapPin className="mr-1 size-3 text-amber-500" />
-                    {destination.region}
-                  </Badge>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-lg font-bold text-white">
-                      {destination.name}
-                    </h3>
+          {loading ? (
+            Array.from({ length: limit || 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden border-neutral-200 py-0 shadow-sm rounded-xl bg-white">
+                <Skeleton className="h-56 w-full rounded-none" />
+                <CardContent className="p-4 space-y-4">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/4" />
                   </div>
-                </div>
-                <CardContent className="p-4">
-                  <p className="line-clamp-2 text-sm text-neutral-500">
-                    {destination.description}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Star className="size-4 fill-amber-400 text-amber-400" />
-                      <span className="text-sm font-semibold text-neutral-700">
-                        {destination.rating}
-                      </span>
-                      <span className="text-xs text-neutral-400">
-                        ({destination.reviewCount})
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-neutral-400">Desde</span>
-                      <p className="text-sm font-bold text-amber-600">
-                        ${destination.priceFrom.toLocaleString('es-CO')}
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleNavigateDetail(destination.id)
-                    }}
-                  >
-                    <Button
-                      variant="outline"
-                      className="mt-4 w-full rounded-xl border-amber-200 text-white hover:bg-amber-50 hover:text-amber-700"
-                    >
-                      Ver Paquetes
-                      <ArrowRight className="ml-2 size-4" />
-                    </Button>
-                  </div>
+                  <Skeleton className="h-10 w-full rounded-xl" />
                 </CardContent>
               </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+            ))
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {displayDestinations.map((destination) => (
+                <motion.div
+                  key={destination.id}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  layout
+                >
+                  <Card
+                    onClick={() => handleNavigateDetail(destination.id)}
+                    className="group cursor-pointer overflow-hidden border-neutral-200 py-0 transition-all hover:shadow-lg hover:-translate-y-1"
+                  >
+                    {/* Image */}
+                    <div className="relative h-56 overflow-hidden">
+                      <img
+                        src={destination.image}
+                        alt={destination.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <Badge className="absolute top-3 left-3 rounded-full bg-white/90 text-neutral-700 backdrop-blur-sm text-xs font-medium">
+                        <MapPin className="mr-1 size-3 text-amber-500" />
+                        {destination.region}
+                      </Badge>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="text-lg font-bold text-white">
+                          {destination.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <CardContent className="p-4">
+                      <p className="line-clamp-2 text-sm text-neutral-500">
+                        {destination.description}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Star className="size-4 fill-amber-400 text-amber-400" />
+                          <span className="text-sm font-semibold text-neutral-700">
+                            {destination.rating}
+                          </span>
+                          <span className="text-xs text-neutral-400">
+                            ({destination.reviewCount})
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-neutral-400">Desde</span>
+                          <p className="text-sm font-bold text-amber-600">
+                            ${destination.priceFrom.toLocaleString('es-CO')}
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleNavigateDetail(destination.id)
+                        }}
+                      >
+                        <Button
+                          variant="outline"
+                          className="mt-4 w-full rounded-xl border-amber-200 text-white hover:bg-amber-50 hover:text-amber-700"
+                        >
+                          Ver Paquetes
+                          <ArrowRight className="ml-2 size-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
 
         {/* See All Button — only on preview */}

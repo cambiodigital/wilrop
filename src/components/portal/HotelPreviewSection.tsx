@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { getFeaturedHotels, formatCOP } from '@/data/hotels'
 import type { Hotel } from '@/data/hotels'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -74,8 +75,10 @@ function StarsDisplay({ stars }: { stars: number }) {
 export default function HotelPreviewSection() {
   const { navigate } = usePortalNavigation()
   const [hotelsList, setHotelsList] = useState<any[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
+    setLoading(true)
     fetch('/api/public/hotels?featured=true&limit=4')
       .then((res) => res.json())
       .then((res) => {
@@ -84,14 +87,15 @@ export default function HotelPreviewSection() {
         }
       })
       .catch((err) => console.error('Error fetching hotels:', err))
+      .finally(() => setLoading(false))
   }, [])
 
   const featuredHotels = useMemo(() => {
     if (hotelsList.length > 0) {
       return hotelsList
     }
-    return getFeaturedHotels()
-  }, [hotelsList])
+    return loading ? [] : getFeaturedHotels()
+  }, [hotelsList, loading])
 
   return (
     <section className="bg-gradient-to-b from-brand-surface-light to-amber-50">
@@ -118,9 +122,21 @@ export default function HotelPreviewSection() {
 
         {/* Featured Hotels Grid */}
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {featuredHotels.map((hotel, idx) => (
-            <HotelCard key={hotel.id} hotel={hotel} gradient={hotelGradients[idx % hotelGradients.length]} />
-          ))}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 space-y-4 shadow-sm">
+                <Skeleton className="h-36 w-full rounded-lg" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-full rounded-xl" />
+              </div>
+            ))
+          ) : (
+            featuredHotels.map((hotel, idx) => (
+              <HotelCard key={hotel.id} hotel={hotel} gradient={hotelGradients[idx % hotelGradients.length]} />
+            ))
+          )}
         </div>
 
         {/* Bottom CTA */}

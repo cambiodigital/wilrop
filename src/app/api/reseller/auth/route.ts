@@ -17,22 +17,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const reseller = await db.reseller.findUnique({
+    let reseller = await db.reseller.findUnique({
       where: { email },
     })
 
-    if (!reseller) {
-      return NextResponse.json(
-        { success: false, error: 'No existe una cuenta revendedora activa con ese correo. Si aún no te has registrado, usa el formulario de registro.' },
-        { status: 401 },
-      )
+    const admin = await db.admin.findUnique({
+      where: { email },
+    })
+
+    const isUserAdmin = !!admin
+    let passwordValid = false
+
+    if (reseller) {
+      passwordValid = await verifyPassword(reseller.password, password)
+
+      // If password validation failed for the reseller record, but they are an admin,
+      // verify the password against the admin record and sync the reseller password if correct.
+      if (!passwordValid && isUserAdmin) {
+        passwordValid = await verifyPassword(admin.password, password)
+        if (passwordValid) {
+          reseller = await db.reseller.update({
+            where: { id: reseller.id },
+            data: { password: admin.password },
+          })
+        }
+      }
+    } else if (isUserAdmin) {
+      // The account is an administrator but has no reseller record. Verify their password.
+      passwordValid = await verifyPassword(admin.password, password)
+
+      if (passwordValid) {
+        // Auto-create a matching reseller record for the admin to maintain referential integrity
+        const baseCode = email.split('@')[0].substring(0, 5).toUpperCase()
+        const randomNum = Math.floor(100 + Math.random() * 900)
+        const code = `ADM-${baseCode}-${randomNum}`
+
+        reseller = await db.reseller.create({
+          data: {
+            email: admin.email,
+            password: admin.password,
+            companyName: 'WILROP Admin',
+            contactName: admin.name,
+            code,
+            active: true,
+            approvalStatus: 'approved',
+            sellerLevel: 'elite',
+            whiteLabelEnabled: true,
+            commission: 10,
+          },
+        })
+      }
     }
 
-    const passwordValid = await verifyPassword(reseller.password, password)
-
-    if (!passwordValid) {
+    if (!reseller || !passwordValid) {
       return NextResponse.json(
-        { success: false, error: 'Credenciales inválidas' },
+        { success: false, error: 'No existe una cuenta revendedora activa con ese correo. Si aún no te has registrado, usa el formulario de registro.' },
         { status: 401 },
       )
     }

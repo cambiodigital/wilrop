@@ -667,7 +667,7 @@ export default function AdminCruises() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Ship className="w-6 h-6 text-primary" />
@@ -1147,7 +1147,7 @@ export default function AdminCruises() {
 
       {/* Delete Confirmation Alert */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-6 h-6" />

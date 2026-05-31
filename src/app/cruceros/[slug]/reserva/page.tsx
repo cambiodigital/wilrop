@@ -5,6 +5,7 @@ import CruiseBookingFlow from '@/components/portal/CruiseBookingFlow'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 import { normalizeCruise } from '@/lib/catalog/public-hydration'
+import { cruises as fallbackCruises } from '@/data/cruises'
 
 interface CruiseBookingRouteProps {
   params: Promise<{
@@ -33,7 +34,10 @@ async function getCruiseData(slug: string) {
     },
   })
 
-  if (!cruise) return null
+  if (!cruise) {
+    const staticCruise = fallbackCruises.find(c => c.id === slug || c.slug === slug)
+    return staticCruise || null
+  }
   return normalizeCruise(cruise as Record<string, unknown>)
 }
 
