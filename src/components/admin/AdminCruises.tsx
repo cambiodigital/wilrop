@@ -679,7 +679,7 @@ export default function AdminCruises() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col admin-dialog">
+        <DialogContent topAligned className="max-w-4xl h-[90vh] flex flex-col admin-dialog">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Ship className="w-6 h-6 text-primary" />
