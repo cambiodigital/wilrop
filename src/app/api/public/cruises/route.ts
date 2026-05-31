@@ -88,8 +88,11 @@ export async function GET(request: NextRequest) {
     const where: any = {
       active: true,
       isTemplate: isTemplateFallback,
-      resellerId: resellerIdFilter,
     };
+
+    if (resellerIdFilter) {
+      where.resellerId = resellerIdFilter;
+    }
 
     if (featured) {
       where.featured = true;
