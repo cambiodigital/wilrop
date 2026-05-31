@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import {
   Plus,
   Search,
@@ -475,7 +477,7 @@ export default function AdminAllotments() {
                                 {getAvailabilityBadge(available, a.totalRooms)}
                               </TableCell>
                               <TableCell className="text-sm font-semibold">
-                                {formatCOP(a.netPrice)}
+                                {formatCurrency(a.netPrice)}
                               </TableCell>
                               <TableCell className="text-sm text-muted-foreground">
                                 {a.releaseDays} días
@@ -570,7 +572,7 @@ export default function AdminAllotments() {
                     .filter((r) => r.hotelId === form.hotelId)
                     .map((r) => (
                       <SelectItem key={r.id} value={r.id}>
-                        {r.name} — {formatCOP(r.basePrice)}/noche
+                        {r.name} — {formatCurrency(r.basePrice)}/noche
                       </SelectItem>
                     ))}
                 </SelectContent>

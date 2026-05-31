@@ -1,14 +1,8 @@
+import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth';
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
 
 function formatBookingItem(item: any) {
   return {

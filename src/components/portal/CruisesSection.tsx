@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
@@ -7,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
-import { formatCOP } from '@/data/packages'
+
 import { getFeaturedCruises } from '@/data/cruises'
 
 const containerVariants = {
@@ -131,7 +133,7 @@ export default function CruisesSection() {
                 </p>
                 <p className="mt-1 flex items-center gap-2 text-sm text-white/80">
                   <Clock className="size-4 text-amber-400" />
-                  {heroCruise.durationDays} días / {heroCruise.durationDays - 1} noches · Desde {formatCOP(heroCruise.priceFrom)}
+                  {heroCruise.durationDays} días / {heroCruise.durationDays - 1} noches · Desde {formatCurrency(heroCruise.priceFrom)}
                 </p>
                 <Button
                   onClick={(e) => {
@@ -198,7 +200,7 @@ export default function CruisesSection() {
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-neutral-500">Desde</p>
                   <p className="text-xl font-extrabold text-sky-800">
-                    {formatCOP(cruise.priceFrom)}
+                    {formatCurrency(cruise.priceFrom)}
                   </p>
                 </div>
                 <Button

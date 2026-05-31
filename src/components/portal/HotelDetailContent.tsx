@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import {
   ArrowLeft,
@@ -27,7 +29,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { formatCOP, hotelAmenities, type Hotel, type HotelRoom } from '@/data/hotels'
+import { hotelAmenities, type Hotel, type HotelRoom } from '@/data/hotels'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -526,15 +528,15 @@ function RoomCard({ room, totalGuests, nights, onSelectRoom }: RoomCardProps) {
           <div className="mt-3 flex items-center gap-3 sm:mt-0 sm:flex-col sm:items-end sm:gap-1 sm:text-right">
             {room.originalPrice ? (
               <span className="text-xs text-neutral-400 line-through">
-                {formatCOP(room.originalPrice)}
+                {formatCurrency(room.originalPrice)}
               </span>
             ) : null}
             <div>
-              <span className="text-xl font-bold text-amber-600">{formatCOP(room.price)}</span>
+              <span className="text-xl font-bold text-amber-600">{formatCurrency(room.price)}</span>
               <span className="text-xs text-neutral-400"> / noche</span>
             </div>
             {nights > 1 ? (
-              <p className="text-[11px] text-neutral-500">Total: {formatCOP(room.price * nights)}</p>
+              <p className="text-[11px] text-neutral-500">Total: {formatCurrency(room.price * nights)}</p>
             ) : null}
 
             <div className="mt-1">

@@ -1,17 +1,10 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, Clock, ArrowDownToLine, TrendingUp } from 'lucide-react';
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 interface SummaryData {
   totalEarned: number;
@@ -85,7 +78,7 @@ export default function ResellerCommissionSummary({
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm text-gray-500 font-medium">{card.title}</p>
-                    <p className={`text-2xl font-bold mt-1 ${card.textColor}`}>{formatCOP(value)}</p>
+                    <p className={`text-2xl font-bold mt-1 ${card.textColor}`}>{formatCurrency(value)}</p>
                     <p className="text-xs text-gray-400 mt-1">{card.subtitle}</p>
                   </div>
                   <div className={`p-2.5 rounded-xl ${card.iconBg}`}>

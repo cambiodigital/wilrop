@@ -1,4 +1,8 @@
 'use client';
+import { formatDateTime } from '@/lib/date'
+
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -29,15 +33,6 @@ interface ResellerClientDetailProps {
   onDelete?: (clientId: string) => void;
 }
 
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -62,16 +57,6 @@ const getStatusBadge = (status: string) => {
     Nuevo: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
   };
   return styles[status] || '';
-};
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 };
 
 export default function ResellerClientDetail({
@@ -177,7 +162,7 @@ export default function ResellerClientDetail({
               </div>
               <div>
                 <p className="text-xs text-gray-500">Total Gastado</p>
-                <p className="text-lg font-bold text-amber-600">{formatCOP(client.totalSpent)}</p>
+                <p className="text-lg font-bold text-amber-600">{formatCurrency(client.totalSpent)}</p>
               </div>
             </div>
           </div>
@@ -187,14 +172,14 @@ export default function ResellerClientDetail({
               <Calendar className="w-4 h-4 text-gray-400" />
               <div>
                 <p className="text-xs text-gray-500">Creado</p>
-                <p className="text-sm text-gray-700">{formatDate(client.createdAt)}</p>
+                <p className="text-sm text-gray-700">{formatDateTime(client.createdAt)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-400" />
               <div>
                 <p className="text-xs text-gray-500">Actualizado</p>
-                <p className="text-sm text-gray-700">{formatDate(client.updatedAt)}</p>
+                <p className="text-sm text-gray-700">{formatDateTime(client.updatedAt)}</p>
               </div>
             </div>
           </div>

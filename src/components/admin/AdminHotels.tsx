@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import {
   Plus,
   Search,
@@ -1075,7 +1077,7 @@ export default function AdminHotels() {
                           <StarRating count={hotel.stars} />
                         </TableCell>
                         <TableCell className="text-sm font-semibold">
-                          {formatCOP(hotel.priceFrom)}
+                          {formatCurrency(hotel.priceFrom)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -1883,7 +1885,7 @@ export default function AdminHotels() {
                             <TableCell className="text-sm font-medium">{rt.name}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{rt.beds}</TableCell>
                             <TableCell className="text-xs">{rt.maxGuests} pax</TableCell>
-                            <TableCell className="text-xs font-semibold">{formatCOP(rt.basePrice)}</TableCell>
+                            <TableCell className="text-xs font-semibold">{formatCurrency(rt.basePrice)}</TableCell>
                             <TableCell>
                               {rt.active ? (
                                 <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-600">

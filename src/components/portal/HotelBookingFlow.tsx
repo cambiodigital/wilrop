@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -35,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { hotels, formatCOP } from '@/data/hotels'
+import { hotels } from '@/data/hotels'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
@@ -473,7 +475,7 @@ export default function HotelBookingFlow({
                             <p className="text-xs text-neutral-500">{breakfastAddon?.description}</p>
                           </div>
                           <span className="text-sm font-bold text-neutral-900 whitespace-nowrap">
-                            {isBreakfastIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(breakfastAddon?.price ?? 0)}/noche`}
+                            {isBreakfastIncluded ? 'Gratis (Incluido)' : `+$${formatCurrency(breakfastAddon?.price ?? 0)}/noche`}
                           </span>
                         </label>
                       )}
@@ -486,7 +488,7 @@ export default function HotelBookingFlow({
                           <p className="text-xs text-neutral-500">{lateCheckoutAddon?.description}</p>
                         </div>
                         <span className="text-sm font-bold text-neutral-900">
-                          {isLateCheckoutIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(lateCheckoutAddon?.price ?? 0)}`}
+                          {isLateCheckoutIncluded ? 'Gratis (Incluido)' : `+$${formatCurrency(lateCheckoutAddon?.price ?? 0)}`}
                         </span>
                       </label>
 
@@ -499,7 +501,7 @@ export default function HotelBookingFlow({
                             <p className="text-xs text-neutral-500">{airportTransferAddon?.description}</p>
                           </div>
                           <span className="text-sm font-bold text-neutral-900">
-                            {isTransferIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(airportTransferAddon?.price ?? 0)}`}
+                            {isTransferIncluded ? 'Gratis (Incluido)' : `+$${formatCurrency(airportTransferAddon?.price ?? 0)}`}
                           </span>
                         </label>
                       )}
@@ -512,7 +514,7 @@ export default function HotelBookingFlow({
                           <p className="text-xs text-neutral-500">{travelInsuranceAddon?.description}</p>
                         </div>
                         <span className="text-sm font-bold text-neutral-900">
-                          {isInsuranceIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(travelInsuranceAddon?.price ?? 0)}`}
+                          {isInsuranceIncluded ? 'Gratis (Incluido)' : `+$${formatCurrency(travelInsuranceAddon?.price ?? 0)}`}
                         </span>
                       </label>
 
@@ -524,7 +526,7 @@ export default function HotelBookingFlow({
                           <p className="text-xs text-neutral-500">{photoPackageAddon?.description}</p>
                         </div>
                         <span className="text-sm font-bold text-neutral-900">
-                          {isPhotoIncluded ? 'Gratis (Incluido)' : `+$${formatCOP(photoPackageAddon?.price ?? 0)}`}
+                          {isPhotoIncluded ? 'Gratis (Incluido)' : `+$${formatCurrency(photoPackageAddon?.price ?? 0)}`}
                         </span>
                       </label>
                     </div>

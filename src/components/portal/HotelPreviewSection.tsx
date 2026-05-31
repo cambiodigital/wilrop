@@ -1,11 +1,13 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Star, ArrowRight, Building2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getFeaturedHotels, formatCOP } from '@/data/hotels'
+import { getFeaturedHotels } from '@/data/hotels'
 import type { Hotel } from '@/data/hotels'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -209,7 +211,7 @@ function HotelCard({ hotel, gradient }: { hotel: Hotel; gradient: string }) {
         <div className="mt-3 flex items-end justify-between">
           <div>
             <span className="text-xs text-neutral-400">Desde</span>
-            <p className="text-lg font-bold text-amber-600">{formatCOP(hotel.priceFrom)}<span className="text-xs font-normal text-neutral-400">/ noche</span></p>
+            <p className="text-lg font-bold text-amber-600">{formatCurrency(hotel.priceFrom)}<span className="text-xs font-normal text-neutral-400">/ noche</span></p>
           </div>
         </div>
         <Button

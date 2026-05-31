@@ -1,3 +1,4 @@
+import { safeJsonParse } from '@/lib/json'
 type JsonArrayValue = string | unknown[] | null | undefined;
 
 export interface AdminHotelRoom {
@@ -41,13 +42,6 @@ interface RawHotel {
   [key: string]: unknown;
 }
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-}
 
 function toJsonArray(value: JsonArrayValue): string {
   if (Array.isArray(value)) return JSON.stringify(value);

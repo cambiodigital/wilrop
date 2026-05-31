@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -35,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import { Plus, Search, Pencil, Trash2, Star, MapPin, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -504,7 +506,7 @@ export default function AdminDestinations() {
                       <TableRow key={dest.id}>
                         <TableCell className="font-medium text-sm">{dest.name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{dest.region}</TableCell>
-                        <TableCell className="text-sm font-semibold">{formatCOP(dest.priceFrom)}</TableCell>
+                        <TableCell className="text-sm font-semibold">{formatCurrency(dest.priceFrom)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />

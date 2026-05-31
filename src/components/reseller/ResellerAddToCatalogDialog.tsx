@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
@@ -27,15 +29,6 @@ import {
   Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
-}
 
 const sourceTypeTabs = [
   { value: 'all', label: 'Todos', icon: Package },
@@ -257,7 +250,7 @@ export function ResellerAddToCatalogDialog({
                                   )}
                                 </div>
 
-                                <p className="text-sm font-semibold text-gray-900">{formatCOP(product.price)}</p>
+                                <p className="text-sm font-semibold text-gray-900">{formatCurrency(product.price)}</p>
 
                                 {canCustomizePrices && !product.alreadyInCatalog && (
                                   <Input

@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -36,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatCOP } from '@/data/packages'
+
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
 
@@ -482,12 +484,12 @@ export default function CruiseBookingFlow({ cruise, cabinId }: CruiseBookingFlow
                       <h3 className="font-semibold text-neutral-700 text-xs uppercase tracking-wider">Resumen de Liquidación</h3>
                       <div className="flex justify-between font-medium">
                         <span>Base Camarote ({cabin.name} × {form.adults} Pax)</span>
-                        <span>{formatCOP(subtotal)}</span>
+                        <span>{formatCurrency(subtotal)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between font-bold text-neutral-900 text-base">
                         <span>Total Liquidado</span>
-                        <span className="text-sky-800">{formatCOP(total)}</span>
+                        <span className="text-sky-800">{formatCurrency(total)}</span>
                       </div>
                       <p className="text-[10px] text-neutral-400">Método de pago seleccionado: {{ card: 'Tarjeta', transfer: 'Transferencia bancaria', cash: 'Efectivo' }[form.paymentMethod]}</p>
                     </div>
@@ -586,12 +588,12 @@ export default function CruiseBookingFlow({ cruise, cabinId }: CruiseBookingFlow
                   <Separator className="my-2" />
                   <div className="flex justify-between text-neutral-900 font-semibold">
                     <span>Base Camarote</span>
-                    <span>{formatCOP(cabin.basePrice)} × {form.adults}</span>
+                    <span>{formatCurrency(cabin.basePrice)} × {form.adults}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-base font-extrabold text-sky-800 pt-1">
                     <span>Total</span>
-                    <span>{formatCOP(total)}</span>
+                    <span>{formatCurrency(total)}</span>
                   </div>
                 </div>
 

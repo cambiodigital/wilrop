@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,7 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import {
   Plus,
   Search,
@@ -521,10 +523,10 @@ export default function AdminExcursions() {
                         </TableCell>
                         <TableCell className="text-sm">{exc.category}</TableCell>
                         <TableCell className="text-sm font-semibold">
-                          {formatCOP(exc.basePrice)}
+                          {formatCurrency(exc.basePrice)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {exc.childPrice > 0 ? formatCOP(exc.childPrice) : '—'}
+                          {exc.childPrice > 0 ? formatCurrency(exc.childPrice) : '—'}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

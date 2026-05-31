@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -10,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCOP } from '@/data/packages';
+;
 
 interface HotelProduct {
   id: string;
@@ -233,7 +235,7 @@ export default function ResellerProducts() {
                   <div className="flex items-center gap-1 text-xs text-amber-500">
                     {Array.from({ length: hotel.stars }).map((_, index) => <Star key={index} className="size-3 fill-current" />)}
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">Desde {formatCOP(hotel.priceFrom)} / noche</p>
+                  <p className="text-sm font-semibold text-gray-900">Desde {formatCurrency(hotel.priceFrom)} / noche</p>
                   <p className="text-xs text-gray-500">{hotel.rooms.length} tipos de habitacion cargados por admin</p>
                   <Button asChild variant="outline" className="w-full">
                     <Link href={`/hoteles/${hotel.slug}`}>Ver hotel</Link>
@@ -257,8 +259,8 @@ export default function ResellerProducts() {
                     </div>
                     <Badge variant="secondary">{excursion.category}</Badge>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">Adulto {formatCOP(excursion.basePrice)}</p>
-                  {excursion.childPrice > 0 && <p className="text-xs text-gray-500">Nino {formatCOP(excursion.childPrice)}</p>}
+                  <p className="text-sm font-semibold text-gray-900">Adulto {formatCurrency(excursion.basePrice)}</p>
+                  {excursion.childPrice > 0 && <p className="text-xs text-gray-500">Nino {formatCurrency(excursion.childPrice)}</p>}
                   <Button asChild variant="outline" className="w-full">
                     <Link href={`/excursiones/${excursion.slug}`}>Ver excursion</Link>
                   </Button>
@@ -281,7 +283,7 @@ export default function ResellerProducts() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500">{service.cityName} · {service.durationMins} min · {service.provider?.capacity || 0} pax</p>
-                  <p className="text-sm font-semibold text-gray-900">Desde {formatCOP(service.basePrice)}</p>
+                  <p className="text-sm font-semibold text-gray-900">Desde {formatCurrency(service.basePrice)}</p>
                   <Button asChild variant="outline" className="w-full">
                     <Link href={`/transportes/${service.id}`}>Ver traslado</Link>
                   </Button>
@@ -305,7 +307,7 @@ export default function ResellerProducts() {
                     {cruise.featured && <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Destacado</Badge>}
                   </div>
                   <p className="text-xs text-gray-500">{cruise.durationDays} días de duración</p>
-                  <p className="text-sm font-semibold text-gray-900">Desde {formatCOP(cruise.priceFrom)}</p>
+                  <p className="text-sm font-semibold text-gray-900">Desde {formatCurrency(cruise.priceFrom)}</p>
                   <p className="text-xs text-gray-500">{cruise.cabins?.length || 0} categorías de cabina cargadas</p>
                   <Button asChild variant="outline" className="w-full">
                     <Link href={`/cruceros/${cruise.slug}`}>Ver crucero</Link>

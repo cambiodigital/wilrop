@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/currency';
 // ──────────────────────────────────────────────────────────────
 // WILROP Colombia Travel — Hotels Data
 // ──────────────────────────────────────────────────────────────
@@ -634,6 +635,3 @@ export function filterHotels(options: {
   })
 }
 
-export function formatCOP(amount: number): string {
-  return '$' + amount.toLocaleString('es-CO')
-}

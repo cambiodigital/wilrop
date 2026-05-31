@@ -1,4 +1,8 @@
 'use client';
+import { formatDateShort } from '@/lib/date'
+
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useCallback, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,15 +42,6 @@ interface ResellerClientListProps {
 
 const ITEMS_PER_PAGE = 6;
 
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -67,14 +62,6 @@ const avatarColors = [
   'bg-orange-400 text-white',
   'bg-teal-400 text-white',
 ];
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
 
 export default function ResellerClientList({
   clients,
@@ -191,11 +178,11 @@ export default function ResellerClientList({
                       <TableCell className="text-sm text-gray-500 hidden sm:table-cell">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {formatDate(client.createdAt)}
+                          {formatDateShort(client.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm font-medium text-gray-900 text-right">
-                        {formatCOP(client.totalSpent)}
+                        {formatCurrency(client.totalSpent)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge className={`text-[10px] px-2 py-0.5 ${getStatusBadge(status)}`}>

@@ -1,4 +1,6 @@
 'use client'
+import { formatDateShort } from '@/lib/date'
+
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
@@ -74,15 +76,6 @@ export default function PackageDetail({ packageId, pkg: initialPkg, relatedPacka
   const discount = hasDiscount
     ? Math.round(((pkg.originalPrice! - pkg.price) / pkg.originalPrice!) * 100)
     : 0
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('es-CO', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -199,7 +192,7 @@ export default function PackageDetail({ packageId, pkg: initialPkg, relatedPacka
                   >
                     <Calendar className="size-4 text-amber-500" />
                     <span className="text-sm font-medium text-neutral-700">
-                      {formatDate(date)}
+                      {formatDateShort(date)}
                     </span>
                   </div>
                 ))}

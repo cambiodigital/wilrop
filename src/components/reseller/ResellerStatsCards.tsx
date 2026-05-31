@@ -1,18 +1,11 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, DollarSign, Users, Package, AlertCircle } from 'lucide-react';
 import { DashboardStats } from '@/lib/reseller/dashboard';
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 const cardsConfig = [
   {
@@ -50,7 +43,7 @@ const cardsConfig = [
 ];
 
 function formatValue(value: number, format: 'currency' | 'number'): string {
-  if (format === 'currency') return formatCOP(value);
+  if (format === 'currency') return formatCurrency(value);
   return value.toLocaleString('es-CO');
 }
 

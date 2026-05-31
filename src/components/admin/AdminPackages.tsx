@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,7 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import { Plus, Search, Pencil, Trash2, Star, Package, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -591,10 +593,10 @@ export default function AdminPackages() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold">{formatCOP(pkg.price)}</span>
+                            <span className="text-sm font-semibold">{formatCurrency(pkg.price)}</span>
                             {pkg.originalPrice && (
                               <span className="text-xs text-muted-foreground line-through">
-                                {formatCOP(pkg.originalPrice)}
+                                {formatCurrency(pkg.originalPrice)}
                               </span>
                             )}
                           </div>

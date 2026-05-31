@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -49,13 +51,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import {
-  hotels as allHotels,
-  hotelCities,
-  hotelAmenities,
-  formatCOP,
-  type Hotel,
-} from '@/data/hotels'
+import { hotels as allHotels, hotelCities, hotelAmenities, type Hotel } from '@/data/hotels'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useEffect } from 'react'
 
@@ -217,8 +213,8 @@ export default function HotelsPage() {
           className="mb-2"
         />
         <div className="flex items-center justify-between text-xs text-neutral-500">
-          <span>{formatCOP(priceRange[0])}</span>
-          <span>{formatCOP(priceRange[1])}</span>
+          <span>{formatCurrency(priceRange[0])}</span>
+          <span>{formatCurrency(priceRange[1])}</span>
         </div>
       </div>
 
@@ -767,17 +763,17 @@ function HotelListingCard({
             <div>
               {cheapestRoom?.originalPrice && (
                 <span className="text-sm text-neutral-400 line-through">
-                  {formatCOP(cheapestRoom.originalPrice)}
+                  {formatCurrency(cheapestRoom.originalPrice)}
                 </span>
               )}
               <div>
                 <span className="text-xs text-neutral-500">
-                  Desde <span className="text-lg font-bold text-amber-600">{formatCOP(hotel.priceFrom)}</span>
+                  Desde <span className="text-lg font-bold text-amber-600">{formatCurrency(hotel.priceFrom)}</span>
                   <span className="text-xs font-normal text-neutral-400">/ noche</span>
                 </span>
                 {nights > 1 && (
                   <p className="text-xs text-neutral-400">
-                    {formatCOP(hotel.priceFrom * nights)} total ({nights} noches)
+                    {formatCurrency(hotel.priceFrom * nights)} total ({nights} noches)
                   </p>
                 )}
               </div>

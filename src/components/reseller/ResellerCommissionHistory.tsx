@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +24,6 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 export interface CommissionEntry {
   id: string;
@@ -81,7 +74,7 @@ function PieChartTooltip({ active, payload }: { active?: boolean; payload?: Arra
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
         <p className="text-sm font-medium text-gray-700">{payload[0].payload.name}</p>
-        <p className="text-sm font-semibold text-amber-600">{formatCOP(payload[0].payload.value)}</p>
+        <p className="text-sm font-semibold text-amber-600">{formatCurrency(payload[0].payload.value)}</p>
       </div>
     );
   }
@@ -181,7 +174,7 @@ export default function ResellerCommissionHistory({
                         borderRadius: '8px',
                         fontSize: '13px',
                       }}
-                      formatter={(value: number) => [formatCOP(value), 'Comisión']}
+                      formatter={(value: number) => [formatCurrency(value), 'Comisión']}
                     />
                     <Bar dataKey="amount" fill="var(--brand-gold)" radius={[6, 6, 0, 0]} barSize={36} />
                   </BarChart>
@@ -225,7 +218,7 @@ export default function ResellerCommissionHistory({
                       <TableCell className="text-sm text-gray-900 hidden sm:table-cell">{comm.clientName}</TableCell>
                       <TableCell className="text-sm text-gray-600">{comm.destination}</TableCell>
                       <TableCell className="text-center text-sm text-gray-600">{comm.commissionPercent}%</TableCell>
-                      <TableCell className="text-sm font-medium text-right">{formatCOP(comm.amount)}</TableCell>
+                      <TableCell className="text-sm font-medium text-right">{formatCurrency(comm.amount)}</TableCell>
                       <TableCell className="text-center">
                         <Badge className={`text-[10px] px-2 py-0.5 ${getStatusBadge(statusLabels[comm.status])}`}>
                           {statusLabels[comm.status]}

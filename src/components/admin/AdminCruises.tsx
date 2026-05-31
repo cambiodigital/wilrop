@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -43,7 +45,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ImageGallery } from '@/components/admin/ImageGallery';
-import { formatCOP } from '@/data/packages';
+;
 import {
   Plus,
   Search,
@@ -604,7 +606,7 @@ export default function AdminCruises() {
                         )}
                       </TableCell>
                       <TableCell className="text-right font-bold text-sky-700">
-                        {formatCOP(c.priceFrom)}
+                        {formatCurrency(c.priceFrom)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge
@@ -1061,9 +1063,9 @@ export default function AdminCruises() {
                           <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-0 pt-3 md:pt-0">
                             <div className="text-right">
                               <p className="text-xs text-muted-foreground">Tarifa por persona</p>
-                              <span className="font-bold text-base text-sky-700">{formatCOP(cabin.basePrice)}</span>
+                              <span className="font-bold text-base text-sky-700">{formatCurrency(cabin.basePrice)}</span>
                               {cabin.originalPrice > cabin.basePrice && (
-                                <span className="block text-[11px] line-through text-muted-foreground">{formatCOP(cabin.originalPrice)}</span>
+                                <span className="block text-[11px] line-through text-muted-foreground">{formatCurrency(cabin.originalPrice)}</span>
                               )}
                             </div>
                             <div className="flex items-center gap-2">

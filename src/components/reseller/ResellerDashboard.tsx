@@ -1,4 +1,8 @@
 'use client';
+import { formatDateShort } from '@/lib/date'
+
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -19,23 +23,6 @@ import { ArrowRight, Link2, Eye, UserPlus } from 'lucide-react';
 import { ResellerStatsCards } from './ResellerStatsCards';
 import { ResellerSalesChart } from './ResellerSalesChart';
 import type { DashboardData, RecentSaleData } from '@/lib/reseller/dashboard';
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-const formatDate = (isoDate: string) => {
-  return new Date(isoDate).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
 
 const getStatusBadge = (status: string) => {
   const styles: Record<string, string> = {
@@ -141,9 +128,9 @@ export default function ResellerDashboard() {
                         <div key={sale.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{sale.clientName}</p>
-                            <p className="text-xs text-gray-500">{formatDate(sale.saleDate)}</p>
+                            <p className="text-xs text-gray-500">{formatDateShort(sale.saleDate)}</p>
                           </div>
-                          <p className="text-sm font-semibold text-gray-900">{formatCOP(sale.total)}</p>
+                          <p className="text-sm font-semibold text-gray-900">{formatCurrency(sale.total)}</p>
                         </div>
                       ))}
                   </div>
@@ -249,10 +236,10 @@ function RecentSaleRow({ sale }: { sale: RecentSaleData }) {
   return (
     <TableRow className="cursor-pointer hover:bg-amber-50/50">
       <TableCell className="font-medium text-sm text-gray-900">{sale.clientName}</TableCell>
-      <TableCell className="text-sm text-gray-500 hidden sm:table-cell">{formatDate(sale.saleDate)}</TableCell>
-      <TableCell className="text-sm font-medium text-gray-900 text-right">{formatCOP(sale.total)}</TableCell>
+      <TableCell className="text-sm text-gray-500 hidden sm:table-cell">{formatDateShort(sale.saleDate)}</TableCell>
+      <TableCell className="text-sm font-medium text-gray-900 text-right">{formatCurrency(sale.total)}</TableCell>
       <TableCell className="text-sm font-medium text-emerald-600 text-right hidden sm:table-cell">
-        {formatCOP(sale.commission)}
+        {formatCurrency(sale.commission)}
       </TableCell>
       <TableCell className="text-center">
         <Badge className={`text-[10px] px-2 py-0.5 ${getStatusBadge(sale.status)}`}>

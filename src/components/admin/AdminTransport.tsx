@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatCOP } from '@/data/packages';
+;
 import {
   Plus,
   Search,
@@ -756,7 +758,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                             <TableCell className="text-sm text-muted-foreground">{s.cityName || '—'}</TableCell>
                             <TableCell className="text-sm">{s.durationMins} min</TableCell>
                             <TableCell className="text-sm font-semibold">
-                              {formatCOP(s.basePrice)}
+                              {formatCurrency(s.basePrice)}
                             </TableCell>
                             <TableCell>
                               {s.active ? (

@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
@@ -22,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useNavigationStore } from '@/store/useNavigationStore'
-import { formatCOP } from '@/data/packages'
+
 
 interface SubagentDashboardSession {
   id: string
@@ -196,7 +198,7 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Ingresos Totales</p>
-                  <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCOP(stats.totalRevenue)}</p>
+                  <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(stats.totalRevenue)}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                   <DollarSign className="size-5 text-emerald-600" />
@@ -212,7 +214,7 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Comisiones Ganadas</p>
-                  <p className="text-2xl font-bold text-amber-600 mt-1">{formatCOP(stats.totalCommission)}</p>
+                  <p className="text-2xl font-bold text-amber-600 mt-1">{formatCurrency(stats.totalCommission)}</p>
                 </div>
                 <div className="size-10 rounded-xl bg-amber-100 flex items-center justify-center">
                   <TrendingUp className="size-5 text-amber-600" />
@@ -296,10 +298,10 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
                             </Badge>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="font-semibold text-card-foreground">{formatCOP(booking.totalPrice)}</span>
+                            <span className="font-semibold text-card-foreground">{formatCurrency(booking.totalPrice)}</span>
                           </td>
                           <td className="px-4 py-3 text-right hidden lg:table-cell">
-                            <span className="font-medium text-amber-600">{formatCOP(booking.commissionAmt)}</span>
+                            <span className="font-medium text-amber-600">{formatCurrency(booking.commissionAmt)}</span>
                           </td>
                           <td className="px-4 py-3 hidden lg:table-cell">
                             <span className="text-muted-foreground text-xs flex items-center gap-1">

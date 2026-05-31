@@ -1,4 +1,8 @@
 'use client';
+import { formatDateTime } from '@/lib/date'
+
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -34,15 +38,6 @@ interface ResellerSaleDetailProps {
   onStatusChange?: () => void;
 }
 
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -65,16 +60,6 @@ const statusBadgeStyles: Record<string, string> = {
   confirmed: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
   completed: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
   cancelled: 'bg-red-100 text-red-700 hover:bg-red-100',
-};
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 };
 
 const validTransitions: Record<string, string[]> = {
@@ -176,7 +161,7 @@ export default function ResellerSaleDetail({
               <Calendar className="w-4 h-4 text-gray-400" />
               <div>
                 <p className="text-[10px] text-gray-400">Fecha</p>
-                <p className="text-sm text-gray-700">{formatDate(sale.saleDate)}</p>
+                <p className="text-sm text-gray-700">{formatDateTime(sale.saleDate)}</p>
               </div>
             </div>
           </div>
@@ -195,15 +180,15 @@ export default function ResellerSaleDetail({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-500">Total Venta</p>
-                <p className="text-lg font-bold text-gray-900">{formatCOP(sale.totalAmount)}</p>
+                <p className="text-lg font-bold text-gray-900">{formatCurrency(sale.totalAmount)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Tu Comisión</p>
-                <p className="text-lg font-bold text-emerald-600">{formatCOP(sale.commissionAmt)}</p>
+                <p className="text-lg font-bold text-emerald-600">{formatCurrency(sale.commissionAmt)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Neto Operador</p>
-                <p className="text-lg font-bold text-gray-700">{formatCOP(sale.netAmount)}</p>
+                <p className="text-lg font-bold text-gray-700">{formatCurrency(sale.netAmount)}</p>
               </div>
             </div>
           </div>

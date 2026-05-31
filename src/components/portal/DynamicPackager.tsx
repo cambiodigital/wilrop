@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -37,7 +39,7 @@ import {
 } from '@/components/ui/select'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useCities } from '@/hooks/use-cities'
-import { formatCOP } from '@/data/packages'
+
 import { toast } from 'sonner'
 
 // ─── Types ──────────────────────────────────────────────────
@@ -586,7 +588,7 @@ export default function DynamicPackager() {
                     <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-neutral-800">{selectedTransportService.name}</span>
-                        <span className="text-lg font-bold text-amber-600">{formatCOP(selectedTransportService.basePrice)}</span>
+                        <span className="text-lg font-bold text-amber-600">{formatCurrency(selectedTransportService.basePrice)}</span>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-neutral-600">
                         <span className="flex items-center gap-1"><MapPin className="size-3.5 text-amber-500" />{selectedTransportService.origin} → {selectedTransportService.destination}</span>
@@ -618,7 +620,7 @@ export default function DynamicPackager() {
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm">
                       <span className="text-emerald-700 font-medium flex items-center gap-1.5">
                         <Check className="size-4" />
-                        Transporte seleccionado: {formatCOP(selectedTransportService.basePrice + (tAdults + tChildren - 1) * selectedTransportService.pricePerExtra)}
+                        Transporte seleccionado: {formatCurrency(selectedTransportService.basePrice + (tAdults + tChildren - 1) * selectedTransportService.pricePerExtra)}
                       </span>
                     </div>
                   )}
@@ -681,7 +683,7 @@ export default function DynamicPackager() {
                             ))}
                           </div>
                         </div>
-                        <span className="text-sm text-neutral-500">Desde {formatCOP(selectedHotelData.priceFrom)}/noche</span>
+                        <span className="text-sm text-neutral-500">Desde {formatCurrency(selectedHotelData.priceFrom)}/noche</span>
                       </div>
                       <div className="space-y-2">
                         <Label>Tipo de habitación</Label>
@@ -690,7 +692,7 @@ export default function DynamicPackager() {
                           <SelectContent>
                             {selectedHotelData.rooms?.map((r: any) => (
                               <SelectItem key={r.id} value={r.id}>
-                                {r.name} — {formatCOP(r.price)}/noche ({r.maxGuests} huéspedes)
+                                {r.name} — {formatCurrency(r.price)}/noche ({r.maxGuests} huéspedes)
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -724,7 +726,7 @@ export default function DynamicPackager() {
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm">
                       <span className="text-emerald-700 font-medium flex items-center gap-1.5">
                         <Check className="size-4" />
-                        Hotel seleccionado: {selectedRoom.name} × {nights} noche{nights !== 1 ? 's' : ''} × {hRooms} hab. = {formatCOP(selectedRoom.price * nights * hRooms)}
+                        Hotel seleccionado: {selectedRoom.name} × {nights} noche{nights !== 1 ? 's' : ''} × {hRooms} hab. = {formatCurrency(selectedRoom.price * nights * hRooms)}
                       </span>
                     </div>
                   )}
@@ -757,7 +759,7 @@ export default function DynamicPackager() {
                       <SelectContent>
                         {filteredExcursions.map((e) => (
                           <SelectItem key={e.id} value={e.id}>
-                            {e.name} — {e.cityName || e.destinationName} ({formatCOP(e.basePrice)})
+                            {e.name} — {e.cityName || e.destinationName} ({formatCurrency(e.basePrice)})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -782,9 +784,9 @@ export default function DynamicPackager() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-amber-600">{formatCOP(selectedExcursionData.basePrice)}</p>
+                          <p className="text-lg font-bold text-amber-600">{formatCurrency(selectedExcursionData.basePrice)}</p>
                           {selectedExcursionData.childPrice > 0 && (
-                            <p className="text-xs text-neutral-500">Niño: {formatCOP(selectedExcursionData.childPrice)}</p>
+                            <p className="text-xs text-neutral-500">Niño: {formatCurrency(selectedExcursionData.childPrice)}</p>
                           )}
                         </div>
                       </div>
@@ -816,9 +818,9 @@ export default function DynamicPackager() {
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm">
                       <span className="text-emerald-700 font-medium flex items-center gap-1.5">
                         <Check className="size-4" />
-                        Excursión seleccionada: {eAdults} adultos × {formatCOP(selectedExcursionData.basePrice)}
-                        {eChildren > 0 && <> + {eChildren} niños × {formatCOP(selectedExcursionData.childPrice || selectedExcursionData.basePrice)}</>}
-                        {' = '}{formatCOP(eAdults * selectedExcursionData.basePrice + eChildren * (selectedExcursionData.childPrice || selectedExcursionData.basePrice))}
+                        Excursión seleccionada: {eAdults} adultos × {formatCurrency(selectedExcursionData.basePrice)}
+                        {eChildren > 0 && <> + {eChildren} niños × {formatCurrency(selectedExcursionData.childPrice || selectedExcursionData.basePrice)}</>}
+                        {' = '}{formatCurrency(eAdults * selectedExcursionData.basePrice + eChildren * (selectedExcursionData.childPrice || selectedExcursionData.basePrice))}
                       </span>
                     </div>
                   )}
@@ -859,7 +861,7 @@ export default function DynamicPackager() {
                               <p className="text-xs text-neutral-500">{selectedTransport.service.origin} → {selectedTransport.service.destination} · {selectedTransport.date}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCOP(selectedTransport.totalPrice)}</p>
+                              <p className="font-bold text-amber-600">{formatCurrency(selectedTransport.totalPrice)}</p>
                               <p className="text-[11px] text-neutral-400">{selectedTransport.adults + selectedTransport.children} pasajeros</p>
                             </div>
                           </div>
@@ -878,8 +880,8 @@ export default function DynamicPackager() {
                               <p className="text-xs text-neutral-500">{selectedHotel.room.name} · {selectedHotel.checkIn} → {selectedHotel.checkOut} ({selectedHotel.nights} noches × {selectedHotel.rooms} hab.)</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCOP(selectedHotel.totalPrice)}</p>
-                              <p className="text-[11px] text-neutral-400">{formatCOP(selectedHotel.room.price)}/noche</p>
+                              <p className="font-bold text-amber-600">{formatCurrency(selectedHotel.totalPrice)}</p>
+                              <p className="text-[11px] text-neutral-400">{formatCurrency(selectedHotel.room.price)}/noche</p>
                             </div>
                           </div>
                           <button onClick={() => setCurrentStep(2)} className="text-xs text-amber-600 hover:underline">Modificar</button>
@@ -897,7 +899,7 @@ export default function DynamicPackager() {
                               <p className="text-xs text-neutral-500">{selectedExcursion.excursion.cityName || selectedExcursion.excursion.destinationName} · {selectedExcursion.date}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCOP(selectedExcursion.totalPrice)}</p>
+                              <p className="font-bold text-amber-600">{formatCurrency(selectedExcursion.totalPrice)}</p>
                               <p className="text-[11px] text-neutral-400">{selectedExcursion.adults + selectedExcursion.children} participantes</p>
                             </div>
                           </div>
@@ -913,7 +915,7 @@ export default function DynamicPackager() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-amber-100 text-sm">Total del Paquete</p>
-                          <p className="text-3xl font-bold">{formatCOP(grandTotal)}</p>
+                          <p className="text-3xl font-bold">{formatCurrency(grandTotal)}</p>
                           <p className="text-amber-200 text-xs mt-1">COP · impuestos incluidos</p>
                         </div>
                         <Package className="size-12 text-white/20" />

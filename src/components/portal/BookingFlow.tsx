@@ -1,4 +1,6 @@
 'use client'
+import { formatDateShort } from '@/lib/date'
+
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -270,11 +272,6 @@ export default function BookingFlow({ packageId, pkg: initialPkg, defaultDate }:
     )
   }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
-  }
-
   const set = (partial: Partial<BookingPayload>) => setForm((prev) => ({ ...prev, ...partial }))
 
   return (
@@ -389,7 +386,7 @@ export default function BookingFlow({ packageId, pkg: initialPkg, defaultDate }:
                           <SelectTrigger className="mt-1.5 w-full rounded-xl"><SelectValue placeholder="Selecciona una fecha" /></SelectTrigger>
                           <SelectContent>
                             {pkg.departureDates.map((date, i) => (
-                              <SelectItem key={i} value={date}>{formatDate(date)}</SelectItem>
+                              <SelectItem key={i} value={date}>{formatDateShort(date)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -587,7 +584,7 @@ export default function BookingFlow({ packageId, pkg: initialPkg, defaultDate }:
                       <div className="rounded-xl bg-neutral-50 p-4">
                         <h3 className="text-sm font-semibold text-neutral-700">Viajeros</h3>
                         <div className="mt-2 space-y-1.5 text-sm text-neutral-600">
-                          <p><span className="font-medium">Fecha:</span> {form.departureDate ? formatDate(form.departureDate) : '—'}</p>
+                          <p><span className="font-medium">Fecha:</span> {form.departureDate ? formatDateShort(form.departureDate) : '—'}</p>
                           <p><span className="font-medium">Grupo:</span> {form.adults} adulto{form.adults !== 1 ? 's' : ''}{form.children > 0 ? `, ${form.children} niño${form.children !== 1 ? 's' : ''}` : ''}</p>
                           {form.childrenAges.length > 0 && <p><span className="font-medium">Edades niños:</span> {form.childrenAges.map((a) => `${a} años`).join(', ')}</p>}
                           {form.guests.filter((g) => g.fullName).map((g, i) => (

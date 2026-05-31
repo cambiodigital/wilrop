@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
@@ -31,7 +33,7 @@ import {
 } from '@/components/ui/dialog'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useCities } from '@/hooks/use-cities'
-import { formatCOP } from '@/data/packages'
+
 import { toast } from 'sonner'
 
 // ─── Types ──────────────────────────────────────────────────
@@ -479,7 +481,7 @@ export default function TransportPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-neutral-500">Total estimado</p>
-                  <p className="text-2xl font-bold text-amber-600">{formatCOP(calcTotal())}</p>
+                  <p className="text-2xl font-bold text-amber-600">{formatCurrency(calcTotal())}</p>
                   <p className="text-xs text-neutral-400">COP · por servicio</p>
                 </div>
                 <Button
@@ -599,7 +601,7 @@ function TransportCard({ service, onBook }: { service: TransportService; onBook:
       <div className="border-t border-neutral-100 px-4 py-3 flex items-end justify-between">
         <div>
           <span className="text-xs text-neutral-400">Desde</span>
-          <p className="text-xl font-bold text-amber-600">{formatCOP(service.basePrice)}</p>
+          <p className="text-xl font-bold text-amber-600">{formatCurrency(service.basePrice)}</p>
           <p className="text-[11px] text-neutral-400">por viaje</p>
         </div>
         <div className="flex items-center gap-2">

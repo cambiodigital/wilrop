@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -43,7 +45,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { formatCOP } from '@/data/packages'
+
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 // Animation variants
@@ -243,11 +245,11 @@ export default function CruisesPage() {
         />
         <div className="flex items-center justify-between gap-2">
           <div className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-600 w-[45%] text-center">
-            {formatCOP(priceRange[0])}
+            {formatCurrency(priceRange[0])}
           </div>
           <span className="text-neutral-400 text-xs">—</span>
           <div className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-600 w-[45%] text-center">
-            {formatCOP(priceRange[1])}
+            {formatCurrency(priceRange[1])}
           </div>
         </div>
       </div>
@@ -606,7 +608,7 @@ export default function CruisesPage() {
                           <div className="flex items-end justify-between">
                             <div>
                               <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Tarifa desde</span>
-                              <span className="text-lg font-extrabold text-amber-600">{formatCOP(cruise.priceFrom)}</span>
+                              <span className="text-lg font-extrabold text-amber-600">{formatCurrency(cruise.priceFrom)}</span>
                             </div>
                             <Button
                               onClick={() => navigate('portal-cruise-detail', cruise.slug)}

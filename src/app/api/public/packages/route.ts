@@ -1,14 +1,8 @@
+import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { resolvePackageDestinationIds } from '@/lib/catalog/public-hydration';
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
 
 function formatPackage(pkg: any) {
   return {

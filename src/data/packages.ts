@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/currency';
 export interface TravelPackage {
   id: string;
   destinationId: string;
@@ -428,12 +429,8 @@ export const travelPackages: TravelPackage[] = [
  * Helper: format a COP price for display.
  * e.g. 1250000 → "$1.250.000"
  */
-export function formatCOP(amount: number): string {
-  return '$' + amount.toLocaleString('es-CO');
-}
-
 // Aliases used by other components
-export const formatPrice = formatCOP;
+export const formatPrice = formatCurrency;
 export { travelPackages as packages };
 
 /**

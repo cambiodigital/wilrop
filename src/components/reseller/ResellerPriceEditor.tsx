@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -8,15 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { resolveSourceFields } from '@/lib/reseller/catalog'
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
-}
 
 export interface CatalogItem {
   id: string
@@ -101,10 +94,10 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
               {item.customName || sourceTitle}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Precio base: {formatCOP(basePrice)}
+              Precio base: {formatCurrency(basePrice)}
               {item.customPrice !== null && item.customPrice !== basePrice && (
                 <span className="ml-2 text-amber-600 font-medium">
-                  → Tu precio: {formatCOP(item.customPrice)}
+                  → Tu precio: {formatCurrency(item.customPrice)}
                 </span>
               )}
             </p>
@@ -147,7 +140,7 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
                 type="number"
                 value={customPrice}
                 onChange={(e) => setCustomPrice(e.target.value)}
-                placeholder={`Deja vacío para usar ${formatCOP(basePrice)}`}
+                placeholder={`Deja vacío para usar ${formatCurrency(basePrice)}`}
                 min={0}
               />
               <p className="text-xs text-gray-400">

@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -13,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatCOP } from '@/data/packages';
+;
 import {
   MapPin,
   Building2,
@@ -221,7 +223,7 @@ export default function AdminDashboard() {
                             {pkg.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm font-semibold">{formatCOP(pkg.price)}</TableCell>
+                        <TableCell className="text-sm font-semibold">{formatCurrency(pkg.price)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />

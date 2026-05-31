@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
@@ -36,7 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
-import { formatCOP } from '@/data/packages'
+
 import { toast } from 'sonner'
 
 // ─── Types ──────────────────────────────────────────────────
@@ -446,7 +448,7 @@ export default function ExcursionsPage() {
                   onChange={(e) => setBookingAdults(Math.max(1, parseInt(e.target.value) || 1))}
                   className="rounded-xl"
                 />
-                <p className="text-xs text-amber-600">{formatCOP(bookingExcursion?.basePrice || 0)} / adulto</p>
+                <p className="text-xs text-amber-600">{formatCurrency(bookingExcursion?.basePrice || 0)} / adulto</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="exc-children">Niños</Label>
@@ -460,7 +462,7 @@ export default function ExcursionsPage() {
                   className="rounded-xl"
                 />
                 {bookingExcursion?.childPrice && bookingExcursion.childPrice > 0 ? (
-                  <p className="text-xs text-amber-600">{formatCOP(bookingExcursion.childPrice)} / niño</p>
+                  <p className="text-xs text-amber-600">{formatCurrency(bookingExcursion.childPrice)} / niño</p>
                 ) : (
                   <p className="text-xs text-neutral-400">Mismo precio que adulto</p>
                 )}
@@ -566,16 +568,16 @@ export default function ExcursionsPage() {
             <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm text-neutral-600">
-                  {bookingAdults} adulto{bookingAdults !== 1 ? 's' : ''} × {formatCOP(bookingExcursion?.basePrice || 0)}
+                  {bookingAdults} adulto{bookingAdults !== 1 ? 's' : ''} × {formatCurrency(bookingExcursion?.basePrice || 0)}
                   {bookingChildren > 0 && (
-                    <> + {bookingChildren} niño{bookingChildren !== 1 ? 's' : ''} × {formatCOP(bookingExcursion?.childPrice || bookingExcursion?.basePrice || 0)}</>
+                    <> + {bookingChildren} niño{bookingChildren !== 1 ? 's' : ''} × {formatCurrency(bookingExcursion?.childPrice || bookingExcursion?.basePrice || 0)}</>
                   )}
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-neutral-500">Total</p>
-                  <p className="text-2xl font-bold text-amber-600">{formatCOP(calcTotal())}</p>
+                  <p className="text-2xl font-bold text-amber-600">{formatCurrency(calcTotal())}</p>
                 </div>
                 <Button
                   onClick={handleSubmitBooking}
@@ -709,12 +711,12 @@ function ExcursionCard({ excursion, onBook }: { excursion: Excursion; onBook: (e
           <div className="flex items-center gap-2">
             <div>
               <span className="text-xs text-neutral-400">Adulto</span>
-              <p className="text-lg font-bold text-amber-600">{formatCOP(excursion.basePrice)}</p>
+              <p className="text-lg font-bold text-amber-600">{formatCurrency(excursion.basePrice)}</p>
             </div>
             {excursion.childPrice && excursion.childPrice > 0 && (
               <div>
                 <span className="text-xs text-neutral-400">Niño</span>
-                <p className="text-sm font-semibold text-neutral-500">{formatCOP(excursion.childPrice)}</p>
+                <p className="text-sm font-semibold text-neutral-500">{formatCurrency(excursion.childPrice)}</p>
               </div>
             )}
           </div>

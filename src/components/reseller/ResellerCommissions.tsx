@@ -1,4 +1,6 @@
 'use client';
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -17,15 +19,6 @@ import { DollarSign, Wallet, Building2, CreditCard } from 'lucide-react';
 import ResellerCommissionSummary from '@/components/reseller/ResellerCommissionSummary';
 import ResellerCommissionHistory, { type CommissionEntry, type CommissionByDestination, type MonthlyCommission } from '@/components/reseller/ResellerCommissionHistory';
 import { toast } from 'sonner';
-
-const formatCOP = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 interface CommissionSummary {
   totalEarned: number;
@@ -90,7 +83,7 @@ export default function ResellerCommissions() {
       return;
     }
 
-    toast.success(`Solicitud de retiro por ${formatCOP(amount)} enviada. Se procesará en 2-5 días hábiles.`);
+    toast.success(`Solicitud de retiro por ${formatCurrency(amount)} enviada. Se procesará en 2-5 días hábiles.`);
     setWithdrawDialogOpen(false);
     setWithdrawAmount('');
     setBankInfo('');
@@ -172,7 +165,7 @@ export default function ResellerCommissions() {
             <DialogDescription>
               Saldo disponible:{' '}
               <span className="font-semibold text-emerald-600">
-                {data ? formatCOP(data.summary.available) : '$0 COP'}
+                {data ? formatCurrency(data.summary.available) : '$0 COP'}
               </span>
             </DialogDescription>
           </DialogHeader>

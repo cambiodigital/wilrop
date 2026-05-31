@@ -1,4 +1,6 @@
 'use client'
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -25,7 +27,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { formatCOP } from '@/data/packages'
+
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 interface Cabin {
@@ -484,9 +486,9 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mt-4 pt-4 border-t border-neutral-100">
                             <div>
                               <span className="text-[10px] text-neutral-400 block uppercase tracking-wider">Tarifa por persona</span>
-                              <span className="text-lg font-extrabold text-amber-600">{formatCOP(cabin.basePrice)}</span>
+                              <span className="text-lg font-extrabold text-amber-600">{formatCurrency(cabin.basePrice)}</span>
                               {cabin.originalPrice && cabin.originalPrice > cabin.basePrice ? (
-                                <span className="block text-xs line-through text-neutral-400 font-medium">{formatCOP(cabin.originalPrice)}</span>
+                                <span className="block text-xs line-through text-neutral-400 font-medium">{formatCurrency(cabin.originalPrice)}</span>
                               ) : null}
                             </div>
                             <Button
@@ -520,7 +522,7 @@ export default function CruiseDetailPage({ cruise }: CruiseDetailPageProps) {
                 </Badge>
                 <p className="text-xs text-neutral-300/85">Precios desde</p>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-3xl font-extrabold text-white">{formatCOP(cruise.priceFrom)}</span>
+                  <span className="text-3xl font-extrabold text-white">{formatCurrency(cruise.priceFrom)}</span>
                   <span className="text-xs text-neutral-300/85">/persona</span>
                 </div>
               </div>

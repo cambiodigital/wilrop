@@ -1,3 +1,4 @@
+import { safeJsonParse } from '@/lib/json'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -12,13 +13,6 @@ interface TransportDetailRouteProps {
   }>
 }
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value)
-  } catch {
-    return fallback
-  }
-}
 
 async function getServiceById(serviceId: string) {
   const service = await db.transportService.findUnique({

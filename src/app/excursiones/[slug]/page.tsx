@@ -1,3 +1,4 @@
+import { safeJsonParse } from '@/lib/json'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -13,13 +14,6 @@ interface ExcursionDetailRouteProps {
   }>
 }
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value)
-  } catch {
-    return fallback
-  }
-}
 
 async function getExcursionBySlug(slug: string) {
   const excursion = await db.excursion.findFirst({

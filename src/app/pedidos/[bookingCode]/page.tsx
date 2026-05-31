@@ -1,3 +1,4 @@
+import { safeJsonParse } from '@/lib/json'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CheckCircle2, CreditCard, Hotel, MapPin, Plane, ReceiptText, User } from 'lucide-react'
@@ -9,13 +10,6 @@ import { Separator } from '@/components/ui/separator'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 
-function safeJsonParse<T>(value: string, fallback: T): T {
-  try {
-    return JSON.parse(value)
-  } catch {
-    return fallback
-  }
-}
 
 function itemIcon(itemType: string) {
   switch (itemType) {

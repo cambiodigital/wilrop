@@ -1,4 +1,8 @@
 'use client';
+import { formatDateShort, formatDateTime } from '@/lib/date'
+
+import { formatCurrency } from '@/lib/currency'
+
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +34,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { formatCOP } from '@/data/packages';
 import {
   Search,
   Eye,
@@ -127,35 +130,7 @@ function ItemTypeIcon({ type }: { type: string }) {
   }
 }
 
-function formatDate(dateStr: string) {
-  if (!dateStr) return '—';
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
-
-function formatDateTime(dateStr: string) {
-  if (!dateStr) return '—';
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateStr;
-  }
-}
+// Local formatters removed - using centralized lib/date functions
 
 // ─── Main Component ──────────────────────────────────────────────
 
@@ -280,7 +255,7 @@ export default function AdminBookings() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Ingresos Totales</p>
-                <p className="text-lg font-bold text-green-600">{formatCOP(totalRevenue)}</p>
+                <p className="text-lg font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
               </div>
             </div>
           </CardContent>
@@ -388,7 +363,7 @@ export default function AdminBookings() {
                           <StatusBadge status={b.status} />
                         </TableCell>
                         <TableCell className="text-sm font-semibold">
-                          {formatCOP(b.totalPrice)}
+                          {formatCurrency(b.totalPrice)}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -542,7 +517,7 @@ export default function AdminBookings() {
                         <p className="text-xs text-muted-foreground">
                           Comisión: {selectedBooking.subagent.commission}%
                           {selectedBooking.commissionAmt > 0 &&
-                            ` — ${formatCOP(selectedBooking.commissionAmt)}`}
+                            ` — ${formatCurrency(selectedBooking.commissionAmt)}`}
                         </p>
                       </div>
                     )}
@@ -561,17 +536,17 @@ export default function AdminBookings() {
                       <div>
                         <p className="text-xs text-muted-foreground">Total</p>
                         <p className="text-lg font-bold text-card-foreground">
-                          {formatCOP(selectedBooking.totalPrice)}
+                          {formatCurrency(selectedBooking.totalPrice)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Costo Neto</p>
-                        <p className="text-sm font-medium">{formatCOP(selectedBooking.netPrice)}</p>
+                        <p className="text-sm font-medium">{formatCurrency(selectedBooking.netPrice)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Margen</p>
                         <p className="text-sm font-medium text-green-600">
-                          {formatCOP(selectedBooking.totalPrice - selectedBooking.netPrice)}
+                          {formatCurrency(selectedBooking.totalPrice - selectedBooking.netPrice)}
                         </p>
                       </div>
                     </div>
@@ -585,11 +560,11 @@ export default function AdminBookings() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs text-muted-foreground">Check-in</p>
-                          <p className="text-sm font-medium">{formatDate(selectedBooking.checkIn)}</p>
+                          <p className="text-sm font-medium">{formatDateShort(selectedBooking.checkIn)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">Check-out</p>
-                          <p className="text-sm font-medium">{formatDate(selectedBooking.checkOut)}</p>
+                          <p className="text-sm font-medium">{formatDateShort(selectedBooking.checkOut)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -624,14 +599,14 @@ export default function AdminBookings() {
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span className="text-xs text-muted-foreground">
-                                  {item.dateFrom && formatDate(item.dateFrom)}
-                                  {item.dateTo && item.dateTo !== item.dateFrom && ` → ${formatDate(item.dateTo)}`}
+                                  {item.dateFrom && formatDateShort(item.dateFrom)}
+                                  {item.dateTo && item.dateTo !== item.dateFrom && ` → ${formatDateShort(item.dateTo)}`}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   Cant: {item.quantity}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  Unit: {formatCOP(item.unitPrice)}
+                                  Unit: {formatCurrency(item.unitPrice)}
                                 </span>
                               </div>
                               {item.addons && item.addons.length > 0 && (
@@ -655,7 +630,7 @@ export default function AdminBookings() {
                               )}
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-semibold">{formatCOP(item.totalPrice)}</p>
+                              <p className="text-sm font-semibold">{formatCurrency(item.totalPrice)}</p>
                             </div>
                           </div>
                         ))}

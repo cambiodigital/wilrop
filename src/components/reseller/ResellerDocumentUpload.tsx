@@ -1,4 +1,6 @@
 'use client';
+import { formatDateShort } from '@/lib/date'
+
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -67,14 +69,6 @@ export default function ResellerDocumentUpload({ documents }: { documents?: Docu
     } finally {
       setUploading(false);
     }
-  };
-
-  const formatDate = (isoDate: string) => {
-    return new Date(isoDate).toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
   };
 
   return (
@@ -158,7 +152,7 @@ export default function ResellerDocumentUpload({ documents }: { documents?: Docu
                         {docTypeLabels[doc.docType] ?? doc.docType}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {doc.fileName} · {formatDate(doc.uploadedAt)}
+                        {doc.fileName} · {formatDateShort(doc.uploadedAt)}
                       </p>
                     </div>
                   </div>
