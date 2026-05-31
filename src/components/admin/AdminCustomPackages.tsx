@@ -1,6 +1,7 @@
 'use client'
 import { formatDateShort } from '@/lib/date'
 import { formatCurrency } from '@/lib/currency'
+import { reverseMarkup, calculateCommissionAmount } from '@/lib/package-pricing'
 
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -292,7 +293,9 @@ export default function AdminCustomPackages() {
                     <TableHead>Cliente</TableHead>
                     <TableHead>Revendedor</TableHead>
                     <TableHead>Servicios</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>Costo</TableHead>
+                    <TableHead>Venta</TableHead>
+                    <TableHead>Ganancia</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -301,12 +304,17 @@ export default function AdminCustomPackages() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                         {search ? 'No se encontraron resultados' : 'No hay paquetes personalizados aún'}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((booking) => (
+                    filtered.map((booking) => {
+                      const costPrice = booking.reseller
+                        ? reverseMarkup(booking.totalPrice, booking.reseller.commission)
+                        : booking.totalPrice
+                      const profit = booking.totalPrice - costPrice
+                      return (
                       <TableRow key={booking.id}>
                         <TableCell className="font-mono text-sm font-medium">{booking.code}</TableCell>
                         <TableCell>
@@ -319,7 +327,7 @@ export default function AdminCustomPackages() {
                           {booking.reseller ? (
                             <div>
                               <p className="text-sm font-medium">{booking.reseller.companyName || booking.reseller.contactName}</p>
-                              <p className="text-xs text-muted-foreground">{booking.reseller.commission}% comisión</p>
+                              <p className="text-xs text-muted-foreground">{booking.reseller.commission}% markup</p>
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground">Directo (B2C)</span>
@@ -343,7 +351,15 @@ export default function AdminCustomPackages() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <span className="text-sm text-muted-foreground">{formatCurrency(costPrice)}</span>
+                        </TableCell>
+                        <TableCell>
                           <span className="text-sm font-semibold">{formatCurrency(booking.totalPrice)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`text-sm font-medium ${profit > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                            {profit > 0 ? `+${formatCurrency(profit) }` : '—'}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Badge className={`${statusConfig[booking.status]?.bg || 'bg-neutral-100'} ${statusConfig[booking.status]?.color || 'text-neutral-600'} border-transparent text-xs`}>
@@ -364,7 +380,8 @@ export default function AdminCustomPackages() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -467,15 +484,30 @@ export default function AdminCustomPackages() {
               </div>
 
               {/* Total */}
-              <div className="rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 p-4 border border-primary/20">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Total del Paquete</span>
-                  <span className="text-2xl font-bold text-primary">{formatCurrency(selectedBooking.totalPrice)}</span>
-                </div>
-                {selectedBooking.commissionAmt > 0 && (
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">Comisión revendedor</span>
-                    <span className="text-sm font-medium text-amber-600">{formatCurrency(selectedBooking.commissionAmt)}</span>
+              <div className="rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 p-4 border border-primary/20 space-y-2">
+                {selectedBooking.reseller && selectedBooking.commissionAmt > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Costo (base)</span>
+                      <span className="text-sm font-medium">{formatCurrency(reverseMarkup(selectedBooking.totalPrice, selectedBooking.reseller.commission))}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Markup ({selectedBooking.reseller.commission}%)</span>
+                      <span className="text-sm font-medium text-amber-600">+{formatCurrency(selectedBooking.commissionAmt)}</span>
+                    </div>
+                    <div className="border-t border-primary/20 pt-2 flex items-center justify-between">
+                      <span className="text-sm font-medium text-muted-foreground">Precio de Venta</span>
+                      <span className="text-2xl font-bold text-primary">{formatCurrency(selectedBooking.totalPrice)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-emerald-600 font-medium">Ganancia del revendedor</span>
+                      <span className="text-sm font-bold text-emerald-600">{formatCurrency(selectedBooking.commissionAmt)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Total del Paquete</span>
+                    <span className="text-2xl font-bold text-primary">{formatCurrency(selectedBooking.totalPrice)}</span>
                   </div>
                 )}
               </div>

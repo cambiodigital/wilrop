@@ -41,6 +41,7 @@ export function usePackageTransport(options: UsePackageTransportOptions = {}) {
 
   const [services, setServices] = useState<TransportService[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [cityId, setCityId] = useState('')
@@ -55,6 +56,7 @@ export function usePackageTransport(options: UsePackageTransportOptions = {}) {
   // Fetch transport services
   const fetchServices = useCallback(async (city?: string) => {
     setLoading(true)
+    setError(null)
     try {
       let url = '/api/public/transport'
       const params = new URLSearchParams()
@@ -64,10 +66,22 @@ export function usePackageTransport(options: UsePackageTransportOptions = {}) {
       if (qs) url += `?${qs}`
 
       const res = await fetch(url)
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: No se pudieron cargar los servicios de transporte`)
+      }
       const json = await res.json()
-      if (json.success) setServices(json.data)
-    } catch {
-      // silent
+      if (json.success) {
+        setServices(json.data)
+        if (json.data.length === 0) {
+          setError('No hay servicios de transporte disponibles para esta selección')
+        }
+      } else {
+        throw new Error(json.error || 'Error al cargar transportes')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error de conexión al cargar transportes'
+      setError(message)
+      setServices([])
     } finally {
       setLoading(false)
     }
@@ -125,6 +139,7 @@ export function usePackageTransport(options: UsePackageTransportOptions = {}) {
     // Data
     services,
     loading,
+    error,
     selectedService,
     selected,
     // Form state

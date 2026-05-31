@@ -2,6 +2,7 @@ import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateBookingInput } from '@/lib/booking-validation'
+import { calculateCommissionAmount } from '@/lib/package-pricing'
 
 
 function formatBookingItem(item: any) {
@@ -122,12 +123,11 @@ export async function POST(request: NextRequest) {
       children,
       childrenAges,
       notes,
-      totalPrice,
-      netPrice,
-      commissionAmt,
       checkIn,
       checkOut,
       items,
+      // NOTE: totalPrice, netPrice, commissionAmt are IGNORED from client
+      // Server recalculates everything from items + reseller commission
     } = validation.data
 
     for (const item of items) {
@@ -146,34 +146,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Resolve subagent
     let subagentId: string | null = null
-    let resolvedResellerId: string | null = null
     let bookedBy = requestedBookedBy || 'b2c'
 
     if (subagentCode) {
       const subagent = await db.subagent.findUnique({
         where: { code: subagentCode },
       })
-
-      if (!subagent) {
+      if (!subagent || !subagent.active) {
         return NextResponse.json(
-          { success: false, error: 'Invalid subagent code' },
-          { status: 404 },
-        )
-      }
-
-      if (!subagent.active) {
-        return NextResponse.json(
-          { success: false, error: 'Subagent account is not active' },
+          { success: false, error: 'Subagent no válido o inactivo' },
           { status: 403 },
         )
       }
-
       subagentId = subagent.id
       bookedBy = 'b2b'
     }
 
-    // Resolve reseller context
+    // ── SECURITY: Recalculate total from items — NEVER trust client-sent totalPrice ──
+    const serverCalculatedTotal = items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0)
+
+    // Resolve reseller context — commission comes from DB, NOT from client
+    let resolvedResellerId: string | null = null
+    let resellerCommission = 0
+
     if (resellerId) {
       const reseller = await db.reseller.findUnique({
         where: { id: resellerId },
@@ -182,11 +179,21 @@ export async function POST(request: NextRequest) {
 
       if (reseller && reseller.active && reseller.approvalStatus === 'approved') {
         resolvedResellerId = reseller.id
-        if (!requestedBookedBy) {
-          bookedBy = 'custom-package'
-        }
+        resellerCommission = reseller.commission
+        bookedBy = 'custom-package'
       }
     }
+
+    // Apply markup if reseller is present — this is the TRUTH, not client price
+    const finalTotalPrice = resolvedResellerId
+      ? Math.round((serverCalculatedTotal * (100 + resellerCommission)) / 100)
+      : serverCalculatedTotal
+
+    const finalCommissionAmt = resolvedResellerId
+      ? calculateCommissionAmount(finalTotalPrice, resellerCommission)
+      : 0
+
+    const finalNetPrice = finalTotalPrice - finalCommissionAmt
 
     const code = await generateBookingCode()
 
@@ -204,9 +211,9 @@ export async function POST(request: NextRequest) {
         childrenAges: JSON.stringify(childrenAges || []),
         notes: notes ?? '',
         status: 'pending',
-        totalPrice: totalPrice ?? 0,
-        netPrice: netPrice ?? 0,
-        commissionAmt: commissionAmt ?? 0,
+        totalPrice: finalTotalPrice,
+        netPrice: finalNetPrice,
+        commissionAmt: finalCommissionAmt,
         checkIn: checkIn ?? '',
         checkOut: checkOut ?? '',
         bookedBy,
@@ -246,24 +253,15 @@ export async function POST(request: NextRequest) {
 
     // Create ResellerSale record when booking comes from a reseller context
     if (resolvedResellerId) {
-      const reseller = await db.reseller.findUnique({
-        where: { id: resolvedResellerId },
-        select: { commission: true },
-      })
-
-      const commissionPercent = reseller?.commission ?? 0
-      const saleCommissionAmt = Math.round((totalPrice ?? 0) * (commissionPercent / 100))
-      const saleNetAmount = (totalPrice ?? 0) - saleCommissionAmt
-
       await db.resellerSale.create({
         data: {
           resellerId: resolvedResellerId,
           bookingId: booking.id,
           clientName: guestName,
           clientEmail: guestEmail,
-          totalAmount: totalPrice ?? 0,
-          commissionAmt: saleCommissionAmt,
-          netAmount: saleNetAmount,
+          totalAmount: finalTotalPrice,
+          commissionAmt: finalCommissionAmt,
+          netAmount: finalNetPrice,
           status: 'pending',
           notes: `Paquete personalizado armado via /paquetes/armar`,
         },

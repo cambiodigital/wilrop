@@ -53,6 +53,7 @@ export function usePackageHotel(options: UsePackageHotelOptions = {}) {
 
   const [hotels, setHotels] = useState<HotelData[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [cityId, setCityId] = useState('')
@@ -68,6 +69,7 @@ export function usePackageHotel(options: UsePackageHotelOptions = {}) {
   // Fetch hotels
   const fetchHotels = useCallback(async (city?: string) => {
     setLoading(true)
+    setError(null)
     try {
       let url = '/api/public/hotels'
       const params = new URLSearchParams()
@@ -77,10 +79,22 @@ export function usePackageHotel(options: UsePackageHotelOptions = {}) {
       if (qs) url += `?${qs}`
 
       const res = await fetch(url)
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: No se pudieron cargar los hoteles`)
+      }
       const json = await res.json()
-      if (json.success) setHotels(json.data)
-    } catch {
-      // silent
+      if (json.success) {
+        setHotels(json.data)
+        if (json.data.length === 0) {
+          setError('No hay hoteles disponibles para esta selección')
+        }
+      } else {
+        throw new Error(json.error || 'Error al cargar hoteles')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error de conexión al cargar hoteles'
+      setError(message)
+      setHotels([])
     } finally {
       setLoading(false)
     }
@@ -158,6 +172,7 @@ export function usePackageHotel(options: UsePackageHotelOptions = {}) {
     hotels,
     filteredHotels,
     loading,
+    error,
     selectedHotel,
     selectedRoom,
     selected,

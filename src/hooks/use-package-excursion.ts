@@ -46,6 +46,7 @@ export function usePackageExcursion(options: UsePackageExcursionOptions = {}) {
 
   const [excursions, setExcursions] = useState<ExcursionData[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [serviceId, setServiceId] = useState('')
@@ -59,6 +60,7 @@ export function usePackageExcursion(options: UsePackageExcursionOptions = {}) {
   // Fetch excursions
   const fetchExcursions = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       let url = '/api/public/excursions'
       const params = new URLSearchParams()
@@ -67,10 +69,22 @@ export function usePackageExcursion(options: UsePackageExcursionOptions = {}) {
       if (qs) url += `?${qs}`
 
       const res = await fetch(url)
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: No se pudieron cargar las excursiones`)
+      }
       const json = await res.json()
-      if (json.success) setExcursions(json.data)
-    } catch {
-      // silent
+      if (json.success) {
+        setExcursions(json.data)
+        if (json.data.length === 0) {
+          setError('No hay excursiones disponibles')
+        }
+      } else {
+        throw new Error(json.error || 'Error al cargar excursiones')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error de conexión al cargar excursiones'
+      setError(message)
+      setExcursions([])
     } finally {
       setLoading(false)
     }
@@ -137,6 +151,7 @@ export function usePackageExcursion(options: UsePackageExcursionOptions = {}) {
     excursions,
     filteredExcursions,
     loading,
+    error,
     selectedExcursion,
     selected,
     // Form state

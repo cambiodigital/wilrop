@@ -43,6 +43,13 @@ import { useResellerContext } from '@/hooks/use-reseller-context'
 import { usePackageTransport } from '@/hooks/use-package-transport'
 import { usePackageHotel } from '@/hooks/use-package-hotel'
 import { usePackageExcursion } from '@/hooks/use-package-excursion'
+import {
+  SelectionCard,
+  SelectionPreview,
+  EmptyState,
+  ErrorBanner,
+  StepLoadingSkeleton,
+} from '@/components/portal/PackageBuilderCards'
 import { toast } from 'sonner'
 
 // ─── Constants ─────────────────────────────────────────────
@@ -377,6 +384,18 @@ export default function DynamicPackager() {
                 </div>
 
                 <div className="space-y-4">
+                  {transport.loading && <StepLoadingSkeleton />}
+                  {transport.error && !transport.loading && (
+                    <ErrorBanner message={transport.error} onRetry={() => transport.refetch(transport.cityId)} />
+                  )}
+                  {!transport.loading && !transport.error && transport.services.length === 0 && (
+                    <EmptyState
+                      title="No hay transportes disponibles"
+                      description={transport.cityId ? 'Intenta con otra ciudad o salta este paso' : 'No se encontraron servicios de transporte'}
+                    />
+                  )}
+                  {!transport.loading && !transport.error && transport.services.length > 0 && (
+                  <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Ciudad</Label>
@@ -449,6 +468,8 @@ export default function DynamicPackager() {
                         }))}
                       </span>
                     </div>
+                  )}
+                  </>
                   )}
                 </div>
               </div>
@@ -675,74 +696,46 @@ export default function DynamicPackager() {
                 </h2>
 
                 {(!transport.selected && !hotel.selected && !excursion.selected) ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
-                    <AlertCircle className="size-10 text-amber-400 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-amber-700">No has seleccionado ningún servicio</p>
-                    <p className="text-xs text-amber-600 mt-1">Vuelve a los pasos anteriores para agregar servicios a tu paquete</p>
-                    <Button variant="outline" className="mt-3 rounded-xl" onClick={() => setCurrentStep(1)}>
-                      <ChevronLeft className="mr-2 size-4" />
-                      Volver al Paso 1
-                    </Button>
-                  </div>
+                  <EmptyState
+                    title="No has seleccionado ningún servicio"
+                    description="Vuelve a los pasos anteriores para agregar servicios a tu paquete"
+                    action={{ label: 'Volver al Paso 1', onClick: () => setCurrentStep(1) }}
+                  />
                 ) : (
                   <>
                     {/* Selected services */}
                     <div className="space-y-3">
                       {transport.selected && (
-                        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="size-8 rounded-lg bg-green-100 flex items-center justify-center">
-                              <Bus className="size-4 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-neutral-800">{transport.selected.service.name}</p>
-                              <p className="text-xs text-neutral-500">{transport.selected.service.origin} → {transport.selected.service.destination} · {transport.selected.date}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCurrency(transport.selected.displayPrice)}</p>
-                              <p className="text-[11px] text-neutral-400">{transport.selected.adults + transport.selected.children} pasajeros</p>
-                            </div>
-                          </div>
-                          <button onClick={() => setCurrentStep(1)} className="text-xs text-amber-600 hover:underline">Modificar</button>
-                        </div>
+                        <SelectionCard
+                          type="transport"
+                          title={transport.selected.service.name}
+                          subtitle={`${transport.selected.service.origin} → ${transport.selected.service.destination} · ${transport.selected.date}`}
+                          price={transport.selected.displayPrice}
+                          meta={`${transport.selected.adults + transport.selected.children} pasajeros`}
+                          onModify={() => setCurrentStep(1)}
+                        />
                       )}
 
                       {hotel.selected && (
-                        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="size-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                              <Building2 className="size-4 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-neutral-800">{hotel.selected.hotel.name}</p>
-                              <p className="text-xs text-neutral-500">{hotel.selected.room.name} · {hotel.selected.checkIn} → {hotel.selected.checkOut} ({hotel.selected.nights} noches × {hotel.selected.rooms} hab.)</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCurrency(hotel.selected.displayPrice)}</p>
-                              <p className="text-[11px] text-neutral-400">{formatCurrency(applyResellerMarkup({ basePrice: hotel.selected.room.price, commissionPercent: reseller.commission }))}/noche</p>
-                            </div>
-                          </div>
-                          <button onClick={() => setCurrentStep(2)} className="text-xs text-amber-600 hover:underline">Modificar</button>
-                        </div>
+                        <SelectionCard
+                          type="hotel"
+                          title={hotel.selected.hotel.name}
+                          subtitle={`${hotel.selected.room.name} · ${hotel.selected.checkIn} → ${hotel.selected.checkOut} (${hotel.selected.nights} noches × ${hotel.selected.rooms} hab.)`}
+                          price={hotel.selected.displayPrice}
+                          meta={`${formatCurrency(applyResellerMarkup({ basePrice: hotel.selected.room.price, commissionPercent: reseller.commission }))}/noche`}
+                          onModify={() => setCurrentStep(2)}
+                        />
                       )}
 
                       {excursion.selected && (
-                        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="size-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                              <Mountain className="size-4 text-purple-600" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-neutral-800">{excursion.selected.excursion.name}</p>
-                              <p className="text-xs text-neutral-500">{excursion.selected.excursion.cityName || excursion.selected.excursion.destinationName} · {excursion.selected.date}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-amber-600">{formatCurrency(excursion.selected.displayPrice)}</p>
-                              <p className="text-[11px] text-neutral-400">{excursion.selected.adults + excursion.selected.children} participantes</p>
-                            </div>
-                          </div>
-                          <button onClick={() => setCurrentStep(3)} className="text-xs text-amber-600 hover:underline">Modificar</button>
-                        </div>
+                        <SelectionCard
+                          type="excursion"
+                          title={excursion.selected.excursion.name}
+                          subtitle={`${excursion.selected.excursion.cityName || excursion.selected.excursion.destinationName} · ${excursion.selected.date}`}
+                          price={excursion.selected.displayPrice}
+                          meta={`${excursion.selected.adults + excursion.selected.children} participantes`}
+                          onModify={() => setCurrentStep(3)}
+                        />
                       )}
                     </div>
 
