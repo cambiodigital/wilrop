@@ -28,7 +28,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const bookedBy = searchParams.get('bookedBy');
+    const status = searchParams.get('status');
+
+    const where: Record<string, unknown> = {};
+    if (bookedBy) where.bookedBy = bookedBy;
+    if (status && status !== 'all') where.status = status;
+
     const bookings = await db.booking.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         items: {
@@ -39,6 +48,15 @@ export async function GET(request: NextRequest) {
             id: true,
             code: true,
             agencyName: true,
+            contactName: true,
+            email: true,
+            commission: true,
+          },
+        },
+        reseller: {
+          select: {
+            id: true,
+            companyName: true,
             contactName: true,
             email: true,
             commission: true,

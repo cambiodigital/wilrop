@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     const resellerPanel = searchParams.get('resellerPanel') === 'true';
+    const resellerIdParam = searchParams.get('resellerId');
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
@@ -75,14 +76,36 @@ export async function GET(request: NextRequest) {
       resellerIdFilter = session.id;
     }
 
+    // Public reseller catalog filtering (from package builder link)
+    let catalogExcursionIds: string[] | undefined;
+    if (resellerIdParam && !resellerPanel) {
+      const catalogItems = await db.resellerCatalog.findMany({
+        where: {
+          resellerId: resellerIdParam,
+          sourceType: 'excursion',
+          active: true,
+        },
+        select: { sourceId: true },
+      });
+      catalogExcursionIds = catalogItems.map((c) => c.sourceId);
+      if (catalogExcursionIds.length === 0) {
+        resellerIdFilter = resellerIdParam;
+      }
+    }
+
     // --- Query excursions ---
     const where: Record<string, unknown> = {
       active: true,
       isTemplate: isTemplateFallback,
-      resellerId: resellerIdFilter,
     };
 
-    if (excursionIds) {
+    if (resellerIdFilter) {
+      where.resellerId = resellerIdFilter;
+    }
+
+    if (catalogExcursionIds && catalogExcursionIds.length > 0) {
+      where.id = { in: catalogExcursionIds };
+    } else if (excursionIds) {
       where.id = { in: excursionIds };
     }
 

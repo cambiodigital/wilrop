@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
     }
 
     const resellerPanel = searchParams.get('resellerPanel') === 'true';
+    const resellerIdParam = searchParams.get('resellerId');
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
@@ -87,12 +88,39 @@ export async function GET(request: NextRequest) {
       resellerIdFilter = session.id;
     }
 
+    // Public reseller catalog filtering (from package builder link)
+    let catalogHotelIds: string[] | undefined;
+    if (resellerIdParam && !resellerPanel) {
+      const catalogItems = await db.resellerCatalog.findMany({
+        where: {
+          resellerId: resellerIdParam,
+          sourceType: 'hotel',
+          active: true,
+        },
+        select: { sourceId: true },
+      });
+      catalogHotelIds = catalogItems.map((c) => c.sourceId);
+      // If reseller has a catalog, only show those items
+      // If catalog is empty, fall back to reseller-owned items
+      if (catalogHotelIds.length === 0) {
+        resellerIdFilter = resellerIdParam;
+      }
+    }
+
     // Build Prisma query filters
     const where: any = {
       active: true,
       isTemplate: isTemplateFallback,
-      resellerId: resellerIdFilter,
     };
+
+    if (resellerIdFilter) {
+      where.resellerId = resellerIdFilter;
+    }
+
+    // Apply catalog filter when reseller has catalog items
+    if (catalogHotelIds && catalogHotelIds.length > 0) {
+      where.id = { in: catalogHotelIds };
+    }
 
     if (cityId) {
       where.cityId = cityId;

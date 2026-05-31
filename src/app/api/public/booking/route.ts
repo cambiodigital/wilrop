@@ -112,6 +112,8 @@ export async function POST(request: NextRequest) {
 
     const {
       subagentCode,
+      resellerId,
+      bookedBy: requestedBookedBy,
       guestName,
       guestEmail,
       guestPhone,
@@ -145,7 +147,8 @@ export async function POST(request: NextRequest) {
     }
 
     let subagentId: string | null = null
-    let bookedBy = 'b2c'
+    let resolvedResellerId: string | null = null
+    let bookedBy = requestedBookedBy || 'b2c'
 
     if (subagentCode) {
       const subagent = await db.subagent.findUnique({
@@ -170,12 +173,28 @@ export async function POST(request: NextRequest) {
       bookedBy = 'b2b'
     }
 
+    // Resolve reseller context
+    if (resellerId) {
+      const reseller = await db.reseller.findUnique({
+        where: { id: resellerId },
+        select: { id: true, active: true, approvalStatus: true, commission: true },
+      })
+
+      if (reseller && reseller.active && reseller.approvalStatus === 'approved') {
+        resolvedResellerId = reseller.id
+        if (!requestedBookedBy) {
+          bookedBy = 'custom-package'
+        }
+      }
+    }
+
     const code = await generateBookingCode()
 
     const booking = await db.booking.create({
       data: {
         code,
         subagentId,
+        resellerId: resolvedResellerId,
         guestName,
         guestEmail,
         guestPhone,
@@ -224,6 +243,32 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Create ResellerSale record when booking comes from a reseller context
+    if (resolvedResellerId) {
+      const reseller = await db.reseller.findUnique({
+        where: { id: resolvedResellerId },
+        select: { commission: true },
+      })
+
+      const commissionPercent = reseller?.commission ?? 0
+      const saleCommissionAmt = Math.round((totalPrice ?? 0) * (commissionPercent / 100))
+      const saleNetAmount = (totalPrice ?? 0) - saleCommissionAmt
+
+      await db.resellerSale.create({
+        data: {
+          resellerId: resolvedResellerId,
+          bookingId: booking.id,
+          clientName: guestName,
+          clientEmail: guestEmail,
+          totalAmount: totalPrice ?? 0,
+          commissionAmt: saleCommissionAmt,
+          netAmount: saleNetAmount,
+          status: 'pending',
+          notes: `Paquete personalizado armado via /paquetes/armar`,
+        },
+      })
+    }
 
     for (const item of items) {
       if (item.itemType === 'hotel' && item.roomTypeId && item.dateFrom && item.dateTo) {

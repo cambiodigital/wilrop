@@ -45,6 +45,7 @@ const menuItems: MenuItem[] = [
   { id: 'hotels', label: 'Hoteles', icon: <Building2 className="w-5 h-5" />, href: '/admin/hoteles' },
   { id: 'excursions', label: 'Excursiones', icon: <Compass className="w-5 h-5" />, href: '/admin/excursiones' },
   { id: 'packages', label: 'Paquetes', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes' },
+  { id: 'custom-packages', label: 'Paquetes Armados', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes-personalizados' },
   { id: 'transport', label: 'Transporte', icon: <Bus className="w-5 h-5" />, href: '/admin/transportes' },
   { id: 'cruises', label: 'Cruceros', icon: <Ship className="w-5 h-5" />, href: '/admin/cruceros' },
   { id: 'marketing', label: 'Marketing', icon: <Megaphone className="w-5 h-5" />, href: '/admin/marketing-modal' },

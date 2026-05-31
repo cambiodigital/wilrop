@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
     }
 
     const resellerPanel = searchParams.get('resellerPanel') === 'true';
+    const resellerIdParam = searchParams.get('resellerId');
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
@@ -80,14 +81,36 @@ export async function GET(request: NextRequest) {
       resellerIdFilter = session.id;
     }
 
+    // Public reseller catalog filtering (from package builder link)
+    let catalogTransportIds: string[] | undefined;
+    if (resellerIdParam && !resellerPanel) {
+      const catalogItems = await db.resellerCatalog.findMany({
+        where: {
+          resellerId: resellerIdParam,
+          sourceType: 'transport',
+          active: true,
+        },
+        select: { sourceId: true },
+      });
+      catalogTransportIds = catalogItems.map((c) => c.sourceId);
+      if (catalogTransportIds.length === 0) {
+        resellerIdFilter = resellerIdParam;
+      }
+    }
+
     // --- Query transport services ---
     const where: Record<string, unknown> = {
       active: true,
       isTemplate: isTemplateFallback,
-      resellerId: resellerIdFilter,
     };
 
-    if (transportIds) {
+    if (resellerIdFilter) {
+      where.resellerId = resellerIdFilter;
+    }
+
+    if (catalogTransportIds && catalogTransportIds.length > 0) {
+      where.id = { in: catalogTransportIds };
+    } else if (transportIds) {
       where.id = { in: transportIds };
     }
 

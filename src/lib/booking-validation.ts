@@ -21,6 +21,8 @@ const bookingItemSchema = z.object({
 
 export const createBookingSchema = z.object({
   subagentCode: z.string().optional().nullable(),
+  resellerId: z.string().optional().nullable(),
+  bookedBy: z.enum(['b2c', 'b2b', 'custom-package']).optional(),
   guestName: z.string().min(1, 'El nombre es obligatorio').max(200),
   guestEmail: z.string().email('Email inválido').max(200),
   guestPhone: z.string().min(7, 'El teléfono debe tener al menos 7 dígitos').max(30),
