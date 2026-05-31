@@ -181,7 +181,7 @@ export function ResellerAddToCatalogDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-auto">
+        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
             <Input
@@ -192,7 +192,7 @@ export function ResellerAddToCatalogDialog({
             />
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
             <TabsList className="w-full flex-wrap h-auto">
               {sourceTypeTabs.map((tab) => {
                 const Icon = tab.icon
@@ -212,7 +212,7 @@ export function ResellerAddToCatalogDialog({
             ) : (
               <>
                 {sourceTypeTabs.map((tab) => (
-                  <TabsContent key={tab.value} value={tab.value}>
+                  <TabsContent key={tab.value} value={tab.value} className="overflow-y-auto flex-1 min-h-0">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {filteredProducts
                         .filter((p) => tab.value === 'all' || p.sourceType === tab.value)

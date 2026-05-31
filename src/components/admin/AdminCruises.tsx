@@ -495,11 +495,11 @@ export default function AdminCruises() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Anchor className="w-8 h-8 text-sky-600" />
-            Gestión de Cruceros
+          <h1 className="flex items-center gap-2">
+            <Anchor className="w-6 h-6 text-primary" />
+            Cruceros
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Administra los cruceros, camarotes, itinerarios y asigna destinos en el portal.
@@ -679,7 +679,7 @@ export default function AdminCruises() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col admin-dialog">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Ship className="w-6 h-6 text-primary" />
@@ -690,8 +690,8 @@ export default function AdminCruises() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="space-y-6">
-            <Tabs defaultValue="info" className="w-full">
+          <form onSubmit={handleSave} className="space-y-6 flex flex-col flex-1 overflow-hidden">
+            <Tabs defaultValue="info" className="w-full flex flex-col flex-1 overflow-hidden">
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="info">Info Básica</TabsTrigger>
                 <TabsTrigger value="itinerary">Itinerario</TabsTrigger>
@@ -700,7 +700,7 @@ export default function AdminCruises() {
               </TabsList>
 
               {/* TAB 1: Información Básica */}
-              <TabsContent value="info" className="space-y-4 pt-4">
+              <TabsContent value="info" className="space-y-4 pt-4 overflow-y-auto flex-1 min-h-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nombre del Crucero *</Label>
@@ -878,7 +878,7 @@ export default function AdminCruises() {
               </TabsContent>
 
               {/* TAB 2: Itinerario */}
-              <TabsContent value="itinerary" className="space-y-4 pt-4">
+              <TabsContent value="itinerary" className="space-y-4 pt-4 overflow-y-auto flex-1 min-h-0">
                 <div className="border border-border/80 rounded-xl p-4 bg-card shadow-xs">
                   <h3 className="text-sm font-semibold mb-3 text-sky-700 flex items-center gap-1.5">
                     <Compass className="w-4 h-4" />
@@ -967,7 +967,7 @@ export default function AdminCruises() {
               </TabsContent>
 
               {/* TAB 3: Camarotes */}
-              <TabsContent value="cabins" className="space-y-4 pt-4">
+              <TabsContent value="cabins" className="space-y-4 pt-4 overflow-y-auto flex-1 min-h-0">
                 <div className="border border-border/80 rounded-xl p-4 bg-card shadow-xs space-y-4">
                   <h3 className="text-sm font-semibold text-sky-700 flex items-center gap-1.5 border-b border-border pb-2">
                     <Anchor className="w-4 h-4" />
@@ -1127,7 +1127,7 @@ export default function AdminCruises() {
               </TabsContent>
 
               {/* TAB 4: Destinos Relacionados */}
-              <TabsContent value="destinations" className="space-y-4 pt-4">
+              <TabsContent value="destinations" className="space-y-4 pt-4 overflow-y-auto flex-1 min-h-0">
                 <div className="space-y-2">
                   <Label className="text-base font-semibold">Asignar Destinos al Crucero</Label>
                   <p className="text-xs text-muted-foreground">

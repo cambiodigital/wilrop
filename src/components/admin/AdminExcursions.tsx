@@ -607,7 +607,7 @@ export default function AdminExcursions() {
 
       {/* ═══ CREATE / EDIT DIALOG ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent topAligned className="sm:max-w-3xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent topAligned className="sm:max-w-3xl max-h-[90vh] flex flex-col admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Excursión' : 'Nueva Excursión'}
@@ -619,7 +619,7 @@ export default function AdminExcursions() {
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="basic" className="pt-2">
+          <Tabs defaultValue="basic" className="pt-2 flex flex-col flex-1 overflow-hidden">
             <TabsList className="w-full">
               <TabsTrigger value="basic" className="flex-1">Info Básica</TabsTrigger>
               <TabsTrigger value="details" className="flex-1">Detalles</TabsTrigger>
@@ -628,7 +628,7 @@ export default function AdminExcursions() {
             </TabsList>
 
             {/* Info Básica */}
-            <TabsContent value="basic" className="space-y-4 mt-4">
+            <TabsContent value="basic" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nombre *</Label>
@@ -836,7 +836,7 @@ export default function AdminExcursions() {
             </TabsContent>
 
             {/* Detalles */}
-            <TabsContent value="details" className="space-y-4 mt-4">
+            <TabsContent value="details" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
                 <Label>Descripción Corta</Label>
                 <Textarea
@@ -868,7 +868,7 @@ export default function AdminExcursions() {
             </TabsContent>
 
             {/* Incluidos */}
-            <TabsContent value="includes" className="space-y-6 mt-4">
+            <TabsContent value="includes" className="space-y-6 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-green-700">✓ Qué incluye</Label>
                 <TagInput
@@ -889,7 +889,7 @@ export default function AdminExcursions() {
             </TabsContent>
 
             {/* Media */}
-            <TabsContent value="media" className="space-y-4 mt-4">
+            <TabsContent value="media" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
                 <Label>Imágenes ({form.images.length})</Label>
                 <div

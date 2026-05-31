@@ -1165,7 +1165,7 @@ export default function AdminHotels() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent topAligned className="sm:max-w-4xl max-h-[90vh] overflow-y-auto admin-dialog">
+        <DialogContent topAligned className="sm:max-w-4xl max-h-[90vh] flex flex-col admin-dialog">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Editar Hotel' : 'Nuevo Hotel'}
@@ -1177,7 +1177,7 @@ export default function AdminHotels() {
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="basic" className="pt-2">
+          <Tabs defaultValue="basic" className="pt-2 flex flex-col flex-1 overflow-hidden">
             <TabsList className="w-full">
               <TabsTrigger value="basic" className="flex-1">
                 Info Básica
@@ -1198,7 +1198,7 @@ export default function AdminHotels() {
             </TabsList>
 
             {/* Basic Info Tab */}
-            <TabsContent value="basic" className="space-y-4 mt-4">
+            <TabsContent value="basic" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="form-section-title">
                 Información principal
               </div>
@@ -1361,7 +1361,7 @@ export default function AdminHotels() {
             </TabsContent>
 
             {/* Images Tab */}
-            <TabsContent value="media" className="space-y-4 mt-4">
+            <TabsContent value="media" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground">
@@ -1509,7 +1509,7 @@ export default function AdminHotels() {
             </TabsContent>
 
             {/* Amenities Tab */}
-            <TabsContent value="amenities" className="space-y-4 mt-4">
+            <TabsContent value="amenities" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
                 <Label htmlFor="hotel-amenities">
                   Servicios / Amenidades (separados por coma)
@@ -1575,7 +1575,7 @@ export default function AdminHotels() {
             </TabsContent>
 
             {/* ─── ROOMS TAB (Relational, primary source) ─── */}
-            <TabsContent value="rooms" className="space-y-4 mt-4">
+            <TabsContent value="rooms" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
@@ -1951,7 +1951,7 @@ export default function AdminHotels() {
             </TabsContent>
 
             {/* Extra Tab */}
-            <TabsContent value="extra" className="space-y-4 mt-4">
+            <TabsContent value="extra" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-1.5 pt-2">
                 <Label htmlFor="hotel-reseller">Asignar a Revendedor</Label>
                 <select
