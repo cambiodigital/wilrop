@@ -17,13 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { AdminEntityDialog } from '@/components/admin/AdminEntityDialog'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -286,115 +287,21 @@ export default function AdminDocumentation() {
       </Card>
 
       {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingId ? 'Editar Artículo' : 'Nuevo Artículo'}
-            </DialogTitle>
-            <DialogDescription>
-              Completa los campos. El contenido soporta Markdown. Usa{' '}
-              <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                [Captura: Descripción]
-              </code>{' '}
-              para indicar placeholders de imagen.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título</Label>
-                <Input
-                  id="title"
-                  value={form.title}
-                  onChange={(e) => {
-                    const title = e.target.value
-                    setForm((f) => ({
-                      ...f,
-                      title,
-                      slug: f.slug || generateSlug(title),
-                    }))
-                  }}
-                  placeholder="Cómo gestionar reservas"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  value={form.slug}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, slug: e.target.value }))
-                  }
-                  placeholder="como-gestionar-reservas"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoría</Label>
-                <select
-                  id="category"
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, category: e.target.value }))
-                  }
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sortOrder">Orden</Label>
-                <Input
-                  id="sortOrder"
-                  type="number"
-                  min={0}
-                  value={form.sortOrder}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      sortOrder: parseInt(e.target.value) || 0,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="content">Contenido (Markdown)</Label>
-              <Textarea
-                id="content"
-                value={form.content}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, content: e.target.value }))
-                }
-                placeholder="# Título del artículo&#10;&#10;Escribe aquí el contenido...&#10;&#10;[Captura: Pantalla de configuración]"
-                className="min-h-[240px] font-mono text-sm"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Switch
-                id="published"
-                checked={form.published}
-                onCheckedChange={(checked) =>
-                  setForm((f) => ({ ...f, published: checked }))
-                }
-              />
-              <Label htmlFor="published" className="cursor-pointer">
-                Publicado
-              </Label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
+      <AdminEntityDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={editingId ? 'Editar artículo' : 'Nuevo artículo'}
+        description={
+          <>
+            Completá los campos. El contenido soporta Markdown. Usá{' '}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">
+              [Captura: Descripción]
+            </code>{' '}
+            para indicar placeholders de imagen.
+          </>
+        }
+        footer={
+          <>
             <Button
               variant="outline"
               onClick={() => setDialogOpen(false)}
@@ -405,13 +312,109 @@ export default function AdminDocumentation() {
             <Button onClick={handleSave} disabled={saving}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
             </Button>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                value={form.title}
+                onChange={(e) => {
+                  const title = e.target.value
+                  setForm((f) => ({
+                    ...f,
+                    title,
+                    slug: f.slug || generateSlug(title),
+                  }))
+                }}
+                placeholder="Cómo gestionar reservas"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={form.slug}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, slug: e.target.value }))
+                }
+                placeholder="como-gestionar-reservas"
+              />
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoría</Label>
+              <Select
+                value={form.category}
+                onValueChange={(value) =>
+                  setForm((f) => ({ ...f, category: value }))
+                }
+              >
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue placeholder="Seleccioná una categoría" />
+                </SelectTrigger>
+                  <SelectContent className="admin-dialog">
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sortOrder">Orden</Label>
+              <Input
+                id="sortOrder"
+                type="number"
+                min={0}
+                value={form.sortOrder}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    sortOrder: parseInt(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content">Contenido (Markdown)</Label>
+            <Textarea
+              id="content"
+              value={form.content}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, content: e.target.value }))
+              }
+              placeholder="# Título del artículo&#10;&#10;Escribe aquí el contenido...&#10;&#10;[Captura: Pantalla de configuración]"
+              className="min-h-[240px] font-mono text-sm"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Switch
+              id="published"
+              checked={form.published}
+              onCheckedChange={(checked) =>
+                setForm((f) => ({ ...f, published: checked }))
+              }
+            />
+            <Label htmlFor="published" className="cursor-pointer">
+              Publicado
+            </Label>
+          </div>
+        </div>
+      </AdminEntityDialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="admin-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar artículo</AlertDialogTitle>
             <AlertDialogDescription>

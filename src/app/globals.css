@@ -393,15 +393,17 @@
   font-size: .75rem;
 }
 
-/* ── Input/textarea inside admin-dialog ─────────────────────── */
+/* ── Form controls inside admin-dialog ──────────────────────── */
 .admin-dialog [data-slot="input"]:focus-visible,
-.admin-dialog [data-slot="textarea"]:focus-visible {
+.admin-dialog [data-slot="textarea"]:focus-visible,
+.admin-dialog [data-slot="select-trigger"]:focus-visible {
   border-color: var(--ring);
   box-shadow: 0 0 0 3px color-mix(in srgb, #c8a96a 25%, transparent);
   outline: none;
 }
 .admin-dialog [data-slot="input"]:hover:not(:disabled):not(:focus-visible),
-.admin-dialog [data-slot="textarea"]:hover:not(:disabled):not(:focus-visible) {
+.admin-dialog [data-slot="textarea"]:hover:not(:disabled):not(:focus-visible),
+.admin-dialog [data-slot="select-trigger"]:hover:not(:disabled):not(:focus-visible) {
   border-color: #cbd5e1;
 }
 
