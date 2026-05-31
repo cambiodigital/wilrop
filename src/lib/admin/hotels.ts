@@ -32,6 +32,7 @@ export interface AdminHotelPayload {
   tags?: string[];
   featured?: boolean;
   active?: boolean;
+  resellerId?: string | null;
 }
 
 interface RawHotel {
@@ -108,6 +109,7 @@ export function buildHotelCreateData(payload: AdminHotelPayload) {
     tags: toJsonArray(payload.tags),
     featured: toBoolean(payload.featured, false),
     active: toBoolean(payload.active, true),
+    resellerId: payload.resellerId?.trim() || null,
   };
 }
 
@@ -131,6 +133,7 @@ export function buildHotelUpdateData(payload: AdminHotelPayload) {
   if (payload.tags !== undefined) updates.tags = toJsonArray(payload.tags);
   if (payload.featured !== undefined) updates.featured = payload.featured;
   if (payload.active !== undefined) updates.active = payload.active;
+  if (payload.resellerId !== undefined) updates.resellerId = payload.resellerId?.trim() || null;
 
   return updates;
 }

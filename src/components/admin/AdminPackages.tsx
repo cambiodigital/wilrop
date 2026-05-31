@@ -74,6 +74,7 @@ interface TravelPackage {
   soldOut: boolean;
   category: string;
   active: boolean;
+  resellerId?: string | null;
 }
 
 const emptyPackage: Omit<TravelPackage, 'id'> = {
@@ -95,6 +96,7 @@ const emptyPackage: Omit<TravelPackage, 'id'> = {
   soldOut: false,
   category: 'Cultural',
   active: true,
+  resellerId: '',
 };
 
 const categories = ['Aventura', 'Relax', 'Cultural', 'Naturaleza', 'Playa'];
@@ -133,6 +135,7 @@ export default function AdminPackages() {
   const [destinationOptions, setDestinationOptions] = useState<PackageDestinationOption[]>([]);
   const [destinationsLoading, setDestinationsLoading] = useState(false);
   const [destinationsError, setDestinationsError] = useState<string | null>(null);
+  const [resellers, setResellers] = useState<any[]>([]);
   const [composition, setComposition] = useState<PackageCompositionSelection>(emptyCompositionSelection);
   const [hotelOptions, setHotelOptions] = useState<PackageRelationOption[]>([]);
   const [roomTypeOptions, setRoomTypeOptions] = useState<PackageRelationOption[]>([]);
@@ -199,9 +202,23 @@ export default function AdminPackages() {
     }
   }, []);
 
+  const fetchResellers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/resellers');
+      if (!res.ok) throw new Error('Error al cargar revendedores');
+      const json = await res.json();
+      setResellers(json.data || json);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
-    if (dialogOpen) fetchDestinationOptions();
-  }, [dialogOpen, fetchDestinationOptions]);
+    if (dialogOpen) {
+      fetchDestinationOptions();
+      fetchResellers();
+    }
+  }, [dialogOpen, fetchDestinationOptions, fetchResellers]);
 
   const selectedHotelForRoomTypes = composition.hotelIds[0];
 
@@ -293,6 +310,7 @@ export default function AdminPackages() {
       soldOut: pkg.soldOut,
       category: pkg.category,
       active: pkg.active,
+      resellerId: pkg.resellerId ?? '',
     });
     setComposition({ ...emptyCompositionSelection, destinationId: pkg.destinationId });
     setDepartureDatesStr(pkg.departureDates.join(', '));
@@ -1009,6 +1027,26 @@ export default function AdminPackages() {
                 placeholder="2025-07-15, 2025-08-10, 2025-09-05"
               />
               <p className="text-xs text-muted-foreground mt-1">Fechas separadas por coma (YYYY-MM-DD)</p>
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <Label htmlFor="package-reseller">Asignar a Revendedor</Label>
+              <select
+                id="package-reseller"
+                value={form.resellerId ?? ''}
+                onChange={(e) => updateField('resellerId', e.target.value || '')}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Ninguno / Global (Administrador)</option>
+                {resellers.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.companyName || r.contactName || r.email}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este paquete.
+              </p>
             </div>
 
             {/* Toggles */}

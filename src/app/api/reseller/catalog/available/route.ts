@@ -35,12 +35,13 @@ export async function GET(request: NextRequest) {
     );
 
     const baseWhere = { active: true, isTemplate: false };
+    const productWhere = { ...baseWhere, resellerId: session.id };
     const items: Array<Record<string, unknown>> = [];
 
     // ─── Hotels ────────────────────────────────────────────────────
     if (!sourceType || sourceType === 'hotel') {
       const hotels = await db.hotel.findMany({
-        where: baseWhere,
+        where: productWhere,
         orderBy: { name: 'asc' },
       });
 
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
     // ─── Excursions ────────────────────────────────────────────────
     if (!sourceType || sourceType === 'excursion') {
       const excursions = await db.excursion.findMany({
-        where: baseWhere,
+        where: productWhere,
         orderBy: { name: 'asc' },
       });
 
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
     // ─── Packages ──────────────────────────────────────────────────
     if (!sourceType || sourceType === 'package') {
       const packages = await db.travelPackage.findMany({
-        where: baseWhere,
+        where: productWhere,
         orderBy: { title: 'asc' },
       });
 
@@ -173,7 +174,7 @@ export async function GET(request: NextRequest) {
     // ─── Transport ─────────────────────────────────────────────────
     if (!sourceType || sourceType === 'transport') {
       const transports = await db.transportService.findMany({
-        where: baseWhere,
+        where: productWhere,
         include: {
           provider: {
             select: { name: true, vehicleType: true, capacity: true },

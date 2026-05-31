@@ -92,6 +92,7 @@ interface Excursion {
   rating: number;
   featured: boolean;
   active: boolean;
+  resellerId?: string | null;
 }
 
 // ─── Defaults ────────────────────────────────────────────────────
@@ -117,6 +118,7 @@ const emptyExcursion = {
   rating: 0,
   featured: false,
   active: true,
+  resellerId: '',
 };
 
 const difficultyOptions = ['Fácil', 'Moderado', 'Difícil'];
@@ -223,6 +225,7 @@ export default function AdminExcursions() {
   const imagesInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyExcursion);
   const [destinationOptions, setDestinationOptions] = useState<ExcursionDestinationOption[]>([]);
+  const [resellers, setResellers] = useState<any[]>([]);
   const [destinationsLoading, setDestinationsLoading] = useState(false);
   const [destinationsError, setDestinationsError] = useState<string | null>(null);
 
@@ -263,9 +266,23 @@ export default function AdminExcursions() {
     }
   }, []);
 
+  const fetchResellers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/resellers');
+      if (!res.ok) throw new Error('Error al cargar revendedores');
+      const json = await res.json();
+      setResellers(json.data || json);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
-    if (dialogOpen) fetchDestinationOptions();
-  }, [dialogOpen, fetchDestinationOptions]);
+    if (dialogOpen) {
+      fetchDestinationOptions();
+      fetchResellers();
+    }
+  }, [dialogOpen, fetchDestinationOptions, fetchResellers]);
 
   const filtered = excursions.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -300,6 +317,7 @@ export default function AdminExcursions() {
       rating: exc.rating,
       featured: exc.featured,
       active: exc.active,
+      resellerId: exc.resellerId ?? '',
     });
     setDialogOpen(true);
   };
@@ -778,6 +796,26 @@ export default function AdminExcursions() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-1.5 pt-2">
+                  <Label htmlFor="excursion-reseller">Asignar a Revendedor</Label>
+                  <select
+                    id="excursion-reseller"
+                    value={form.resellerId ?? ''}
+                    onChange={(e) => updateField('resellerId', e.target.value || '')}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Ninguno / Global (Administrador)</option>
+                    {resellers.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.companyName || r.contactName || r.email}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Si se asigna a un revendedor, solo ese revendedor podrá ver y revender esta excursión.
+                  </p>
+                </div>
+
                 <div className="flex items-center gap-4 pt-6">
                   <div className="flex items-center gap-2">
                     <Switch

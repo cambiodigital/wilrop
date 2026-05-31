@@ -107,6 +107,7 @@ interface Cruise {
   primaryDestinationId: string | null;
   cabins: Cabin[];
   destinations: string[]; // array of destinationIds
+  resellerId?: string | null;
 }
 
 interface DestinationOption {
@@ -146,6 +147,7 @@ const emptyCruise = {
   primaryDestinationId: null as string | null,
   cabins: [] as Cabin[],
   destinations: [] as string[],
+  resellerId: '',
 };
 
 // ─── Tag Input Helper ────────────────────────────────────────────
@@ -229,6 +231,7 @@ function TagInput({
 export default function AdminCruises() {
   const [cruises, setCruises] = useState<Cruise[]>([]);
   const [destinations, setDestinations] = useState<DestinationOption[]>([]);
+  const [resellers, setResellers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [destinationFilter, setDestinationFilter] = useState('all');
@@ -270,6 +273,12 @@ export default function AdminCruises() {
 
       if (destsData.success) {
         setDestinations(destsData.data);
+      }
+
+      const resellersRes = await fetch('/api/admin/resellers');
+      if (resellersRes.ok) {
+        const resellersJson = await resellersRes.json();
+        setResellers(resellersJson.data || resellersJson);
       }
     } catch (error) {
       console.error('Error loading admin cruises data:', error);
@@ -323,6 +332,7 @@ export default function AdminCruises() {
       primaryDestinationId: cruise.primaryDestinationId || '',
       cabins: cruise.cabins || [],
       destinations: cruise.destinations || [],
+      resellerId: cruise.resellerId ?? '',
     });
     setNewStop({ day: (cruise.itinerary?.length || 0) + 1, title: '', description: '' });
     setNewCabin(emptyCabin);
@@ -825,6 +835,26 @@ export default function AdminCruises() {
                     label="Galería de Fotos del Crucero (barco, itinerarios, vistas)"
                     maxImages={6}
                   />
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <Label htmlFor="cruise-reseller">Asignar a Revendedor</Label>
+                  <select
+                    id="cruise-reseller"
+                    value={formData.resellerId ?? ''}
+                    onChange={(e) => setFormData({ ...formData, resellerId: e.target.value || '' })}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Ninguno / Global (Administrador)</option>
+                    {resellers.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.companyName || r.contactName || r.email}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este crucero.
+                  </p>
                 </div>
 
                 <div className="flex gap-6 border-t border-border pt-4">

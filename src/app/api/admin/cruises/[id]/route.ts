@@ -88,6 +88,7 @@ export async function PUT(
       primaryDestinationId,
       cabins,
       destinations,
+      resellerId,
     } = body;
 
     const updates: any = {};
@@ -108,6 +109,7 @@ export async function PUT(
     if (featured !== undefined) updates.featured = featured;
     if (active !== undefined) updates.active = active;
     if (primaryDestinationId !== undefined) updates.primaryDestinationId = primaryDestinationId || null;
+    if (resellerId !== undefined) updates.resellerId = resellerId || null;
 
     // Use transaction to update cruise, reset cabins, and reset destination relations
     const updatedCruise = await db.$transaction(async (tx) => {

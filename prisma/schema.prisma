@@ -81,10 +81,13 @@ model Hotel {
   destination Destination?  @relation("HotelPrimaryDestination", fields: [destinationId], references: [id], onDelete: SetNull)
   destinations DestinationHotel[]
   packageHotels PackageHotel[]
+  resellerId  String?
+  reseller    Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 
   @@index([destinationId])
   @@index([active, isTemplate])
   @@index([featured, active])
+  @@index([resellerId])
 }
 
 // ─── Room Types ──────────────────────────────────────────────────
@@ -184,11 +187,14 @@ model TravelPackage {
   departureDatesRel  PackageDepartureDate[]
   itineraryDays      PackageItineraryDay[]
   includedServices   PackageIncludedService[]
+  resellerId         String?
+  reseller           Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 
   @@index([primaryDestinationId])
   @@index([destinationId])
   @@index([active, isTemplate])
   @@index([category, active])
+  @@index([resellerId])
 }
 
 // ─── Excursions ───────────────────────────────────────────────────
@@ -222,12 +228,15 @@ model Excursion {
   destinationRef Destination? @relation("ExcursionPrimaryDestination", fields: [destinationRefId], references: [id], onDelete: SetNull)
   destinations   DestinationExcursion[]
   packageExcursions PackageExcursion[]
+  resellerId     String?
+  reseller       Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 
   @@index([destinationRefId])
   @@index([destinationId])
   @@index([active, isTemplate])
   @@index([category, active])
   @@index([featured, active])
+  @@index([resellerId])
 }
 
 // ─── Subagents ────────────────────────────────────────────────────
@@ -285,6 +294,11 @@ model Reseller {
   sales             ResellerSale[]
   clients           ResellerClient[]
   documents         ResellerDocument[]
+  hotels            Hotel[]
+  excursions        Excursion[]
+  packages          TravelPackage[]
+  transportServices TransportService[]
+  cruises           Cruise[]
 
   @@index([active, approvalStatus])
   @@index([sellerLevel])
@@ -470,12 +484,15 @@ model TransportService {
   destinationDestinationRef Destination? @relation("TransportTargetDestination", fields: [destinationDestinationId], references: [id], onDelete: SetNull)
   destinations DestinationTransportService[]
   packageTransportServices PackageTransportService[]
+  resellerId String?
+  reseller   Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 
   @@index([providerId])
   @@index([originDestinationId])
   @@index([destinationDestinationId])
   @@index([cityId])
   @@index([active, isTemplate])
+  @@index([resellerId])
 }
 
 // ─── Relational Tourism Catalog Spine ─────────────────────────────
@@ -699,10 +716,13 @@ model Cruise {
   primaryDestination Destination? @relation("CruisePrimaryDestination", fields: [primaryDestinationId], references: [id], onDelete: SetNull)
   destinations       DestinationCruise[]
   cabins             CruiseCabin[]
+  resellerId         String?
+  reseller           Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
 
   @@index([primaryDestinationId])
   @@index([active, isTemplate])
   @@index([featured, active])
+  @@index([resellerId])
 }
 
 model CruiseCabin {

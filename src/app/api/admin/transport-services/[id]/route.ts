@@ -74,6 +74,7 @@ export async function PUT(
     if (body.includes !== undefined) updates.includes = JSON.stringify(body.includes);
     if (body.notes !== undefined) updates.notes = body.notes;
     if (body.active !== undefined) updates.active = body.active;
+    if (body.resellerId !== undefined) updates.resellerId = body.resellerId || null;
 
     const service = await db.transportService.update({
       where: { id },

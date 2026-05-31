@@ -112,6 +112,7 @@ interface Hotel {
   tags: string[];
   featured: boolean;
   active: boolean;
+  resellerId?: string | null;
 }
 
 interface RoomTypeRow {
@@ -150,6 +151,7 @@ const emptyHotel: Omit<Hotel, 'id'> = {
   tags: [],
   featured: false,
   active: true,
+  resellerId: '',
 };
 
 function generateSlug(name: string): string {
@@ -438,6 +440,7 @@ export default function AdminHotels() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyHotel);
   const [destinationOptions, setDestinationOptions] = useState<HotelDestinationOption[]>([]);
+  const [resellers, setResellers] = useState<any[]>([]);
   const [destinationsLoading, setDestinationsLoading] = useState(false);
   const [destinationsError, setDestinationsError] = useState<string | null>(null);
 
@@ -514,9 +517,23 @@ export default function AdminHotels() {
     }
   }, []);
 
+  const fetchResellers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/resellers');
+      if (!res.ok) throw new Error('Error al cargar revendedores');
+      const json = await res.json();
+      setResellers(json.data || json);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
-    if (dialogOpen) fetchDestinationOptions();
-  }, [dialogOpen, fetchDestinationOptions]);
+    if (dialogOpen) {
+      fetchDestinationOptions();
+      fetchResellers();
+    }
+  }, [dialogOpen, fetchDestinationOptions, fetchResellers]);
 
   // ── RoomType relational management ──
   const fetchRoomTypes = useCallback(async (hotelId: string) => {
@@ -795,6 +812,7 @@ export default function AdminHotels() {
       tags: hotel.tags,
       featured: hotel.featured,
       active: hotel.active,
+      resellerId: hotel.resellerId ?? '',
     });
     setAmenitiesStr(hotel.amenities.join(', '));
     setTagsStr(hotel.tags.join(', '));
@@ -1934,6 +1952,25 @@ export default function AdminHotels() {
 
             {/* Extra Tab */}
             <TabsContent value="extra" className="space-y-4 mt-4">
+              <div className="space-y-1.5 pt-2">
+                <Label htmlFor="hotel-reseller">Asignar a Revendedor</Label>
+                <select
+                  id="hotel-reseller"
+                  value={form.resellerId ?? ''}
+                  onChange={(e) => updateField('resellerId', e.target.value || '')}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Ninguno / Global (Administrador)</option>
+                  {resellers.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.companyName || r.contactName || r.email}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este hotel.
+                </p>
+              </div>
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
                   <Switch

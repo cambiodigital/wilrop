@@ -105,10 +105,10 @@ export default function ResellerProducts() {
       setLoading(true);
       try {
         const [hotelRes, excursionRes, transportRes, cruiseRes] = await Promise.all([
-          fetch('/api/public/hotels'),
-          fetch('/api/public/excursions'),
-          fetch('/api/public/transport'),
-          fetch('/api/public/cruises'),
+          fetch('/api/public/hotels?resellerPanel=true'),
+          fetch('/api/public/excursions?resellerPanel=true'),
+          fetch('/api/public/transport?resellerPanel=true'),
+          fetch('/api/public/cruises?resellerPanel=true'),
         ]);
         const [hotelJson, excursionJson, transportJson, cruiseJson] = await Promise.all([
           hotelRes.json(),

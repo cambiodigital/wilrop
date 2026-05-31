@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       rating,
       featured,
       active,
+      resellerId,
     } = body;
 
     if (!name) {
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
         featured: featured ?? false,
         active: active ?? true,
         isTemplate: false,
+        resellerId: resellerId || null,
       },
     });
 

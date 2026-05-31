@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import {
+  getPanelSessionCookieName,
+  verifyPanelSessionToken,
+} from '@/lib/panel-auth';
 import {
   normalizeExcursion,
   resolveIsTemplateFallback,
@@ -52,10 +57,29 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const resellerPanel = searchParams.get('resellerPanel') === 'true';
+    let resellerIdFilter: string | null = null;
+
+    if (resellerPanel) {
+      const cookieStore = await cookies();
+      const sessionValue = cookieStore.get(
+        getPanelSessionCookieName('reseller'),
+      )?.value;
+      const session = verifyPanelSessionToken(sessionValue, 'reseller');
+      if (!session) {
+        return NextResponse.json(
+          { success: false, error: 'No autorizado' },
+          { status: 401 },
+        );
+      }
+      resellerIdFilter = session.id;
+    }
+
     // --- Query excursions ---
     const where: Record<string, unknown> = {
       active: true,
       isTemplate: isTemplateFallback,
+      resellerId: resellerIdFilter,
     };
 
     if (excursionIds) {

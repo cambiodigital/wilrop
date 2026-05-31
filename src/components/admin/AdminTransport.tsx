@@ -101,6 +101,7 @@ interface TransportService {
   includes: string[];
   notes: string;
   active: boolean;
+  resellerId?: string | null;
   provider?: { id: string; name: string; vehicleType: string; capacity: number };
 }
 
@@ -149,6 +150,7 @@ const emptyService = {
   includes: [] as string[],
   notes: '',
   active: true,
+  resellerId: '',
 };
 
 // ─── Tag Input ───────────────────────────────────────────────────
@@ -263,6 +265,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
   const [destinationOptions, setDestinationOptions] = useState<TransportDestinationOption[]>([]);
   const [destinationsLoading, setDestinationsLoading] = useState(false);
   const [destinationsError, setDestinationsError] = useState<string | null>(null);
+  const [resellers, setResellers] = useState<any[]>([]);
 
   // ── Fetch ──
   const fetchProviders = useCallback(async () => {
@@ -312,11 +315,23 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
     }
   }, []);
 
+  const fetchResellers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/resellers');
+      if (!res.ok) throw new Error('Error al cargar revendedores');
+      const json = await res.json();
+      setResellers(json.data || json);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProviders();
     fetchServices();
     fetchDestinationOptions();
-  }, [fetchProviders, fetchServices, fetchDestinationOptions]);
+    fetchResellers();
+  }, [fetchProviders, fetchServices, fetchDestinationOptions, fetchResellers]);
 
   // ── Provider CRUD ──
   const handleProviderCreate = () => {
@@ -430,6 +445,7 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
       includes: Array.isArray(s.includes) ? s.includes : [],
       notes: s.notes,
       active: s.active,
+      resellerId: s.resellerId ?? '',
     });
     setServiceDialogOpen(true);
   };
@@ -1165,6 +1181,26 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 placeholder="Notas adicionales del servicio..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <Label htmlFor="transport-reseller">Asignar a Revendedor</Label>
+              <select
+                id="transport-reseller"
+                value={serviceForm.resellerId ?? ''}
+                onChange={(e) => setServiceForm((s) => ({ ...s, resellerId: e.target.value || '' }))}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Ninguno / Global (Administrador)</option>
+                {resellers.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.companyName || r.contactName || r.email}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este servicio de transporte.
+              </p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">

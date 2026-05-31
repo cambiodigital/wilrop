@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       includes,
       notes,
       active,
+      resellerId,
     } = body;
 
     if (!providerId) {
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         notes: notes ?? '',
         active: active ?? true,
         isTemplate: false,
+        resellerId: resellerId || null,
       },
       include: {
         provider: {

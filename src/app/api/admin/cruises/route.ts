@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       primaryDestinationId,
       cabins,
       destinations,
+      resellerId,
     } = body;
 
     if (!name) {
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
         active: active ?? true,
         isTemplate: false,
         primaryDestinationId: primaryDestinationId || null,
+        resellerId: resellerId || null,
         cabins: {
           create: (cabins || []).map((cabin: any) => ({
             name: cabin.name,

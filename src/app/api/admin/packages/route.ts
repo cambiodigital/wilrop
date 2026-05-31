@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       category,
       commission,
       active,
+      resellerId,
     } = body;
 
     if (!destinationId || !destinationName || !title || !duration || price === undefined) {
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest) {
         commission: commission ?? 10,
         active: active ?? true,
         isTemplate: false,
+        resellerId: resellerId || null,
       },
     });
 

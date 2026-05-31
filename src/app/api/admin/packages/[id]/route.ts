@@ -75,6 +75,7 @@ export async function PUT(
     if (body.category !== undefined) updates.category = body.category;
     if (body.commission !== undefined) updates.commission = body.commission;
     if (body.active !== undefined) updates.active = body.active;
+    if (body.resellerId !== undefined) updates.resellerId = body.resellerId || null;
 
     const pkg = await db.travelPackage.update({
       where: { id },

@@ -79,6 +79,7 @@ export async function PUT(
     if (body.rating !== undefined) updates.rating = body.rating;
     if (body.featured !== undefined) updates.featured = body.featured;
     if (body.active !== undefined) updates.active = body.active;
+    if (body.resellerId !== undefined) updates.resellerId = body.resellerId || null;
 
     const excursion = await db.excursion.update({
       where: { id },
