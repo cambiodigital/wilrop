@@ -5,8 +5,7 @@ import { hashPassword } from '@/lib/password.mjs';
 
 export async function GET() {
   try {
-    const subagents = await db.subagent.findMany({
-      where: { type: 'reseller' },
+    const resellers = await db.reseller.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -15,7 +14,10 @@ export async function GET() {
       },
     });
 
-    const sanitized = subagents.map(({ password: _pwd, ...rest }) => rest);
+    const sanitized = resellers.map(({ password: _pwd, companyName, ...rest }) => ({
+      ...rest,
+      agencyName: companyName, // Map companyName to agencyName for frontend compatibility
+    }));
 
     return NextResponse.json({ success: true, data: sanitized });
   } catch (error: any) {
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = String(email).trim().toLowerCase();
     const hashedPassword = await hashPassword(String(password));
 
-    const existingByCode = await db.subagent.findUnique({ where: { code } });
+    const existingByCode = await db.reseller.findUnique({ where: { code } });
     if (existingByCode) {
       return NextResponse.json(
         { success: false, error: 'Ya existe un revendedor con este código' },
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingByEmail = await db.subagent.findUnique({ where: { email: normalizedEmail } });
+    const existingByEmail = await db.reseller.findUnique({ where: { email: normalizedEmail } });
     if (existingByEmail) {
       return NextResponse.json(
         { success: false, error: 'Ya existe un revendedor con este email' },
@@ -71,28 +73,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const subagent = await db.subagent.create({
+    const reseller = await db.reseller.create({
       data: {
         code,
         email: normalizedEmail,
         password: hashedPassword,
-        agencyName,
+        companyName: agencyName, // Map agencyName to companyName
         contactName,
         country: country ?? '',
         phone: phone ?? '',
         commission: commission ?? 15,
         sellerLevel: normalizeResellerLevel(sellerLevel),
-        type: 'reseller',
         whiteLabelEnabled: Boolean(whiteLabelEnabled),
         active: active ?? true,
         approvalStatus: 'approved',
       },
     });
 
-    const { password: _pwd, ...sanitized } = subagent;
+    const { password: _pwd, companyName, ...sanitized } = reseller;
+    const responseData = {
+      ...sanitized,
+      agencyName: companyName, // Map back for frontend
+    };
 
     return NextResponse.json(
-      { success: true, data: sanitized },
+      { success: true, data: responseData },
       { status: 201 }
     );
   } catch (error: any) {

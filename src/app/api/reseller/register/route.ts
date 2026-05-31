@@ -14,9 +14,11 @@ function generateCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { contactName, agencyName, email, password, country, phone } = body
+    const { contactName, agencyName, companyName, email, password, country, phone, website, taxId, address } = body
 
-    if (!contactName?.trim() || !agencyName?.trim() || !email?.trim() || !password?.trim()) {
+    const resolvedCompanyName = companyName?.trim() || agencyName?.trim() || ''
+
+    if (!contactName?.trim() || !resolvedCompanyName || !email?.trim() || !password?.trim()) {
       return NextResponse.json(
         { success: false, error: 'Todos los campos obligatorios son requeridos' },
         { status: 400 },
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const existing = await db.subagent.findUnique({
+    const existing = await db.reseller.findUnique({
       where: { email: emailLower },
     })
 
@@ -53,18 +55,20 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
     const code = generateCode()
 
-    const subagent = await db.subagent.create({
+    const reseller = await db.reseller.create({
       data: {
         code,
         email: emailLower,
         password: hashedPassword,
-        agencyName: agencyName.trim(),
+        companyName: resolvedCompanyName,
         contactName: contactName.trim(),
         country: country?.trim() || '',
         phone: phone?.trim() || '',
+        website: website?.trim() || '',
+        taxId: taxId?.trim() || '',
+        address: address?.trim() || '',
         commission: 10,
         sellerLevel: 'standard',
-        type: 'reseller',
         whiteLabelEnabled: false,
         active: false,
         approvalStatus: 'pending',
@@ -75,11 +79,11 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Registro exitoso. Tu cuenta está pendiente de aprobación por el administrador.',
       data: {
-        id: subagent.id,
-        code: subagent.code,
-        agencyName: subagent.agencyName,
-        contactName: subagent.contactName,
-        approvalStatus: subagent.approvalStatus,
+        id: reseller.id,
+        code: reseller.code,
+        companyName: reseller.companyName,
+        contactName: reseller.contactName,
+        approvalStatus: reseller.approvalStatus,
       },
     })
   } catch (error) {

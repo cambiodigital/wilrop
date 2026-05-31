@@ -10,8 +10,8 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const subagent = await db.subagent.findUnique({
-      where: { id, type: 'reseller' },
+    const reseller = await db.reseller.findUnique({
+      where: { id },
       include: {
         _count: {
           select: { bookings: true },
@@ -19,16 +19,20 @@ export async function GET(
       },
     });
 
-    if (!subagent) {
+    if (!reseller) {
       return NextResponse.json(
         { success: false, error: 'Revendedor no encontrado' },
         { status: 404 }
       );
     }
 
-    const { password: _pwd, ...sanitized } = subagent;
+    const { password: _pwd, companyName, ...sanitized } = reseller;
+    const responseData = {
+      ...sanitized,
+      agencyName: companyName, // Map companyName to agencyName
+    };
 
-    return NextResponse.json({ success: true, data: sanitized });
+    return NextResponse.json({ success: true, data: responseData });
   } catch (error: any) {
     console.error('Error fetching reseller:', error);
     return NextResponse.json(
@@ -46,7 +50,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await db.subagent.findUnique({ where: { id, type: 'reseller' } });
+    const existing = await db.reseller.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
         { success: false, error: 'Revendedor no encontrado' },
@@ -55,7 +59,7 @@ export async function PUT(
     }
 
     if (body.code && body.code !== existing.code) {
-      const existingByCode = await db.subagent.findUnique({ where: { code: body.code } });
+      const existingByCode = await db.reseller.findUnique({ where: { code: body.code } });
       if (existingByCode) {
         return NextResponse.json(
           { success: false, error: 'Ya existe un revendedor con este código' },
@@ -68,7 +72,7 @@ export async function PUT(
       typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : undefined;
 
     if (normalizedEmail && normalizedEmail !== existing.email) {
-      const existingByEmail = await db.subagent.findUnique({ where: { email: normalizedEmail } });
+      const existingByEmail = await db.reseller.findUnique({ where: { email: normalizedEmail } });
       if (existingByEmail) {
         return NextResponse.json(
           { success: false, error: 'Ya existe un revendedor con este email' },
@@ -82,7 +86,7 @@ export async function PUT(
     if (body.code !== undefined) updates.code = body.code;
     if (normalizedEmail !== undefined) updates.email = normalizedEmail;
     if (body.password !== undefined) updates.password = await hashPassword(String(body.password));
-    if (body.agencyName !== undefined) updates.agencyName = body.agencyName;
+    if (body.agencyName !== undefined) updates.companyName = body.agencyName; // Map agencyName to companyName
     if (body.contactName !== undefined) updates.contactName = body.contactName;
     if (body.country !== undefined) updates.country = body.country;
     if (body.phone !== undefined) updates.phone = body.phone;
@@ -91,7 +95,7 @@ export async function PUT(
     if (body.whiteLabelEnabled !== undefined) updates.whiteLabelEnabled = Boolean(body.whiteLabelEnabled);
     if (body.active !== undefined) updates.active = body.active;
 
-    const subagent = await db.subagent.update({
+    const reseller = await db.reseller.update({
       where: { id },
       data: updates,
       include: {
@@ -101,9 +105,13 @@ export async function PUT(
       },
     });
 
-    const { password: _pwd, ...sanitized } = subagent;
+    const { password: _pwd, companyName, ...sanitized } = reseller;
+    const responseData = {
+      ...sanitized,
+      agencyName: companyName,
+    };
 
-    return NextResponse.json({ success: true, data: sanitized });
+    return NextResponse.json({ success: true, data: responseData });
   } catch (error: any) {
     console.error('Error updating reseller:', error);
     return NextResponse.json(
@@ -120,7 +128,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const existing = await db.subagent.findUnique({ where: { id, type: 'reseller' } });
+    const existing = await db.reseller.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
         { success: false, error: 'Revendedor no encontrado' },
@@ -128,7 +136,7 @@ export async function DELETE(
       );
     }
 
-    await db.subagent.delete({ where: { id } });
+    await db.reseller.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
