@@ -128,13 +128,13 @@ export default function ResellerOwnExcursions() {
   useEffect(() => {
     async function fetchDestinations() {
       try {
-        const res = await fetch('/api/public/destinations');
+        const res = await fetch('/api/reseller/catalog?sourceType=destination');
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          setDestinationOptions(json.data.map((d: any) => ({
-            id: d.id,
-            name: d.name,
-            region: d.region || '',
+          setDestinationOptions(json.data.map((item: any) => ({
+            id: item.sourceId,
+            name: item.sourceData?.name || item.customName || '',
+            region: item.sourceData?.region || '',
           })));
         }
       } catch {
