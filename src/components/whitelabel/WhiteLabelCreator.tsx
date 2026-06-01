@@ -105,12 +105,11 @@ function LogoUpload({ logoUrl, onUpload, onRemove }: { logoUrl: string | null; o
     <div className="space-y-2">
       {logoUrl ? (
         <div className="relative w-full h-24 rounded-lg border border-border overflow-hidden bg-muted/50 flex items-center justify-center">
-          <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl"
-            style={{ backgroundColor: 'var(--brand-primary, #C8A96A)' }}
-          >
-            {logoUrl.split('/').pop()?.[0]?.toUpperCase() || 'A'}
-          </div>
+          <img
+            src={logoUrl}
+            alt="Logo de la tienda"
+            className="max-h-20 max-w-[80%] object-contain"
+          />
           <button
             onClick={onRemove}
             className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/90 flex items-center justify-center hover:bg-destructive hover:text-white transition-colors"
@@ -186,12 +185,20 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
           style={{ backgroundColor: config.primaryColor }}
         >
           <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold"
-              style={{ backgroundColor: config.secondaryColor }}
-            >
-              {initials}
-            </div>
+            {config.logoUrl ? (
+              <img
+                src={config.logoUrl}
+                alt={config.storeName}
+                className="w-6 h-6 rounded-md object-contain bg-white/10"
+              />
+            ) : (
+              <div
+                className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold"
+                style={{ backgroundColor: config.secondaryColor }}
+              >
+                {initials}
+              </div>
+            )}
             <span className="text-white text-[11px] font-semibold truncate max-w-[120px]">
               {config.storeName}
             </span>
@@ -215,12 +222,20 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
             background: `linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor})`,
           }}
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold mx-auto mb-2"
-            style={{ backgroundColor: `${config.accentColor}40` }}
-          >
-            {initials}
-          </div>
+          {config.logoUrl ? (
+            <img
+              src={config.logoUrl}
+              alt={config.storeName}
+              className="w-10 h-10 rounded-xl object-contain mx-auto mb-2 bg-white/10"
+            />
+          ) : (
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold mx-auto mb-2"
+              style={{ backgroundColor: `${config.accentColor}40` }}
+            >
+              {initials}
+            </div>
+          )}
           <h2 className="text-white text-[13px] font-bold mb-0.5">{config.storeName}</h2>
           <p className="text-white/80 text-[9px] mb-2">{config.slogan}</p>
           <div
@@ -339,11 +354,15 @@ export default function WhiteLabelCreator() {
     }
   };
 
-  const handleLogoUpload = (_file: File) => {
-    updateConfig({ logoUrl: '/images/hero.png' });
+  const handleLogoUpload = (file: File) => {
+    const objectUrl = URL.createObjectURL(file);
+    updateConfig({ logoUrl: objectUrl });
   };
 
   const handleRemoveLogo = () => {
+    if (config.logoUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(config.logoUrl);
+    }
     updateConfig({ logoUrl: null });
   };
 

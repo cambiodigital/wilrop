@@ -286,6 +286,8 @@ model Reseller {
   approvedAt        DateTime?
   approvedBy        String?
   lastLoginAt       DateTime?
+  customDomain      String?   @unique
+  subdomain         String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -302,6 +304,8 @@ model Reseller {
 
   @@index([active, approvalStatus])
   @@index([sellerLevel])
+  @@index([customDomain])
+  @@index([subdomain])
 }
 
 model ResellerCatalog {
