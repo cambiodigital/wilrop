@@ -188,6 +188,7 @@ export async function getCatalogCount(resellerId: string): Promise<number> {
  * Validate that a non-destination product has at least one parent destination
  * already assigned to the reseller's catalog. Returns true if valid.
  * Destinations themselves skip this check.
+ * Template products (global catalog) also skip — they should always be addable.
  */
 export async function validateParentDestination(
   resellerId: string,
@@ -198,6 +199,10 @@ export async function validateParentDestination(
   if (Object.keys(sourceData).length === 0) return false;
 
   if (sourceType === 'destination') return true;
+
+  // Template products from the global catalog can always be added
+  // without requiring a parent destination first.
+  if (sourceData.isTemplate) return true;
 
   const assignedDests = await db.resellerCatalog.findMany({
     where: { resellerId, sourceType: 'destination', active: true },

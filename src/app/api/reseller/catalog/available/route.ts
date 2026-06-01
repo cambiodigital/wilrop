@@ -22,23 +22,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const resellerId = resellerId;
     const url = new URL(request.url);
     const sourceType = url.searchParams.get('sourceType');
 
     const existingCatalog = await db.resellerCatalog.findMany({
-      where: { resellerId: session.id },
+      where: { resellerId: resellerId },
       select: { sourceType: true, sourceId: true },
     });
     const existingIds = new Set(
       existingCatalog.map((c) => `${c.sourceType}:${c.sourceId}`),
     );
 
-    // Available products = global catalog templates (isTemplate: true)
-    // plus the reseller's own products (isTemplate: false, resellerId = session.id)
     const items: Array<Record<string, unknown>> = [];
 
     // ─── Destinations ──────────────────────────────────────────────
-    // Show ALL active template destinations so resellers can pick from them.
     if (!sourceType || sourceType === 'destination') {
       const destinations = await db.destination.findMany({
         where: { active: true, isTemplate: true },
@@ -47,10 +45,7 @@ export async function GET(request: NextRequest) {
 
       items.push(
         ...destinations.map((d) => {
-          const source = resolveSourceFields(
-            'destination',
-            d as Record<string, unknown>,
-          );
+          const source = resolveSourceFields('destination', d as Record<string, unknown>);
           return {
             sourceType: 'destination' as const,
             sourceId: d.id,
@@ -66,102 +61,66 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Collect destination IDs the reseller has in their catalog
-    // for filtering related products.
-    const assignedDestinationIds = existingCatalog
-      .filter((c) => c.sourceType === 'destination')
-      .map((c) => c.sourceId);
+    // Helper: fetch templates + reseller-owned, merge, deduplicate
+    async function fetchProducts(
+      model: 'hotel' | 'excursion' | 'package' | 'transport' | 'cruise',
+      includeRelation?: object,
+    ) {
+      const templates = await (db[model] as any).findMany({
+        where: { active: true, isTemplate: true },
+        ...(includeRelation ? { include: includeRelation } : {}),
+        orderBy: model === 'package' ? { title: 'asc' } : { name: 'asc' },
+      });
+      const owned = await (db[model] as any).findMany({
+        where: { active: true, isTemplate: false, resellerId: resellerId },
+        ...(includeRelation ? { include: includeRelation } : {}),
+        orderBy: model === 'package' ? { title: 'asc' } : { name: 'asc' },
+      });
+      // Merge and deduplicate by id
+      const map = new Map<string, any>();
+      for (const item of templates) map.set(item.id, item);
+      for (const item of owned) map.set(item.id, item);
+      return [...map.values()];
+    }
 
-    // For products: show global templates + reseller's own products.
-    // If reseller has assigned destinations, also highlight which products
-    // relate to those destinations (but don't restrict to ONLY those).
-    const productBaseWhere = {
-      active: true,
-      OR: [
-        { isTemplate: true },
-        { isTemplate: false, resellerId: session.id },
-      ],
-    };
-
-    // Helper: build destination-ID map for enrichment
+    // Helper: build destination-ID map
     async function buildDestMap(
-      sourceTypeKey: string,
+      type: string,
       ids: string[],
     ): Promise<Map<string, string[]>> {
       const destMap = new Map<string, string[]>();
       if (ids.length === 0) return destMap;
 
-      switch (sourceTypeKey) {
-        case 'hotel': {
-          const joins = await db.destinationHotel.findMany({
-            where: { hotelId: { in: ids }, active: true },
-            select: { hotelId: true, destinationId: true },
-          });
-          for (const j of joins) {
-            const arr = destMap.get(j.hotelId) ?? [];
-            arr.push(j.destinationId);
-            destMap.set(j.hotelId, arr);
-          }
-          break;
-        }
-        case 'excursion': {
-          const joins = await db.destinationExcursion.findMany({
-            where: { excursionId: { in: ids }, active: true },
-            select: { excursionId: true, destinationId: true },
-          });
-          for (const j of joins) {
-            const arr = destMap.get(j.excursionId) ?? [];
-            arr.push(j.destinationId);
-            destMap.set(j.excursionId, arr);
-          }
-          break;
-        }
-        case 'package': {
-          const joins = await db.destinationPackage.findMany({
-            where: { packageId: { in: ids }, active: true },
-            select: { packageId: true, destinationId: true },
-          });
-          for (const j of joins) {
-            const arr = destMap.get(j.packageId) ?? [];
-            arr.push(j.destinationId);
-            destMap.set(j.packageId, arr);
-          }
-          break;
-        }
-        case 'transport': {
-          const joins = await db.destinationTransportService.findMany({
-            where: { transportServiceId: { in: ids }, active: true },
-            select: { transportServiceId: true, destinationId: true },
-          });
-          for (const j of joins) {
-            const arr = destMap.get(j.transportServiceId) ?? [];
-            arr.push(j.destinationId);
-            destMap.set(j.transportServiceId, arr);
-          }
-          break;
-        }
+      const joinTable = {
+        hotel: { model: 'destinationHotel', fk: 'hotelId' },
+        excursion: { model: 'destinationExcursion', fk: 'excursionId' },
+        package: { model: 'destinationPackage', fk: 'packageId' },
+        transport: { model: 'destinationTransportService', fk: 'transportServiceId' },
+        cruise: { model: 'destinationCruise', fk: 'cruiseId' },
+      }[type];
+
+      if (!joinTable) return destMap;
+
+      const joins = await (db[joinTable.model] as any).findMany({
+        where: { [joinTable.fk]: { in: ids }, active: true },
+        select: { [joinTable.fk]: true, destinationId: true },
+      });
+      for (const j of joins) {
+        const key = j[joinTable.fk];
+        const arr = destMap.get(key) ?? [];
+        arr.push(j.destinationId);
+        destMap.set(key, arr);
       }
       return destMap;
     }
 
     // ─── Hotels ────────────────────────────────────────────────────
     if (!sourceType || sourceType === 'hotel') {
-      const hotels = await db.hotel.findMany({
-        where: productBaseWhere,
-        orderBy: { name: 'asc' },
-      });
-
-      const destMap = await buildDestMap(
-        'hotel',
-        hotels.map((h) => h.id),
-      );
-
+      const hotels = await fetchProducts('hotel');
+      const destMap = await buildDestMap('hotel', hotels.map((h: any) => h.id));
       items.push(
-        ...hotels.map((h) => {
-          const source = resolveSourceFields(
-            'hotel',
-            h as Record<string, unknown>,
-          );
+        ...hotels.map((h: any) => {
+          const source = resolveSourceFields('hotel', h as Record<string, unknown>);
           return {
             sourceType: 'hotel' as const,
             sourceId: h.id,
@@ -180,22 +139,11 @@ export async function GET(request: NextRequest) {
 
     // ─── Excursions ────────────────────────────────────────────────
     if (!sourceType || sourceType === 'excursion') {
-      const excursions = await db.excursion.findMany({
-        where: productBaseWhere,
-        orderBy: { name: 'asc' },
-      });
-
-      const destMap = await buildDestMap(
-        'excursion',
-        excursions.map((e) => e.id),
-      );
-
+      const excursions = await fetchProducts('excursion');
+      const destMap = await buildDestMap('excursion', excursions.map((e: any) => e.id));
       items.push(
-        ...excursions.map((e) => {
-          const source = resolveSourceFields(
-            'excursion',
-            e as Record<string, unknown>,
-          );
+        ...excursions.map((e: any) => {
+          const source = resolveSourceFields('excursion', e as Record<string, unknown>);
           return {
             sourceType: 'excursion' as const,
             sourceId: e.id,
@@ -214,22 +162,11 @@ export async function GET(request: NextRequest) {
 
     // ─── Packages ──────────────────────────────────────────────────
     if (!sourceType || sourceType === 'package') {
-      const packages = await db.travelPackage.findMany({
-        where: productBaseWhere,
-        orderBy: { title: 'asc' },
-      });
-
-      const destMap = await buildDestMap(
-        'package',
-        packages.map((p) => p.id),
-      );
-
+      const packages = await fetchProducts('package');
+      const destMap = await buildDestMap('package', packages.map((p: any) => p.id));
       items.push(
-        ...packages.map((p) => {
-          const source = resolveSourceFields(
-            'package',
-            p as Record<string, unknown>,
-          );
+        ...packages.map((p: any) => {
+          const source = resolveSourceFields('package', p as Record<string, unknown>);
           return {
             sourceType: 'package' as const,
             sourceId: p.id,
@@ -248,27 +185,13 @@ export async function GET(request: NextRequest) {
 
     // ─── Transport ─────────────────────────────────────────────────
     if (!sourceType || sourceType === 'transport') {
-      const transports = await db.transportService.findMany({
-        where: productBaseWhere,
-        include: {
-          provider: {
-            select: { name: true, vehicleType: true, capacity: true },
-          },
-        },
-        orderBy: { name: 'asc' },
+      const transports = await fetchProducts('transport', {
+        provider: { select: { name: true, vehicleType: true, capacity: true } },
       });
-
-      const destMap = await buildDestMap(
-        'transport',
-        transports.map((t) => t.id),
-      );
-
+      const destMap = await buildDestMap('transport', transports.map((t: any) => t.id));
       items.push(
-        ...transports.map((t) => {
-          const source = resolveSourceFields(
-            'transport',
-            t as Record<string, unknown>,
-          );
+        ...transports.map((t: any) => {
+          const source = resolveSourceFields('transport', t as Record<string, unknown>);
           return {
             sourceType: 'transport' as const,
             sourceId: t.id,
@@ -280,6 +203,29 @@ export async function GET(request: NextRequest) {
             metadata: source.metadata,
             relatedDestinationIds: destMap.get(t.id) ?? [],
             alreadyInCatalog: existingIds.has(`transport:${t.id}`),
+          };
+        }),
+      );
+    }
+
+    // ─── Cruises ───────────────────────────────────────────────────
+    if (!sourceType || sourceType === 'cruise') {
+      const cruises = await fetchProducts('cruise');
+      const destMap = await buildDestMap('cruise', cruises.map((c: any) => c.id));
+      items.push(
+        ...cruises.map((c: any) => {
+          const source = resolveSourceFields('cruise', c as Record<string, unknown>);
+          return {
+            sourceType: 'cruise' as const,
+            sourceId: c.id,
+            name: source.title,
+            location: source.location,
+            price: source.price,
+            image: source.image,
+            description: source.description,
+            metadata: source.metadata,
+            relatedDestinationIds: destMap.get(c.id) ?? [],
+            alreadyInCatalog: existingIds.has(`cruise:${c.id}`),
           };
         }),
       );

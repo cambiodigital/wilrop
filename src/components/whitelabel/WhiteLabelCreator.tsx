@@ -383,23 +383,44 @@ export default function WhiteLabelCreator() {
   const [destinations, setDestinations] = useState<ApiDestination[]>([]);
   const [packages, setPackages] = useState<ApiPackage[]>([]);
 
-  // Load destinations and packages from API
+  // Load reseller's catalog destinations and packages from API
   useEffect(() => {
-    async function fetchData() {
+    async function fetchCatalog() {
       try {
         const [destRes, pkgRes] = await Promise.all([
-          fetch('/api/public/destinations'),
-          fetch('/api/public/packages'),
+          fetch('/api/reseller/catalog?sourceType=destination'),
+          fetch('/api/reseller/catalog?sourceType=package'),
         ]);
         const destJson = await destRes.json();
         const pkgJson = await pkgRes.json();
-        if (destJson.success) setDestinations(destJson.data);
-        if (pkgJson.success) setPackages(pkgJson.data);
+        if (destJson.success && Array.isArray(destJson.data)) {
+          // Catalog items have sourceData with the actual destination info
+          const mapped: ApiDestination[] = destJson.data.map((item: any) => ({
+            id: item.sourceId,
+            name: item.sourceData?.name || item.customName || '',
+            region: item.sourceData?.region || '',
+            description: item.sourceData?.description || '',
+            image: item.sourceData?.image || '',
+            priceFrom: item.sourceData?.priceFrom || 0,
+          }));
+          setDestinations(mapped);
+        }
+        if (pkgJson.success && Array.isArray(pkgJson.data)) {
+          const mapped: ApiPackage[] = pkgJson.data.map((item: any) => ({
+            id: item.sourceId,
+            title: item.sourceData?.title || item.customName || '',
+            destinationName: item.sourceData?.destinationName || '',
+            primaryDestinationId: item.sourceData?.primaryDestinationId || null,
+            price: item.customPrice || item.sourceData?.price || 0,
+            duration: item.sourceData?.duration || '',
+          }));
+          setPackages(mapped);
+        }
       } catch {
-        // silent — preview will just be empty
+        // silent
       }
     }
-    fetchData();
+    fetchCatalog();
   }, []);
 
   // Load saved white-label config from API
