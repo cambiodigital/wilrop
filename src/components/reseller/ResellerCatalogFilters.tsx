@@ -19,6 +19,7 @@ const sourceTypes = [
   { value: 'excursion', label: 'Excursiones' },
   { value: 'package', label: 'Paquetes' },
   { value: 'transport', label: 'Transporte' },
+  { value: 'cruise', label: 'Cruceros' },
   { value: 'destination', label: 'Destinos' },
 ]
 

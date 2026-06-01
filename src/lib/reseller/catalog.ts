@@ -252,6 +252,17 @@ export async function validateParentDestination(
       });
       return !!join;
     }
+    case 'cruise': {
+      const join = await db.destinationCruise.findFirst({
+        where: {
+          cruiseId: sourceId,
+          active: true,
+          destinationId: { in: [...destIds] },
+        },
+        select: { id: true },
+      });
+      return !!join;
+    }
     default:
       return false;
   }
@@ -263,9 +274,9 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'hotel': {
         const hotel = await db.hotel.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, cityName: true, stars: true, priceFrom: true, images: true, description: true, active: true, isTemplate: true },
+          select: { id: true, name: true, cityName: true, stars: true, priceFrom: true, images: true, description: true, active: true },
         })
-        if (!hotel || !hotel.active || hotel.isTemplate) return {}
+        if (!hotel || !hotel.active) return {}
         return {
           ...hotel,
           images: JSON.parse(hotel.images || '[]') as string[],
@@ -274,9 +285,9 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'excursion': {
         const excursion = await db.excursion.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, cityName: true, basePrice: true, images: true, description: true, category: true, active: true, isTemplate: true },
+          select: { id: true, name: true, cityName: true, basePrice: true, images: true, description: true, category: true, active: true },
         })
-        if (!excursion || !excursion.active || excursion.isTemplate) return {}
+        if (!excursion || !excursion.active) return {}
         return {
           ...excursion,
           images: JSON.parse(excursion.images || '[]') as string[],
@@ -285,9 +296,9 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'package': {
         const pkg = await db.travelPackage.findUnique({
           where: { id: sourceId },
-          select: { id: true, title: true, destinationName: true, price: true, image: true, description: true, category: true, active: true, isTemplate: true },
+          select: { id: true, title: true, destinationName: true, price: true, image: true, description: true, category: true, active: true },
         })
-        if (!pkg || !pkg.active || pkg.isTemplate) return {}
+        if (!pkg || !pkg.active) return {}
         return { ...pkg }
       }
       case 'transport': {
@@ -301,21 +312,31 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
             basePrice: true,
             notes: true,
             active: true,
-            isTemplate: true,
             providerId: true,
             provider: { select: { name: true, vehicleType: true, capacity: true } },
           },
         })
-        if (!transport || !transport.active || transport.isTemplate) return {}
+        if (!transport || !transport.active) return {}
         return { ...transport }
       }
       case 'destination': {
         const dest = await db.destination.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, region: true, description: true, image: true, priceFrom: true, active: true, isTemplate: true },
+          select: { id: true, name: true, region: true, description: true, image: true, priceFrom: true, active: true },
         })
-        if (!dest || !dest.active || dest.isTemplate) return {}
+        if (!dest || !dest.active) return {}
         return { ...dest }
+      }
+      case 'cruise': {
+        const cruise = await db.cruise.findUnique({
+          where: { id: sourceId },
+          select: { id: true, name: true, shipName: true, operator: true, durationDays: true, priceFrom: true, images: true, description: true, active: true },
+        })
+        if (!cruise || !cruise.active) return {}
+        return {
+          ...cruise,
+          images: JSON.parse(cruise.images || '[]') as string[],
+        }
       }
       case 'room': {
         const room = await db.roomType.findUnique({

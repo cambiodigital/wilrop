@@ -27,6 +27,7 @@ import {
   Plus,
   Loader2,
   Check,
+  Ship,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -36,6 +37,7 @@ const sourceTypeTabs = [
   { value: 'excursion', label: 'Excursiones', icon: Mountain },
   { value: 'package', label: 'Paquetes', icon: Package },
   { value: 'transport', label: 'Transporte', icon: Bus },
+  { value: 'cruise', label: 'Cruceros', icon: Ship },
   { value: 'destination', label: 'Destinos', icon: Globe },
 ]
 

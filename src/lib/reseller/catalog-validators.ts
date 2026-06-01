@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const sourceTypeEnum = z.enum(['hotel', 'excursion', 'package', 'transport', 'destination', 'room'])
+export const sourceTypeEnum = z.enum(['hotel', 'excursion', 'package', 'transport', 'destination', 'room', 'cruise'])
 
 export const catalogItemSchema = z.object({
   sourceType: sourceTypeEnum,
