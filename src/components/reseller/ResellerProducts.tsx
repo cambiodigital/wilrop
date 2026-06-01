@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-;
+import ResellerOwnExcursions from './ResellerOwnExcursions';
 
 interface HotelProduct {
   id: string;
@@ -164,20 +164,23 @@ export default function ResellerProducts() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8"
+      className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8"
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Productos para Revender</h1>
-          <p className="mt-1 text-sm text-gray-500">Productos activos disponibles para revender y armar paquetes personalizados.</p>
+      <ResellerOwnExcursions />
+
+      <div className="border-t pt-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Productos para Revender</h1>
+            <p className="mt-1 text-sm text-gray-500">Productos activos disponibles para revender y armar paquetes personalizados.</p>
+          </div>
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link href={resellerCode ? `/paquetes/armar?reseller=${resellerCode}` : '/paquetes/armar'}>
+              <Package className="mr-2 size-4" />
+              Armar paquete terrestre
+            </Link>
+          </Button>
         </div>
-        <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Link href={resellerCode ? `/paquetes/armar?reseller=${resellerCode}` : '/paquetes/armar'}>
-            <Package className="mr-2 size-4" />
-            Armar paquete terrestre
-          </Link>
-        </Button>
-      </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
         <Card>
@@ -332,6 +335,7 @@ export default function ResellerProducts() {
           </ProductGrid>
         </TabsContent>
       </Tabs>
+      </div>
     </motion.div>
   );
 }

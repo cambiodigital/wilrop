@@ -292,7 +292,7 @@ export function ResellerAddToCatalogDialog({
                     {filteredProducts.filter((p) => tab.value === 'all' || p.sourceType === tab.value).length === 0 && (
                       <div className="text-center py-10 text-gray-400">
                         {products.length === 0
-                          ? 'No hay productos disponibles para agregar. Si esperabas ver productos, contacta al administrador para que los active o asigne a tu catálogo.'
+                          ? 'No hay productos disponibles para agregar. Puedes crear tus propias excursiones desde Productos, o contactar al administrador para que active o asigne productos a tu catálogo.'
                           : 'No se encontraron productos en esta categoría con los filtros aplicados.'}
                       </div>
                     )}

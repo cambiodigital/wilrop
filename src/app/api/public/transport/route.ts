@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     );
 
     const realCount = await db.transportService.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, resellerId: null },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -99,18 +99,18 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Query transport services ---
-    const where: Record<string, unknown> = {
-      active: true,
-      isTemplate: isTemplateFallback,
-    };
+    const where: Record<string, unknown> = { active: true };
 
-    if (resellerIdFilter) {
+    if (catalogTransportIds && catalogTransportIds.length > 0 && resellerIdParam && !resellerPanel) {
+      where.OR = [{ id: { in: catalogTransportIds } }, { resellerId: resellerIdParam }];
+    } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
+    } else if (!resellerPanel && !resellerIdParam) {
+      where.resellerId = null;
+      where.isTemplate = isTemplateFallback;
     }
 
-    if (catalogTransportIds && catalogTransportIds.length > 0) {
-      where.id = { in: catalogTransportIds };
-    } else if (transportIds) {
+    if (transportIds && !where.OR) {
       where.id = { in: transportIds };
     }
 

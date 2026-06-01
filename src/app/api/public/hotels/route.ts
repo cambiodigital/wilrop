@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     );
 
     const realCount = await db.hotel.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, resellerId: null },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -108,18 +108,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Build Prisma query filters
-    const where: any = {
-      active: true,
-      isTemplate: isTemplateFallback,
-    };
+    const where: any = { active: true };
 
-    if (resellerIdFilter) {
+    if (catalogHotelIds && catalogHotelIds.length > 0 && resellerIdParam && !resellerPanel) {
+      where.OR = [{ id: { in: catalogHotelIds } }, { resellerId: resellerIdParam }];
+    } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
-    }
-
-    // Apply catalog filter when reseller has catalog items
-    if (catalogHotelIds && catalogHotelIds.length > 0) {
-      where.id = { in: catalogHotelIds };
+    } else if (!resellerPanel && !resellerIdParam) {
+      where.resellerId = null;
+      where.isTemplate = isTemplateFallback;
     }
 
     if (cityId) {
@@ -145,7 +142,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    if (hotelIds) {
+    if (hotelIds && !where.OR) {
       where.id = { in: hotelIds };
     }
 

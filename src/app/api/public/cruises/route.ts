@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     );
 
     const realCount = await db.cruise.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, resellerId: null },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -103,18 +103,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Build Prisma query filters
-    const where: any = {
-      active: true,
-      isTemplate: isTemplateFallback,
-    };
+    const where: any = { active: true };
 
-    if (resellerIdFilter) {
+    if (catalogCruiseIds && catalogCruiseIds.length > 0 && resellerIdParam && !resellerPanel) {
+      where.OR = [{ id: { in: catalogCruiseIds } }, { resellerId: resellerIdParam }];
+    } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
+    } else if (!resellerPanel && !resellerIdParam) {
+      where.resellerId = null;
+      where.isTemplate = isTemplateFallback;
     }
 
-    if (catalogCruiseIds && catalogCruiseIds.length > 0) {
-      where.id = { in: catalogCruiseIds };
-    } else if (cruiseIds) {
+    if (cruiseIds && !where.OR) {
       where.id = { in: cruiseIds };
     }
 

@@ -19,13 +19,14 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
 
     const realCount = await db.travelPackage.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, resellerId: null },
     });
 
     const packages = await db.travelPackage.findMany({
       where: {
         active: true,
         isTemplate: realCount > 0 ? false : true,
+        resellerId: null,
         ...(destinationId ? { destinationId } : {}),
         ...(category ? { category } : {}),
       },

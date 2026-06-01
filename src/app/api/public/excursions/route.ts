@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     );
 
     const realCount = await db.excursion.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, resellerId: null },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -94,18 +94,18 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Query excursions ---
-    const where: Record<string, unknown> = {
-      active: true,
-      isTemplate: isTemplateFallback,
-    };
+    const where: Record<string, unknown> = { active: true };
 
-    if (resellerIdFilter) {
+    if (catalogExcursionIds && catalogExcursionIds.length > 0 && resellerIdParam && !resellerPanel) {
+      where.OR = [{ id: { in: catalogExcursionIds } }, { resellerId: resellerIdParam }];
+    } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
+    } else if (!resellerPanel && !resellerIdParam) {
+      where.resellerId = null;
+      where.isTemplate = isTemplateFallback;
     }
 
-    if (catalogExcursionIds && catalogExcursionIds.length > 0) {
-      where.id = { in: catalogExcursionIds };
-    } else if (excursionIds) {
+    if (excursionIds && !where.OR) {
       where.id = { in: excursionIds };
     }
 
