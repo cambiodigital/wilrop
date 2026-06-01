@@ -84,7 +84,7 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
       ? db.travelPackage.findMany({ where: { id: { in: catalogPackageIds }, active: true, isTemplate: true } })
       : Promise.resolve([]),
     catalogExcursionIds.length > 0
-      ? db.excursion.findMany({ where: { id: { in: catalogExcursionIds }, active: true, isTemplate: true } })
+      ? db.excursion.findMany({ where: { id: { in: catalogExcursionIds }, active: true } })
       : Promise.resolve([]),
   ])
 
@@ -103,6 +103,7 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
   }
   for (const e of allExcursions) {
     if (e.destinationRefId) destinationIds.add(e.destinationRefId)
+    else if (e.destinationId) destinationIds.add(e.destinationId)
   }
 
   const destinations = destinationIds.size > 0

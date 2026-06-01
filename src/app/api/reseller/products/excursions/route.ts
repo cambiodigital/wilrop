@@ -86,6 +86,10 @@ export async function POST(request: NextRequest) {
       active,
     } = body;
 
+    const relatedDestinationId = typeof destinationId === 'string' && destinationId.trim()
+      ? destinationId.trim()
+      : null;
+
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: 'El nombre es obligatorio' },
@@ -119,12 +123,13 @@ export async function POST(request: NextRequest) {
       data: {
         slug,
         name: name.trim(),
-        destinationId: destinationId ?? '',
+        destinationId: relatedDestinationId ?? '',
         destinationName: destinationName ?? '',
         cityName: cityName ?? '',
+        destinationRefId: relatedDestinationId,
         description: description ?? '',
         shortDesc: shortDesc ?? '',
-        images: JSON.stringify(images || []),
+        images: JSON.stringify(Array.isArray(images) ? images : []),
         duration: duration ?? '',
         difficulty: difficulty ?? 'Fácil',
         groupSize: String(groupSize ?? ''),

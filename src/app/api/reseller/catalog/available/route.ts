@@ -67,15 +67,25 @@ export async function GET(request: NextRequest) {
       model: 'hotel' | 'excursion' | 'package' | 'transport' | 'cruise',
       includeRelation?: object,
     ) {
-      const templates = await (db[model] as any).findMany({
+      const modelMap = {
+        hotel: db.hotel,
+        excursion: db.excursion,
+        package: db.travelPackage,
+        transport: db.transportService,
+        cruise: db.cruise,
+      } as const;
+      const delegate = modelMap[model] as any;
+      const orderBy = model === 'package' ? { title: 'asc' } : { name: 'asc' };
+
+      const templates = await delegate.findMany({
         where: { active: true, isTemplate: true },
         ...(includeRelation ? { include: includeRelation } : {}),
-        orderBy: model === 'package' ? { title: 'asc' } : { name: 'asc' },
+        orderBy,
       });
-      const owned = await (db[model] as any).findMany({
+      const owned = await delegate.findMany({
         where: { active: true, isTemplate: false, resellerId: resellerId },
         ...(includeRelation ? { include: includeRelation } : {}),
-        orderBy: model === 'package' ? { title: 'asc' } : { name: 'asc' },
+        orderBy,
       });
       // Merge and deduplicate by id
       const map = new Map<string, any>();

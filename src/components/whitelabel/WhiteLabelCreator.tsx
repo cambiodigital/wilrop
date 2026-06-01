@@ -63,6 +63,18 @@ interface ApiPackage {
   duration: string;
 }
 
+interface ApiOwnExcursion {
+  id: string;
+  destinationId?: string;
+  destinationName?: string;
+  cityName?: string;
+  description?: string;
+  shortDesc?: string;
+  images?: string[];
+  basePrice?: number;
+  active?: boolean;
+}
+
 // ─── ColorSwatch ──────────────────────────────────────────────────
 function ColorSwatch({
   color,
@@ -395,15 +407,18 @@ export default function WhiteLabelCreator() {
   useEffect(() => {
     async function fetchCatalog() {
       try {
-        const [destRes, pkgRes] = await Promise.all([
+        const [destRes, pkgRes, ownExcursionRes] = await Promise.all([
           fetch('/api/reseller/catalog?sourceType=destination'),
           fetch('/api/reseller/catalog?sourceType=package'),
+          fetch('/api/reseller/products/excursions'),
         ]);
         const destJson = await destRes.json();
         const pkgJson = await pkgRes.json();
+        const ownExcursionJson = await ownExcursionRes.json();
+        let mappedDestinations: ApiDestination[] = [];
         if (destJson.success && Array.isArray(destJson.data)) {
           // Catalog items have sourceData with the actual destination info
-          const mapped: ApiDestination[] = destJson.data.map((item: any) => ({
+          mappedDestinations = destJson.data.map((item: any) => ({
             id: item.sourceId,
             name: item.sourceData?.name || item.customName || '',
             region: item.sourceData?.region || '',
@@ -411,8 +426,25 @@ export default function WhiteLabelCreator() {
             image: item.sourceData?.image || '',
             priceFrom: item.sourceData?.priceFrom || 0,
           }));
-          setDestinations(mapped);
         }
+        if (ownExcursionJson.success && Array.isArray(ownExcursionJson.data)) {
+          const existingIds = new Set(mappedDestinations.map((destination) => destination.id));
+          const excursionDestinations: ApiDestination[] = ownExcursionJson.data
+            .filter((excursion: ApiOwnExcursion) => excursion.active && excursion.destinationId && !existingIds.has(excursion.destinationId))
+            .map((excursion: ApiOwnExcursion) => {
+              existingIds.add(excursion.destinationId as string);
+              return {
+                id: excursion.destinationId as string,
+                name: excursion.destinationName || excursion.cityName || 'Destino de excursión',
+                region: excursion.cityName || '',
+                description: excursion.shortDesc || excursion.description || '',
+                image: excursion.images?.[0] || '',
+                priceFrom: excursion.basePrice || 0,
+              };
+            });
+          mappedDestinations = [...mappedDestinations, ...excursionDestinations];
+        }
+        setDestinations(mappedDestinations);
         if (pkgJson.success && Array.isArray(pkgJson.data)) {
           const mapped: ApiPackage[] = pkgJson.data.map((item: any) => ({
             id: item.sourceId,

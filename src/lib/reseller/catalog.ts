@@ -204,6 +204,11 @@ export async function validateParentDestination(
   // without requiring a parent destination first.
   if (sourceData.isTemplate) return true;
 
+  // Products created by this reseller are already scoped to their own catalog
+  // and should be addable even if they are not attached to an admin-managed
+  // destination spine yet.
+  if (sourceData.resellerId === resellerId) return true;
+
   const assignedDests = await db.resellerCatalog.findMany({
     where: { resellerId, sourceType: 'destination', active: true },
     select: { sourceId: true },
@@ -290,7 +295,7 @@ async function fetchSourceData(sourceType: string, sourceId: string): Promise<Re
       case 'excursion': {
         const excursion = await db.excursion.findUnique({
           where: { id: sourceId },
-          select: { id: true, name: true, cityName: true, basePrice: true, images: true, description: true, category: true, active: true },
+          select: { id: true, name: true, cityName: true, destinationId: true, destinationName: true, destinationRefId: true, basePrice: true, images: true, description: true, category: true, active: true, isTemplate: true, resellerId: true },
         })
         if (!excursion || !excursion.active) return {}
         return {

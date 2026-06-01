@@ -109,12 +109,18 @@ export async function PUT(
       updates.slug = slug;
     }
 
-    if (body.destinationId !== undefined) updates.destinationId = body.destinationId;
+    if (body.destinationId !== undefined) {
+      const relatedDestinationId = typeof body.destinationId === 'string' && body.destinationId.trim()
+        ? body.destinationId.trim()
+        : null;
+      updates.destinationId = relatedDestinationId ?? '';
+      updates.destinationRefId = relatedDestinationId;
+    }
     if (body.destinationName !== undefined) updates.destinationName = body.destinationName;
     if (body.cityName !== undefined) updates.cityName = body.cityName;
     if (body.description !== undefined) updates.description = body.description;
     if (body.shortDesc !== undefined) updates.shortDesc = body.shortDesc;
-    if (body.images !== undefined) updates.images = JSON.stringify(body.images);
+    if (body.images !== undefined) updates.images = JSON.stringify(Array.isArray(body.images) ? body.images : []);
     if (body.duration !== undefined) updates.duration = body.duration;
     if (body.difficulty !== undefined) updates.difficulty = body.difficulty;
     if (body.groupSize !== undefined) updates.groupSize = String(body.groupSize);

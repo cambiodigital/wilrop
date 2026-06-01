@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Mountain,
+  ImagePlus,
   Plus,
   Pencil,
   Trash2,
@@ -63,6 +64,12 @@ interface OwnExcursion {
   isTemplate: boolean;
 }
 
+interface DestinationOption {
+  id: string;
+  name: string;
+  region: string;
+}
+
 const emptyForm = {
   name: '',
   destinationId: '',
@@ -79,6 +86,7 @@ const emptyForm = {
   excludes: '',
   requirements: '',
   category: '',
+  images: [] as string[],
   active: false,
 };
 
@@ -96,7 +104,9 @@ export default function ResellerOwnExcursions() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [destinationOptions, setDestinationOptions] = useState<DestinationOption[]>([]);
 
   const fetchExcursions = useCallback(async () => {
     setLoading(true);
@@ -114,6 +124,26 @@ export default function ResellerOwnExcursions() {
   useEffect(() => {
     fetchExcursions();
   }, [fetchExcursions]);
+
+  useEffect(() => {
+    async function fetchDestinations() {
+      try {
+        const res = await fetch('/api/public/destinations');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setDestinationOptions(json.data.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            region: d.region || '',
+          })));
+        }
+      } catch {
+        // Optional helper data, form can still be completed manually.
+      }
+    }
+
+    fetchDestinations();
+  }, []);
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -139,9 +169,59 @@ export default function ResellerOwnExcursions() {
       excludes: exc.excludes.join('\n'),
       requirements: exc.requirements.join('\n'),
       category: exc.category,
+      images: exc.images,
       active: exc.active,
     });
     setDialogOpen(true);
+  };
+
+  const handleDestinationChange = (destinationId: string) => {
+    const selected = destinationOptions.find((d) => d.id === destinationId);
+    setForm((f) => ({
+      ...f,
+      destinationId,
+      destinationName: selected?.name || f.destinationName,
+      cityName: selected?.name || f.cityName,
+    }));
+  };
+
+  const handleImagesUpload = async (files: FileList | File[]) => {
+    const validFiles = Array.from(files).filter((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} no es una imagen válida`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} supera los 5 MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of validFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const json = await res.json();
+        if (!json.success || !json.fileUrl) {
+          throw new Error(json.error || 'No se pudo subir la imagen');
+        }
+        uploadedUrls.push(json.fileUrl);
+      }
+
+      setForm((f) => ({ ...f, images: [...f.images, ...uploadedUrls] }));
+      toast.success(`${uploadedUrls.length} imagen(es) subida(s)`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al subir imágenes');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -168,6 +248,7 @@ export default function ResellerOwnExcursions() {
         excludes: splitLines(form.excludes),
         requirements: splitLines(form.requirements),
         category: form.category,
+        images: form.images,
         active: form.active,
       };
 
@@ -375,7 +456,7 @@ export default function ResellerOwnExcursions() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="force-light sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-slate-900 border-slate-200">
           <DialogHeader>
             <DialogTitle>{editingId ? 'Editar excursión' : 'Nueva excursión'}</DialogTitle>
             <DialogDescription>
@@ -406,6 +487,28 @@ export default function ResellerOwnExcursions() {
                   placeholder="Ej: Santa Marta"
                 />
               </div>
+
+              {destinationOptions.length > 0 && (
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="exc-destination-id">Destino relacionado</Label>
+                  <Select value={form.destinationId || 'none'} onValueChange={(value) => handleDestinationChange(value === 'none' ? '' : value)}>
+                    <SelectTrigger id="exc-destination-id">
+                      <SelectValue placeholder="Selecciona un destino" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin destino relacionado</SelectItem>
+                      {destinationOptions.map((destination) => (
+                        <SelectItem key={destination.id} value={destination.id}>
+                          {destination.name}{destination.region ? `, ${destination.region}` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Ayuda a que la excursión aparezca agrupada en tu tienda de marca blanca.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label htmlFor="exc-dest">Destino</Label>
@@ -490,6 +593,49 @@ export default function ResellerOwnExcursions() {
                   }
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Imágenes ({form.images.length})</Label>
+              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
+                <ImagePlus className="mx-auto mb-2 size-7 text-slate-400" />
+                <p className="text-sm text-slate-600">Subí imágenes de la excursión</p>
+                <p className="mt-1 text-xs text-slate-400">PNG, JPG, WebP o GIF, máximo 5 MB cada una</p>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={uploading}
+                  className="mt-3 bg-white"
+                  onChange={(event) => {
+                    if (event.target.files) handleImagesUpload(event.target.files);
+                    event.currentTarget.value = '';
+                  }}
+                />
+                {uploading && (
+                  <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Subiendo imágenes...
+                  </div>
+                )}
+              </div>
+              {form.images.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {form.images.map((image, index) => (
+                    <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                      <img src={image} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }))}
+                        className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-red-50 hover:text-red-600"
+                        aria-label="Eliminar imagen"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
