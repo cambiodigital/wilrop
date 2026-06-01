@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPanelSessionCookieNameEdge, verifyPanelSessionTokenEdge, type PanelRole } from './src/lib/panel-auth-edge'
 
 // ─── Configuration ───────────────────────────────────────────────
-const MAIN_DOMAIN = 'wilrop.com.co'
-const PRODUCTION_IP = '212.227.107.69'
+// Detect main domain from NEXTAUTH_URL (set in Coolify env vars).
+// Falls back to 'wilrop.com.co' if not set.
+const MAIN_DOMAIN = (() => {
+  const url = process.env.NEXTAUTH_URL
+  if (url) {
+    try {
+      return new URL(url).hostname.toLowerCase().replace(/^www\./, '')
+    } catch {
+      // invalid URL, fall through
+    }
+  }
+  return 'wilrop.com.co'
+})()
 
 const PROTECTED_PREFIXES: { prefix: string; role: PanelRole }[] = [
   { prefix: '/admin', role: 'admin' },
