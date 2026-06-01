@@ -92,6 +92,8 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
   const allHotels = [...reseller.hotels, ...catalogHotels]
   const allPackages = [...reseller.packages, ...catalogPackages]
   const allExcursions = [...reseller.excursions, ...catalogExcursions]
+  const allTransport = [...reseller.transportServices]
+  const allCruises = [...reseller.cruises]
 
   // Destinations that contain at least one of these products
   const destinationIds = new Set<string>()
@@ -123,8 +125,8 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
       hotels={allHotels}
       packages={allPackages}
       excursions={allExcursions}
-      cruises={reseller.cruises}
-      transportServices={reseller.transportServices}
+      cruises={allCruises}
+      transportServices={allTransport}
       destinations={destinations}
     />
   )

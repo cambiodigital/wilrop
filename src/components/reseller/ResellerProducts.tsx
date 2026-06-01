@@ -13,6 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ResellerOwnExcursions from './ResellerOwnExcursions';
+import ResellerOwnTransport from './ResellerOwnTransport';
+import ResellerOwnHotels from './ResellerOwnHotels';
+import ResellerOwnPackages from './ResellerOwnPackages';
+import ResellerOwnCruises from './ResellerOwnCruises';
 
 interface HotelProduct {
   id: string;
@@ -167,6 +171,10 @@ export default function ResellerProducts() {
       className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8"
     >
       <ResellerOwnExcursions />
+      <ResellerOwnTransport />
+      <ResellerOwnHotels />
+      <ResellerOwnPackages />
+      <ResellerOwnCruises />
 
       <div className="border-t pt-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
