@@ -687,6 +687,35 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── Force light theme ────────────────────────────────────────
+ *  Used by WhiteLabelCreator preview/share to prevent dark-mode
+ *  inheritance. Resets CSS variables to the admin light palette.
+ * ────────────────────────────────────────────────────────────── */
+.force-light {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #c8a96a;
+  --primary-foreground: #162a45;
+  --secondary: #eef2f7;
+  --secondary-foreground: #162a45;
+  --muted: #f1f5f9;
+  --muted-foreground: #334155;
+  --accent: #eef2f7;
+  --accent-foreground: #162a45;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #b8964f;
+
+  background: #ffffff;
+  color: #0f172a;
+}
+
 /* ── Selection color (brand amber) ───────────────────────────── */
 ::selection {
   background: color-mix(in srgb, var(--brand-gold) 35%, transparent);

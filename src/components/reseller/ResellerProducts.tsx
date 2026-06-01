@@ -99,6 +99,7 @@ export default function ResellerProducts() {
   const [cruises, setCruises] = useState<CruiseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [resellerCode, setResellerCode] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -125,7 +126,20 @@ export default function ResellerProducts() {
       }
     }
 
+    async function fetchResellerCode() {
+      try {
+        const res = await fetch('/api/reseller/profile');
+        const json = await res.json();
+        if (json.success && json.data?.code) {
+          setResellerCode(json.data.code);
+        }
+      } catch {
+        // ignore — link will work without reseller context
+      }
+    }
+
     fetchProducts();
+    fetchResellerCode();
   }, []);
 
   const filteredHotels = useMemo(
@@ -155,10 +169,10 @@ export default function ResellerProducts() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Productos para Revender</h1>
-          <p className="mt-1 text-sm text-gray-500">Arma paquetes terrestres con productos activos del admin.</p>
+          <p className="mt-1 text-sm text-gray-500">Productos activos disponibles para revender y armar paquetes personalizados.</p>
         </div>
         <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Link href="/paquetes/armar">
+          <Link href={resellerCode ? `/paquetes/armar?reseller=${resellerCode}` : '/paquetes/armar'}>
             <Package className="mr-2 size-4" />
             Armar paquete terrestre
           </Link>
@@ -328,7 +342,7 @@ function ProductGrid({ children, loading, empty }: { children: React.ReactNode; 
   }
 
   if (empty) {
-    return <div className="rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center text-sm text-gray-500">No hay productos con esos filtros.</div>;
+    return <div className="rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center text-sm text-gray-500">No hay productos disponibles en esta categoría. Si esperabas ver productos, contacta al administrador para que los asigne a tu catálogo.</div>;
   }
 
   return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{children}</div>;

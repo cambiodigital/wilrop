@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const resellerId = resellerId;
+    const resellerId = session.id;
     const url = new URL(request.url);
     const sourceType = url.searchParams.get('sourceType');
 
@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     const items: Array<Record<string, unknown>> = [];
 
     // ─── Destinations ──────────────────────────────────────────────
+    // Destinations are admin-managed templates only (no resellerId on model)
     if (!sourceType || sourceType === 'destination') {
       const destinations = await db.destination.findMany({
         where: { active: true, isTemplate: true },

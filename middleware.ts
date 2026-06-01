@@ -3,7 +3,7 @@ import { getPanelSessionCookieNameEdge, verifyPanelSessionTokenEdge, type PanelR
 
 // ─── Configuration ───────────────────────────────────────────────
 // Detect main domain from NEXTAUTH_URL (set in Coolify env vars).
-// Falls back to 'wilrop.com.co' if not set.
+// Falls back to 'wilropgroup.com' if not set.
 const MAIN_DOMAIN = (() => {
   const url = process.env.NEXTAUTH_URL
   if (url) {
@@ -13,7 +13,7 @@ const MAIN_DOMAIN = (() => {
       // invalid URL, fall through
     }
   }
-  return 'wilrop.com.co'
+  return 'wilropgroup.com'
 })()
 
 const PROTECTED_PREFIXES: { prefix: string; role: PanelRole }[] = [
@@ -73,7 +73,7 @@ function isMainDomain(hostname: string): boolean {
 
 function extractSubdomain(hostname: string): string | null {
   const normalized = normalizeHostname(hostname)
-  // For *.wilrop.com.co subdomains (not the main domain itself)
+  // For *.wilropgroup.com subdomains (not the main domain itself)
   if (normalized.endsWith(`.${MAIN_DOMAIN}`)) {
     const prefix = normalized.replace(`.${MAIN_DOMAIN}`, '')
     if (prefix && !prefix.includes('.')) {
@@ -115,7 +115,7 @@ export async function middleware(request: NextRequest) {
     const rewriteUrl = request.nextUrl.clone()
 
     if (subdomain) {
-      // Subdomain-based resolution: travelagency.wilrop.com.co -> /brand?subdomain=travelagency
+      // Subdomain-based resolution: travelagency.wilropgroup.com -> /brand?subdomain=travelagency
       rewriteUrl.pathname = '/brand'
       rewriteUrl.searchParams.set('_subdomain', subdomain)
     } else {

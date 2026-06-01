@@ -391,7 +391,10 @@ export default function DynamicPackager() {
                   {!transport.loading && !transport.error && transport.services.length === 0 && (
                     <EmptyState
                       title="No hay transportes disponibles"
-                      description={transport.cityId ? 'Intenta con otra ciudad o salta este paso' : 'No se encontraron servicios de transporte'}
+                      description={reseller.isReseller
+                        ? 'No hay transportes en tu catálogo para esta ciudad. Agrega transportes desde tu panel de catálogo.'
+                        : transport.cityId ? 'Intenta con otra ciudad o salta este paso' : 'No se encontraron servicios de transporte'}
+                      action={reseller.isReseller ? { label: 'Ver mi catálogo', onClick: () => window.open('/reseller/catalog', '_blank') } : undefined}
                     />
                   )}
                   {!transport.loading && !transport.error && transport.services.length > 0 && (
@@ -493,6 +496,20 @@ export default function DynamicPackager() {
                 </div>
 
                 <div className="space-y-4">
+                  {hotel.loading && <StepLoadingSkeleton />}
+                  {hotel.error && !hotel.loading && (
+                    <ErrorBanner message={hotel.error} onRetry={() => hotel.refetch?.(hotel.cityId)} />
+                  )}
+                  {!hotel.loading && !hotel.error && hotel.filteredHotels.length === 0 && (
+                    <EmptyState
+                      title="No hay hoteles disponibles"
+                      description={reseller.isReseller
+                        ? 'No hay hoteles en tu catálogo para esta ciudad. Agrega hoteles desde tu panel de catálogo.'
+                        : hotel.cityId ? 'Intenta con otra ciudad o salta este paso' : 'No se encontraron hoteles disponibles'}
+                      action={reseller.isReseller ? { label: 'Ver mi catálogo', onClick: () => window.open('/reseller/catalog', '_blank') } : undefined}
+                    />
+                  )}
+                  {!hotel.loading && !hotel.error && hotel.filteredHotels.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Ciudad</Label>
@@ -518,6 +535,7 @@ export default function DynamicPackager() {
                       </Select>
                     </div>
                   </div>
+                  )}
 
                   {hotel.selectedHotel && (
                     <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
@@ -604,6 +622,20 @@ export default function DynamicPackager() {
                 </div>
 
                 <div className="space-y-4">
+                  {excursion.loading && <StepLoadingSkeleton />}
+                  {excursion.error && !excursion.loading && (
+                    <ErrorBanner message={excursion.error} onRetry={() => excursion.refetch?.()} />
+                  )}
+                  {!excursion.loading && !excursion.error && excursion.filteredExcursions.length === 0 && (
+                    <EmptyState
+                      title="No hay excursiones disponibles"
+                      description={reseller.isReseller
+                        ? 'No hay excursiones en tu catálogo. Agrega excursiones desde tu panel de catálogo.'
+                        : 'No se encontraron excursiones disponibles'}
+                      action={reseller.isReseller ? { label: 'Ver mi catálogo', onClick: () => window.open('/reseller/catalog', '_blank') } : undefined}
+                    />
+                  )}
+                  {!excursion.loading && !excursion.error && excursion.filteredExcursions.length > 0 && (
                   <div className="space-y-2">
                     <Label>Excursión</Label>
                     <Select value={excursion.serviceId} onValueChange={excursion.setServiceId}>
@@ -617,6 +649,7 @@ export default function DynamicPackager() {
                       </SelectContent>
                     </Select>
                   </div>
+                  )}
 
                   {excursion.selectedExcursion && (
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">

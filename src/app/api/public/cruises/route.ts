@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
     }
 
     const resellerPanel = searchParams.get('resellerPanel') === 'true';
+    const resellerIdParam = searchParams.get('resellerId');
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
@@ -84,6 +85,23 @@ export async function GET(request: NextRequest) {
       resellerIdFilter = session.id;
     }
 
+    // Public reseller catalog filtering (from package builder link)
+    let catalogCruiseIds: string[] | undefined;
+    if (resellerIdParam && !resellerPanel) {
+      const catalogItems = await db.resellerCatalog.findMany({
+        where: {
+          resellerId: resellerIdParam,
+          sourceType: 'cruise',
+          active: true,
+        },
+        select: { sourceId: true },
+      });
+      catalogCruiseIds = catalogItems.map((c) => c.sourceId);
+      if (catalogCruiseIds.length === 0) {
+        resellerIdFilter = resellerIdParam;
+      }
+    }
+
     // Build Prisma query filters
     const where: any = {
       active: true,
@@ -92,6 +110,12 @@ export async function GET(request: NextRequest) {
 
     if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
+    }
+
+    if (catalogCruiseIds && catalogCruiseIds.length > 0) {
+      where.id = { in: catalogCruiseIds };
+    } else if (cruiseIds) {
+      where.id = { in: cruiseIds };
     }
 
     if (featured) {
@@ -107,10 +131,6 @@ export async function GET(request: NextRequest) {
         ...(priceMin !== undefined ? { gte: priceMin } : {}),
         ...(priceMax !== undefined ? { lte: priceMax } : {}),
       };
-    }
-
-    if (cruiseIds) {
-      where.id = { in: cruiseIds };
     }
 
     // Query cruises including cabins

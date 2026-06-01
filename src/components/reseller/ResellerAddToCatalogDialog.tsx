@@ -153,8 +153,9 @@ export function ResellerAddToCatalogDialog({
         delete next[product.sourceId]
         return next
       })
-    } catch {
-      toast.error(`No se pudo agregar ${product.name}`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `No se pudo agregar ${product.name}`
+      toast.error(message)
     } finally {
       setAddingId(null)
     }
@@ -290,7 +291,9 @@ export function ResellerAddToCatalogDialog({
 
                     {filteredProducts.filter((p) => tab.value === 'all' || p.sourceType === tab.value).length === 0 && (
                       <div className="text-center py-10 text-gray-400">
-                        No hay productos disponibles en esta categoría.
+                        {products.length === 0
+                          ? 'No hay productos disponibles para agregar. Si esperabas ver productos, contacta al administrador para que los active o asigne a tu catálogo.'
+                          : 'No se encontraron productos en esta categoría con los filtros aplicados.'}
                       </div>
                     )}
                   </TabsContent>

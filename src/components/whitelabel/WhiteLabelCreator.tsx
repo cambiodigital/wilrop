@@ -205,7 +205,7 @@ function MiniPreview({
     .toUpperCase();
 
   return (
-    <div className="w-full h-full bg-background rounded-lg overflow-hidden border border-border shadow-sm flex flex-col">
+    <div className="w-full h-full bg-background rounded-lg overflow-hidden border border-border shadow-sm flex flex-col force-light">
       {/* Fake browser bar */}
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/80 border-b border-border">
         <div className="flex gap-1.5">
@@ -216,7 +216,7 @@ function MiniPreview({
         <div className="flex-1 mx-2">
           <div className="h-5 bg-background rounded px-2 py-0.5 text-[9px] text-muted-foreground flex items-center">
             <Globe className="w-2.5 h-2.5 mr-1" />
-            www.{config.storeName.toLowerCase().replace(/\s+/g, '')}.wilrop.com.co
+            www.{getStoreSlug(config.subdomain, config.storeName)}.wilropgroup.com
           </div>
         </div>
       </div>
@@ -368,6 +368,14 @@ function MiniPreview({
   );
 }
 
+function toSlug(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9-]/g, '');
+}
+
+function getStoreSlug(subdomain: string | undefined, storeName: string): string {
+  return subdomain?.trim() || toSlug(storeName) || 'tienda';
+}
+
 // ─── Main Component ───────────────────────────────────────────────
 export default function WhiteLabelCreator() {
   const { config, updateConfig, resetConfig, applyTheme } = useWhiteLabelStore();
@@ -441,6 +449,7 @@ export default function WhiteLabelCreator() {
             ...(d.selectedDestinations ? { selectedDestinations: d.selectedDestinations } : {}),
             ...(d.whatsappNumber ? { whatsappNumber: d.whatsappNumber } : {}),
             ...(d.commissionRate ? { commissionRate: d.commissionRate } : {}),
+            ...(d.subdomain ? { subdomain: d.subdomain } : {}),
           });
         }
       } catch {
@@ -552,7 +561,7 @@ export default function WhiteLabelCreator() {
     setActiveTheme(null);
   };
 
-  const mockUrl = `${config.storeName.toLowerCase().replace(/\s+/g, '')}.wilrop.com.co`;
+  const mockUrl = `${getStoreSlug(config.subdomain, config.storeName)}.wilropgroup.com`;
 
   if (loading) {
     return (
@@ -563,7 +572,7 @@ export default function WhiteLabelCreator() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 force-light">
       {/* Top Bar */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -983,7 +992,7 @@ export default function WhiteLabelCreator() {
                         Compartir
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="force-light">
                       <DialogHeader>
                         <DialogTitle>Compartir tu Tienda</DialogTitle>
                         <DialogDescription>

@@ -11,6 +11,7 @@ export interface WhiteLabelConfig {
   selectedDestinations: string[];
   whatsappNumber: string;
   commissionRate: number;
+  subdomain: string;
 }
 
 interface WhiteLabelState {
@@ -48,6 +49,7 @@ const defaultConfig: WhiteLabelConfig = {
   selectedDestinations: destinations.map(d => d.id),
   whatsappNumber: '',
   commissionRate: 12,
+  subdomain: '',
 };
 
 export const useWhiteLabelStore = create<WhiteLabelState>((set) => ({
