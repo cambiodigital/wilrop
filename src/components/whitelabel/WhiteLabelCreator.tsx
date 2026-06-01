@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   Upload,
@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Monitor,
   Smartphone,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,10 +41,29 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useWhiteLabelStore, colorPresets, themes } from '@/store/useWhiteLabelStore';
-import { destinations } from '@/data/destinations';
-import { packages, formatPrice } from '@/data/packages';
+import { formatCurrency } from '@/lib/currency';
 import { useToast } from '@/hooks/use-toast';
 
+// ─── Types ────────────────────────────────────────────────────────
+interface ApiDestination {
+  id: string;
+  name: string;
+  region: string;
+  description: string;
+  image: string;
+  priceFrom: number;
+}
+
+interface ApiPackage {
+  id: string;
+  title: string;
+  destinationName: string;
+  primaryDestinationId: string | null;
+  price: number;
+  duration: string;
+}
+
+// ─── ColorSwatch ──────────────────────────────────────────────────
 function ColorSwatch({
   color,
   isSelected,
@@ -77,7 +97,18 @@ function ColorSwatch({
   );
 }
 
-function LogoUpload({ logoUrl, onUpload, onRemove }: { logoUrl: string | null; onUpload: (file: File) => void; onRemove: () => void }) {
+// ─── LogoUpload ───────────────────────────────────────────────────
+function LogoUpload({
+  logoUrl,
+  onUpload,
+  onRemove,
+  uploading,
+}: {
+  logoUrl: string | null;
+  onUpload: (file: File) => void;
+  onRemove: () => void;
+  uploading: boolean;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -105,11 +136,15 @@ function LogoUpload({ logoUrl, onUpload, onRemove }: { logoUrl: string | null; o
     <div className="space-y-2">
       {logoUrl ? (
         <div className="relative w-full h-24 rounded-lg border border-border overflow-hidden bg-muted/50 flex items-center justify-center">
-          <img
-            src={logoUrl}
-            alt="Logo de la tienda"
-            className="max-h-20 max-w-[80%] object-contain"
-          />
+          {uploading ? (
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          ) : (
+            <img
+              src={logoUrl}
+              alt="Logo de la tienda"
+              className="max-h-20 max-w-[80%] object-contain"
+            />
+          )}
           <button
             onClick={onRemove}
             className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/90 flex items-center justify-center hover:bg-destructive hover:text-white transition-colors"
@@ -144,13 +179,22 @@ function LogoUpload({ logoUrl, onUpload, onRemove }: { logoUrl: string | null; o
   );
 }
 
-function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.getState>['config'] }) {
+// ─── MiniPreview ──────────────────────────────────────────────────
+function MiniPreview({
+  config,
+  destinations,
+  packages,
+}: {
+  config: ReturnType<typeof useWhiteLabelStore.getState>['config'];
+  destinations: ApiDestination[];
+  packages: ApiPackage[];
+}) {
   const selectedDestinations = destinations.filter((d) =>
     config.selectedDestinations.includes(d.id)
   );
   const previewDestinations = selectedDestinations.slice(0, 3);
   const previewPackages = packages.filter((p) =>
-    selectedDestinations.some((d) => d.id === p.destinationId)
+    p.primaryDestinationId && config.selectedDestinations.includes(p.primaryDestinationId)
   ).slice(0, 3);
 
   const initials = config.storeName
@@ -282,7 +326,7 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
                   className="w-10 h-10 rounded-md flex items-center justify-center text-white text-[8px] shrink-0"
                   style={{ backgroundColor: config.secondaryColor }}
                 >
-                  {destinations.find(d => d.id === pkg.destinationId)?.name.split(' ')[0] || 'Tour'}
+                  {pkg.destinationName.split(' ')[0] || 'Tour'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[9px] font-semibold truncate">{pkg.title}</div>
@@ -290,7 +334,7 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-[9px] font-bold" style={{ color: config.primaryColor }}>
-                    {formatPrice(pkg.price)}
+                    {formatCurrency(pkg.price)}
                   </div>
                   <div
                     className="text-[7px] font-medium text-white px-1.5 py-0.5 rounded mt-0.5 text-center"
@@ -324,15 +368,70 @@ function MiniPreview({ config }: { config: ReturnType<typeof useWhiteLabelStore.
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────
 export default function WhiteLabelCreator() {
   const { config, updateConfig, resetConfig, applyTheme } = useWhiteLabelStore();
   const router = useRouter();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-  const allSelected = config.selectedDestinations.length === destinations.length;
+  // Real data from API
+  const [destinations, setDestinations] = useState<ApiDestination[]>([]);
+  const [packages, setPackages] = useState<ApiPackage[]>([]);
+
+  // Load destinations and packages from API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [destRes, pkgRes] = await Promise.all([
+          fetch('/api/public/destinations'),
+          fetch('/api/public/packages'),
+        ]);
+        const destJson = await destRes.json();
+        const pkgJson = await pkgRes.json();
+        if (destJson.success) setDestinations(destJson.data);
+        if (pkgJson.success) setPackages(pkgJson.data);
+      } catch {
+        // silent — preview will just be empty
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Load saved white-label config from API
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/reseller/whitelabel');
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          updateConfig({
+            ...(d.storeName ? { storeName: d.storeName } : {}),
+            ...(d.slogan ? { slogan: d.slogan } : {}),
+            ...(d.logoUrl ? { logoUrl: d.logoUrl } : {}),
+            ...(d.primaryColor ? { primaryColor: d.primaryColor } : {}),
+            ...(d.secondaryColor ? { secondaryColor: d.secondaryColor } : {}),
+            ...(d.accentColor ? { accentColor: d.accentColor } : {}),
+            ...(d.selectedDestinations ? { selectedDestinations: d.selectedDestinations } : {}),
+            ...(d.whatsappNumber ? { whatsappNumber: d.whatsappNumber } : {}),
+            ...(d.commissionRate ? { commissionRate: d.commissionRate } : {}),
+          });
+        }
+      } catch {
+        // silent — use defaults
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadConfig();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const allSelected = destinations.length > 0 && config.selectedDestinations.length === destinations.length;
 
   const toggleAllDestinations = () => {
     if (allSelected) {
@@ -354,9 +453,29 @@ export default function WhiteLabelCreator() {
     }
   };
 
-  const handleLogoUpload = (file: File) => {
+  // Upload logo via /api/upload, get permanent URL
+  const handleLogoUpload = async (file: File) => {
+    // Show local preview immediately
     const objectUrl = URL.createObjectURL(file);
     updateConfig({ logoUrl: objectUrl });
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const json = await res.json();
+      if (json.success && json.fileUrl) {
+        URL.revokeObjectURL(objectUrl);
+        updateConfig({ logoUrl: json.fileUrl });
+      } else {
+        toast({ title: 'Error al subir el logo', description: json.error || 'Intenta de nuevo', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error al subir el logo', description: 'No se pudo conectar con el servidor', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleRemoveLogo = () => {
@@ -366,11 +485,36 @@ export default function WhiteLabelCreator() {
     updateConfig({ logoUrl: null });
   };
 
-  const handleSave = () => {
-    toast({
-      title: 'Cambios guardados',
-      description: 'La configuración de tu tienda se ha guardado correctamente.',
-    });
+  // Save config via API
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/reseller/whitelabel', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeName: config.storeName,
+          slogan: config.slogan,
+          logoUrl: config.logoUrl,
+          primaryColor: config.primaryColor,
+          secondaryColor: config.secondaryColor,
+          accentColor: config.accentColor,
+          selectedDestinations: config.selectedDestinations,
+          whatsappNumber: config.whatsappNumber,
+          commissionRate: config.commissionRate,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: 'Cambios guardados', description: 'La configuración de tu tienda se ha guardado correctamente.' });
+      } else {
+        toast({ title: 'Error al guardar', description: json.error || 'Intenta de nuevo', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error al guardar', description: 'No se pudo conectar con el servidor', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleShare = () => {
@@ -388,6 +532,14 @@ export default function WhiteLabelCreator() {
   };
 
   const mockUrl = `${config.storeName.toLowerCase().replace(/\s+/g, '')}.wilrop.com.co`;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -482,6 +634,7 @@ export default function WhiteLabelCreator() {
                     logoUrl={config.logoUrl}
                     onUpload={handleLogoUpload}
                     onRemove={handleRemoveLogo}
+                    uploading={uploading}
                   />
                 </div>
 
@@ -660,42 +813,48 @@ export default function WhiteLabelCreator() {
                 </div>
 
                 <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
-                  {destinations.map((dest) => {
-                    const isSelected = config.selectedDestinations.includes(dest.id);
-                    return (
-                      <motion.div
-                        key={dest.id}
-                        layout
-                        className={`flex items-center gap-3 py-2.5 px-3 rounded-lg border transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-primary/20 bg-primary/5'
-                            : 'border-transparent hover:bg-muted/30'
-                        }`}
-                        onClick={() => toggleDestination(dest.id)}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleDestination(dest.id)}
-                          className="pointer-events-none"
-                        />
-                        <div
-                          className="w-8 h-8 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
-                          style={{ backgroundColor: isSelected ? config.primaryColor : '#94a3b8' }}
+                  {destinations.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">
+                      No hay destinos disponibles
+                    </p>
+                  ) : (
+                    destinations.map((dest) => {
+                      const isSelected = config.selectedDestinations.includes(dest.id);
+                      return (
+                        <motion.div
+                          key={dest.id}
+                          layout
+                          className={`flex items-center gap-3 py-2.5 px-3 rounded-lg border transition-all duration-200 cursor-pointer ${
+                            isSelected
+                              ? 'border-primary/20 bg-primary/5'
+                              : 'border-transparent hover:bg-muted/30'
+                          }`}
+                          onClick={() => toggleDestination(dest.id)}
                         >
-                          {dest.name[0]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{dest.name}</div>
-                          <div className="text-xs text-muted-foreground">{dest.region}</div>
-                        </div>
-                        {isSelected && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                            <Check className="w-4 h-4 text-primary" />
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleDestination(dest.id)}
+                            className="pointer-events-none"
+                          />
+                          <div
+                            className="w-8 h-8 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{ backgroundColor: isSelected ? config.primaryColor : '#94a3b8' }}
+                          >
+                            {dest.name[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{dest.name}</div>
+                            <div className="text-xs text-muted-foreground">{dest.region}</div>
+                          </div>
+                          {isSelected && (
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                              <Check className="w-4 h-4 text-primary" />
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -746,11 +905,11 @@ export default function WhiteLabelCreator() {
                 <div className="rounded-lg bg-muted/50 p-3">
                   <div className="text-xs font-medium mb-2">Estimación de ganancias</div>
                   <div className="grid grid-cols-3 gap-2">
-                    {packages.filter(p => config.selectedDestinations.includes(p.destinationId)).slice(0, 3).map(pkg => (
+                    {packages.filter(p => p.primaryDestinationId && config.selectedDestinations.includes(p.primaryDestinationId)).slice(0, 3).map(pkg => (
                       <div key={pkg.id} className="text-center">
                         <div className="text-xs text-muted-foreground truncate">{pkg.title.split(' ').slice(0, 2).join(' ')}</div>
                         <div className="text-sm font-bold" style={{ color: config.secondaryColor }}>
-                          {formatPrice(Math.round(pkg.price * config.commissionRate / 100))}
+                          {formatCurrency(Math.round(pkg.price * config.commissionRate / 100))}
                         </div>
                       </div>
                     ))}
@@ -790,8 +949,9 @@ export default function WhiteLabelCreator() {
                     variant="outline"
                     className="h-10 text-sm"
                     onClick={handleSave}
+                    disabled={saving}
                   >
-                    <Save className="w-4 h-4 mr-2" />
+                    {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Guardar
                   </Button>
 
@@ -846,7 +1006,7 @@ export default function WhiteLabelCreator() {
                 <span className="text-sm font-medium text-muted-foreground">Vista Previa en Tiempo Real</span>
               </div>
               <div className="rounded-xl overflow-hidden shadow-lg border border-border bg-white">
-                <MiniPreview config={config} />
+                <MiniPreview config={config} destinations={destinations} packages={packages} />
               </div>
             </div>
           </div>

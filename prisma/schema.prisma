@@ -288,6 +288,7 @@ model Reseller {
   lastLoginAt       DateTime?
   customDomain      String?   @unique
   subdomain         String?   @unique
+  whiteLabelConfig  String    @default("{}") // JSON: storeName, slogan, colors, etc.
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
