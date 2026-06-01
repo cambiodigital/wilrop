@@ -8,28 +8,28 @@ context: |
   Architecture: App Router pages/API routes with role areas for public portal, admin, reseller, and subagent panels.
   Data/auth: Prisma singleton in src/lib/db.ts; custom HMAC panel sessions guarded by middleware.ts.
   UI/state: shadcn/Radix primitives, brand tokens in globals.css, Zustand, TanStack React Query, React Hook Form, Zod.
-  Testing: no automated test runner configured; manual E2E docs and commands for lint, build, and TypeScript checking exist.
+  Testing: Node.js built-in test runner (node:test) with 1398-line unit test suite covering catalog, normalization, destination matching, and relation helpers. No coverage tool configured.
   Style: Spanish public routes, @/* imports, strict TypeScript with noImplicitAny disabled, relaxed ESLint rules.
 
-strict_tdd: false
+strict_tdd: true
 
 review:
   changed_line_budget: 400
   chained_pr_strategy: ask-before-exceeding-budget
 
 testing:
-  strict_tdd: false
-  detected: 2026-05-21
-  reason: No Jest/Vitest/Playwright/Cypress test runner, test script, or test files were found; strict TDD cannot be enforced automatically.
+  strict_tdd: true
+  detected: 2026-06-01
+  reason: Node.js built-in test runner (node:test) detected via test:catalog script and tests/catalog-pr2.test.cjs (1398 lines). Strict TDD enabled by runner fallback.
   runner:
-    available: false
-    framework: null
-    command: null
+    available: true
+    framework: node:test
+    command: bun run test:catalog
   layers:
     unit:
-      available: false
-      tool: null
-      evidence: No *.{test,spec}.{js,jsx,ts,tsx} files or unit test dependencies/configs found.
+      available: true
+      tool: node:test + node:assert/strict
+      evidence: tests/catalog-pr2.test.cjs with 1398 lines covering catalog normalization, destination matching, relation options, package/hotel/excursion/transport/cruise normalization, and room type sync helpers.
     integration:
       available: false
       tool: null
@@ -75,14 +75,14 @@ rules:
   apply:
     instructions:
       - Follow existing App Router, shadcn/Radix, Prisma, and @/* import patterns.
-      - Do not assume automated tests exist; add/enable the smallest useful test capability before claiming TDD.
-    tdd: false
-    test_command: ""
+      - Run `bun run test:catalog` before claiming task complete.
+    tdd: true
+    test_command: bun run test:catalog
     lint_command: bun run lint
     typecheck_command: bunx tsc --noEmit
     build_command: bun run build
   verify:
-    test_command: ""
+    test_command: bun run test:catalog
     lint_command: bun run lint
     typecheck_command: bunx tsc --noEmit
     build_command: bun run build
