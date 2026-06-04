@@ -76,7 +76,9 @@ export function ImageGallery({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2 text-foreground">{label}</label>
+        <label className="block text-sm font-medium mb-2 text-foreground">
+          {label}
+        </label>
 
         <Input
           type="file"
@@ -120,7 +122,7 @@ export function ImageGallery({
                 >
                   ✕
                 </button>
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-md" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all rounded-md" />
               </div>
             ))}
           </div>
