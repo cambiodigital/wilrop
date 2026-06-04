@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 function parseHighlights(highlights: string): string[] {
   try {
@@ -19,10 +19,10 @@ function formatDestination(dest: any) {
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function GET() {
@@ -35,17 +35,17 @@ export async function GET() {
       where: {
         isTemplate: realCount > 0 ? false : true,
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
 
     const parsed = destinations.map(formatDestination);
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching destinations:', error);
+    console.error("Error fetching destinations:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch destinations' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch destinations" },
+      { status: 500 },
     );
   }
 }
@@ -66,12 +66,16 @@ export async function POST(request: NextRequest) {
       active,
       order,
       slug,
+      resellerId,
     } = body;
 
     if (!name || !region || !description || !image) {
       return NextResponse.json(
-        { success: false, error: 'Name, region, description, and image are required' },
-        { status: 400 }
+        {
+          success: false,
+          error: "Name, region, description, and image are required",
+        },
+        { status: 400 },
       );
     }
 
@@ -91,18 +95,19 @@ export async function POST(request: NextRequest) {
         active: active ?? true,
         isTemplate: false,
         order: order ?? 0,
+        resellerId: resellerId || null,
       },
     });
 
     return NextResponse.json(
       { success: true, data: formatDestination(destination) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating destination:', error);
+    console.error("Error creating destination:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create destination' },
-      { status: 500 }
+      { success: false, error: "Failed to create destination" },
+      { status: 500 },
     );
   }
 }

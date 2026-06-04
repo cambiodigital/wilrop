@@ -48,8 +48,12 @@ model Destination {
   transportDestinationRefs TransportService[]            @relation("TransportTargetDestination")
   cruisePrimaryRefs        Cruise[]                      @relation("CruisePrimaryDestination")
 
+  resellerId String?
+  reseller   Reseller? @relation(fields: [resellerId], references: [id], onDelete: SetNull)
+
   @@index([active, isTemplate])
   @@index([order])
+  @@index([resellerId])
 }
 
 // ─── Hotels ──────────────────────────────────────────────────────
@@ -302,6 +306,7 @@ model Reseller {
   packages          TravelPackage[]
   transportServices TransportService[]
   cruises           Cruise[]
+  destinations      Destination[]
 
   @@index([active, approvalStatus])
   @@index([sellerLevel])

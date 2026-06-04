@@ -1,17 +1,22 @@
-'use client';
-import { formatCurrency } from '@/lib/currency'
+"use client";
+import { formatCurrency } from "@/lib/currency";
 
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,14 +24,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,17 +41,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-;
-import { Plus, Search, Pencil, Trash2, Star, MapPin, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/alert-dialog";
+import {
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  Star,
+  MapPin,
+  Upload,
+  ImagePlus,
+  X,
+  RefreshCw,
+  ExternalLink,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   getPackageRelationSelectorSmokeState,
   normalizePackageRelationOptions,
   toggleSelectedId,
   type PackageRelationOption,
-} from '@/lib/admin/package-relation-ui';
+} from "@/lib/admin/package-relation-ui";
 
 interface Destination {
   id: string;
@@ -61,35 +77,37 @@ interface Destination {
   priceFrom: number;
   active: boolean;
   order: number;
+  resellerId?: string | null;
 }
 
-const emptyDestination: Omit<Destination, 'id'> = {
-  name: '',
-  slug: '',
-  region: '',
-  description: '',
-  image: '',
+const emptyDestination: Omit<Destination, "id"> = {
+  name: "",
+  slug: "",
+  region: "",
+  description: "",
+  image: "",
   highlights: [],
   rating: 0,
   reviewCount: 0,
   priceFrom: 0,
   active: true,
   order: 0,
+  resellerId: "",
 };
 
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 export default function AdminDestinations() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -101,74 +119,128 @@ export default function AdminDestinations() {
   const [form, setForm] = useState(emptyDestination);
 
   // Relational options
-  const [packageOptions, setPackageOptions] = useState<PackageRelationOption[]>([]);
+  const [packageOptions, setPackageOptions] = useState<PackageRelationOption[]>(
+    [],
+  );
   const [hotelOptions, setHotelOptions] = useState<PackageRelationOption[]>([]);
-  const [excursionOptions, setExcursionOptions] = useState<PackageRelationOption[]>([]);
-  const [transportOptions, setTransportOptions] = useState<PackageRelationOption[]>([]);
+  const [excursionOptions, setExcursionOptions] = useState<
+    PackageRelationOption[]
+  >([]);
+  const [transportOptions, setTransportOptions] = useState<
+    PackageRelationOption[]
+  >([]);
 
   // Selected relational IDs for current destination
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
   const [selectedHotelIds, setSelectedHotelIds] = useState<string[]>([]);
-  const [selectedExcursionIds, setSelectedExcursionIds] = useState<string[]>([]);
-  const [selectedTransportIds, setSelectedTransportIds] = useState<string[]>([]);
+  const [selectedExcursionIds, setSelectedExcursionIds] = useState<string[]>(
+    [],
+  );
+  const [selectedTransportIds, setSelectedTransportIds] = useState<string[]>(
+    [],
+  );
 
-  const [selectorLoading, setSelectorLoading] = useState<Record<string, boolean>>({});
-  const [selectorErrors, setSelectorErrors] = useState<Record<string, string | null>>({});
-  const [highlightsStr, setHighlightsStr] = useState('');
+  const [selectorLoading, setSelectorLoading] = useState<
+    Record<string, boolean>
+  >({});
+  const [selectorErrors, setSelectorErrors] = useState<
+    Record<string, string | null>
+  >({});
+  const [highlightsStr, setHighlightsStr] = useState("");
+  const [resellers, setResellers] = useState<any[]>([]);
 
-  const fetchDestinationRelations = useCallback(async (destinationId: string) => {
-    try {
-      const res = await fetch(`/api/admin/destinations/${destinationId}/relations`);
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || json.success === false) return;
-      
-      const rels = json.data;
-      setSelectedPackageIds((rels.packages || []).map((r: any) => r.packageId));
-      setSelectedHotelIds((rels.hotels || []).map((r: any) => r.hotelId));
-      setSelectedExcursionIds((rels.excursions || []).map((r: any) => r.excursionId));
-      setSelectedTransportIds((rels.transportServices || []).map((r: any) => r.transportServiceId));
-    } catch (err) {
-      console.error('Error fetching destination relations:', err);
-    }
-  }, []);
+  const fetchDestinationRelations = useCallback(
+    async (destinationId: string) => {
+      try {
+        const res = await fetch(
+          `/api/admin/destinations/${destinationId}/relations`,
+        );
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) return;
 
-  const fetchRelationOptions = useCallback(async (
-    key: 'packages' | 'hotels' | 'excursions' | 'transportServices',
-    url: string,
-    setter: (options: PackageRelationOption[]) => void,
-  ) => {
-    setSelectorLoading((prev) => ({ ...prev, [key]: true }));
-    setSelectorErrors((prev) => ({ ...prev, [key]: null }));
-    try {
-      const res = await fetch(url);
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || json.success === false) throw new Error(json.error || 'Error al cargar opciones');
-      setter(normalizePackageRelationOptions(json));
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al cargar opciones';
-      setSelectorErrors((prev) => ({ ...prev, [key]: msg }));
-    } finally {
-      setSelectorLoading((prev) => ({ ...prev, [key]: false }));
-    }
-  }, []);
+        const rels = json.data;
+        setSelectedPackageIds(
+          (rels.packages || []).map((r: any) => r.packageId),
+        );
+        setSelectedHotelIds((rels.hotels || []).map((r: any) => r.hotelId));
+        setSelectedExcursionIds(
+          (rels.excursions || []).map((r: any) => r.excursionId),
+        );
+        setSelectedTransportIds(
+          (rels.transportServices || []).map((r: any) => r.transportServiceId),
+        );
+      } catch (err) {
+        console.error("Error fetching destination relations:", err);
+      }
+    },
+    [],
+  );
+
+  const fetchRelationOptions = useCallback(
+    async (
+      key: "packages" | "hotels" | "excursions" | "transportServices",
+      url: string,
+      setter: (options: PackageRelationOption[]) => void,
+    ) => {
+      setSelectorLoading((prev) => ({ ...prev, [key]: true }));
+      setSelectorErrors((prev) => ({ ...prev, [key]: null }));
+      try {
+        const res = await fetch(url);
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false)
+          throw new Error(json.error || "Error al cargar opciones");
+        setter(normalizePackageRelationOptions(json));
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : "Error al cargar opciones";
+        setSelectorErrors((prev) => ({ ...prev, [key]: msg }));
+      } finally {
+        setSelectorLoading((prev) => ({ ...prev, [key]: false }));
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!dialogOpen) return;
-    fetchRelationOptions('packages', '/api/admin/relation-options/packages?active=all', setPackageOptions);
-    fetchRelationOptions('hotels', '/api/admin/relation-options/hotels?active=all', setHotelOptions);
-    fetchRelationOptions('excursions', '/api/admin/relation-options/excursions?active=all', setExcursionOptions);
-    fetchRelationOptions('transportServices', '/api/admin/relation-options/transport-services?active=all', setTransportOptions);
+    fetchRelationOptions(
+      "packages",
+      "/api/admin/relation-options/packages?active=all",
+      setPackageOptions,
+    );
+    fetchRelationOptions(
+      "hotels",
+      "/api/admin/relation-options/hotels?active=all",
+      setHotelOptions,
+    );
+    fetchRelationOptions(
+      "excursions",
+      "/api/admin/relation-options/excursions?active=all",
+      setExcursionOptions,
+    );
+    fetchRelationOptions(
+      "transportServices",
+      "/api/admin/relation-options/transport-services?active=all",
+      setTransportOptions,
+    );
+
+    fetch("/api/admin/resellers")
+      .then((r) => r.json())
+      .then((json) => setResellers(json.data || json))
+      .catch(() => {
+        /* ignore */
+      });
   }, [dialogOpen, fetchRelationOptions]);
 
   const fetchDestinations = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/destinations');
-      if (!res.ok) throw new Error('Error al cargar destinos');
+      const res = await fetch("/api/admin/destinations");
+      if (!res.ok) throw new Error("Error al cargar destinos");
       const json = await res.json();
       setDestinations(json.data || json);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
+      const msg = err instanceof Error ? err.message : "Error";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -179,8 +251,8 @@ export default function AdminDestinations() {
     fetchDestinations();
   }, [fetchDestinations]);
 
-  const filtered = destinations.filter(
-    (d) => d.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = destinations.filter((d) =>
+    d.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleOpenCreate = () => {
@@ -190,7 +262,7 @@ export default function AdminDestinations() {
     setSelectedHotelIds([]);
     setSelectedExcursionIds([]);
     setSelectedTransportIds([]);
-    setHighlightsStr('');
+    setHighlightsStr("");
     setDialogOpen(true);
   };
 
@@ -208,69 +280,70 @@ export default function AdminDestinations() {
       priceFrom: dest.priceFrom,
       active: dest.active,
       order: dest.order,
+      resellerId: dest.resellerId ?? "",
     });
     setSelectedPackageIds([]);
     setSelectedHotelIds([]);
     setSelectedExcursionIds([]);
     setSelectedTransportIds([]);
-    setHighlightsStr(dest.highlights.join(', '));
+    setHighlightsStr(dest.highlights.join(", "));
     setDialogOpen(true);
     fetchDestinationRelations(dest.id);
   };
 
   const handleImageUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Solo se permiten archivos de imagen');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen no debe superar los 5 MB');
+      toast.error("La imagen no debe superar los 5 MB");
       return;
     }
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'destinations');
+      formData.append("file", file);
+      formData.append("folder", "destinations");
 
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al subir la imagen');
+        throw new Error(data.error || "Error al subir la imagen");
       }
 
       const data = await res.json();
-      updateField('image', data.url);
-      toast.success('Imagen subida correctamente');
+      updateField("image", data.url);
+      toast.success("Imagen subida correctamente");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al subir';
+      const msg = err instanceof Error ? err.message : "Error al subir";
       toast.error(msg);
     } finally {
       setUploading(false);
-      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (imageInputRef.current) imageInputRef.current.value = "";
     }
   };
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      toast.error('El nombre es obligatorio');
+      toast.error("El nombre es obligatorio");
       return;
     }
     if (!form.region.trim()) {
-      toast.error('La región es obligatoria');
+      toast.error("La región es obligatoria");
       return;
     }
     if (!form.description.trim()) {
-      toast.error('La descripción es obligatoria');
+      toast.error("La descripción es obligatoria");
       return;
     }
     if (!form.image.trim()) {
-      toast.error('La imagen es obligatoria');
+      toast.error("La imagen es obligatoria");
       return;
     }
     setSaving(true);
@@ -281,42 +354,54 @@ export default function AdminDestinations() {
       };
       const isEditing = !!editingId;
       const res = await fetch(
-        isEditing ? `/api/admin/destinations/${editingId}` : '/api/admin/destinations',
+        isEditing
+          ? `/api/admin/destinations/${editingId}`
+          : "/api/admin/destinations",
         {
-          method: isEditing ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: isEditing ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al guardar');
+        throw new Error(data.error || "Error al guardar");
       }
 
       const saved = await res.json();
       const destId = saved?.data?.id ?? editingId;
-      if (!destId) throw new Error('No se pudo resolver el destino guardado');
+      if (!destId) throw new Error("No se pudo resolver el destino guardado");
 
-      const relationRes = await fetch(`/api/admin/destinations/${destId}/relations`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          packageIds: selectedPackageIds,
-          hotelIds: selectedHotelIds,
-          excursionIds: selectedExcursionIds,
-          transportServiceIds: selectedTransportIds,
-        }),
-      });
+      const relationRes = await fetch(
+        `/api/admin/destinations/${destId}/relations`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            packageIds: selectedPackageIds,
+            hotelIds: selectedHotelIds,
+            excursionIds: selectedExcursionIds,
+            transportServiceIds: selectedTransportIds,
+          }),
+        },
+      );
       if (!relationRes.ok) {
         const data = await relationRes.json().catch(() => ({}));
-        throw new Error(data.error || 'El destino se guardó, pero no se pudieron guardar las relaciones');
+        throw new Error(
+          data.error ||
+            "El destino se guardó, pero no se pudieron guardar las relaciones",
+        );
       }
 
-      toast.success(isEditing ? 'Destino actualizado correctamente' : 'Destino creado correctamente');
+      toast.success(
+        isEditing
+          ? "Destino actualizado correctamente"
+          : "Destino creado correctamente",
+      );
       setDialogOpen(false);
       fetchDestinations();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
+      const msg = err instanceof Error ? err.message : "Error";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -326,45 +411,53 @@ export default function AdminDestinations() {
   const handleDelete = async () => {
     if (!deletingId) return;
     try {
-      const res = await fetch(`/api/admin/destinations/${deletingId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/destinations/${deletingId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al eliminar');
+        throw new Error(data.error || "Error al eliminar");
       }
-      toast.success('Destino eliminado correctamente');
+      toast.success("Destino eliminado correctamente");
       setDeleteDialogOpen(false);
       setDeletingId(null);
       fetchDestinations();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
+      const msg = err instanceof Error ? err.message : "Error";
       toast.error(msg);
     }
   };
 
-  const updateField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => {
+  const updateField = <K extends keyof typeof form>(
+    key: K,
+    value: (typeof form)[K],
+  ) => {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
-      if (key === 'name') {
+      if (key === "name") {
         next.slug = generateSlug(value as string);
       }
       return next;
     });
   };
 
-  const toggleRelation = (key: 'packages' | 'hotels' | 'excursions' | 'transportServices', id: string) => {
-    if (key === 'packages') {
+  const toggleRelation = (
+    key: "packages" | "hotels" | "excursions" | "transportServices",
+    id: string,
+  ) => {
+    if (key === "packages") {
       setSelectedPackageIds((prev) => toggleSelectedId(prev, id));
-    } else if (key === 'hotels') {
+    } else if (key === "hotels") {
       setSelectedHotelIds((prev) => toggleSelectedId(prev, id));
-    } else if (key === 'excursions') {
+    } else if (key === "excursions") {
       setSelectedExcursionIds((prev) => toggleSelectedId(prev, id));
-    } else if (key === 'transportServices') {
+    } else if (key === "transportServices") {
       setSelectedTransportIds((prev) => toggleSelectedId(prev, id));
     }
   };
 
   const renderOptionGroup = (
-    key: 'packages' | 'hotels' | 'excursions' | 'transportServices',
+    key: "packages" | "hotels" | "excursions" | "transportServices",
     label: string,
     options: PackageRelationOption[],
     selectedIds: string[],
@@ -392,33 +485,55 @@ export default function AdminDestinations() {
         <div className="flex items-center justify-between gap-2">
           <Label className="font-semibold text-neutral-800">{label}</Label>
           {selectorState.hasRetry && (
-            <Button type="button" variant="outline" size="sm" onClick={() => {
-              const urls = {
-                packages: '/api/admin/relation-options/packages?active=all',
-                hotels: '/api/admin/relation-options/hotels?active=all',
-                excursions: '/api/admin/relation-options/excursions?active=all',
-                transportServices: '/api/admin/relation-options/transport-services?active=all',
-              };
-              if (urls[key]) fetchRelationOptions(key, urls[key], setters[key]);
-            }}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const urls = {
+                  packages: "/api/admin/relation-options/packages?active=all",
+                  hotels: "/api/admin/relation-options/hotels?active=all",
+                  excursions:
+                    "/api/admin/relation-options/excursions?active=all",
+                  transportServices:
+                    "/api/admin/relation-options/transport-services?active=all",
+                };
+                if (urls[key])
+                  fetchRelationOptions(key, urls[key], setters[key]);
+              }}
+            >
               <RefreshCw className="w-3 h-3 mr-1" /> Reintentar
             </Button>
           )}
         </div>
-        {selectorState.status === 'loading' && <p className="text-xs text-muted-foreground">{selectorState.statusLabel}</p>}
-        {selectorState.status === 'error' && <p className="text-xs text-destructive">{selectorState.statusLabel}</p>}
-        {selectorState.status === 'empty' && selectorState.createCta && (
+        {selectorState.status === "loading" && (
+          <p className="text-xs text-muted-foreground">
+            {selectorState.statusLabel}
+          </p>
+        )}
+        {selectorState.status === "error" && (
+          <p className="text-xs text-destructive">
+            {selectorState.statusLabel}
+          </p>
+        )}
+        {selectorState.status === "empty" && selectorState.createCta && (
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{selectorState.statusLabel}</span>
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href={selectorState.createCta.href}><ExternalLink className="w-3 h-3 mr-1" /> {selectorState.createCta.label}</a>
+              <a href={selectorState.createCta.href}>
+                <ExternalLink className="w-3 h-3 mr-1" />{" "}
+                {selectorState.createCta.label}
+              </a>
             </Button>
           </div>
         )}
-        {selectorState.status === 'ready' && (
+        {selectorState.status === "ready" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
             {selectorState.options.map((option) => (
-              <label key={option.id} className="flex items-start gap-2 rounded border border-border/60 p-2 text-xs hover:bg-neutral-50 cursor-pointer transition-colors">
+              <label
+                key={option.id}
+                className="flex items-start gap-2 rounded border border-border/60 p-2 text-xs hover:bg-neutral-50 cursor-pointer transition-colors"
+              >
                 <input
                   type="checkbox"
                   className="mt-0.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
@@ -426,9 +541,19 @@ export default function AdminDestinations() {
                   onChange={() => toggleRelation(key, option.id)}
                 />
                 <span>
-                  <span className="font-medium text-foreground">{option.label}</span>
-                  {option.subtitle && <span className="block text-muted-foreground text-[10px]">{option.subtitle}</span>}
-                  {option.stateLabel && <span className="block text-muted-foreground text-[10px]">{option.stateLabel}</span>}
+                  <span className="font-medium text-foreground">
+                    {option.label}
+                  </span>
+                  {option.subtitle && (
+                    <span className="block text-muted-foreground text-[10px]">
+                      {option.subtitle}
+                    </span>
+                  )}
+                  {option.stateLabel && (
+                    <span className="block text-muted-foreground text-[10px]">
+                      {option.stateLabel}
+                    </span>
+                  )}
                 </span>
               </label>
             ))}
@@ -447,9 +572,7 @@ export default function AdminDestinations() {
             <MapPin className="w-6 h-6 text-primary" />
             Destinos
           </h1>
-          <p className="mt-1">
-            Gestiona los destinos turísticos de Colombia
-          </p>
+          <p className="mt-1">Gestiona los destinos turísticos de Colombia</p>
         </div>
         <Button onClick={handleOpenCreate} size="default">
           <Plus className="w-4 h-4 mr-2" />
@@ -497,16 +620,27 @@ export default function AdminDestinations() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        {search ? 'No se encontraron resultados' : 'No hay destinos registrados'}
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        {search
+                          ? "No se encontraron resultados"
+                          : "No hay destinos registrados"}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((dest) => (
                       <TableRow key={dest.id}>
-                        <TableCell className="font-medium text-sm">{dest.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{dest.region}</TableCell>
-                        <TableCell className="text-sm font-semibold">{formatCurrency(dest.priceFrom)}</TableCell>
+                        <TableCell className="font-medium text-sm">
+                          {dest.name}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {dest.region}
+                        </TableCell>
+                        <TableCell className="text-sm font-semibold">
+                          {formatCurrency(dest.priceFrom)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -517,11 +651,11 @@ export default function AdminDestinations() {
                           <Badge
                             className={
                               dest.active
-                                ? 'bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs'
-                                : 'bg-muted text-muted-foreground hover:bg-muted text-xs'
+                                ? "bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10 text-xs"
+                                : "bg-muted text-muted-foreground hover:bg-muted text-xs"
                             }
                           >
-                            {dest.active ? 'Activo' : 'Inactivo'}
+                            {dest.active ? "Activo" : "Inactivo"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -562,21 +696,25 @@ export default function AdminDestinations() {
         <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto admin-dialog">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? 'Editar Destino' : 'Nuevo Destino'}
+              {editingId ? "Editar Destino" : "Nuevo Destino"}
             </DialogTitle>
             <DialogDescription>
-              {editingId ? 'Modifica los datos del destino' : 'Completa los datos para crear un nuevo destino'}
+              {editingId
+                ? "Modifica los datos del destino"
+                : "Completa los datos para crear un nuevo destino"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="form-section-title">Información principal</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="dest-name" className="label-required">Nombre</Label>
+                <Label htmlFor="dest-name" className="label-required">
+                  Nombre
+                </Label>
                 <Input
                   id="dest-name"
                   value={form.name}
-                  onChange={(e) => updateField('name', e.target.value)}
+                  onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Ej: Cartagena de Indias"
                 />
               </div>
@@ -585,7 +723,7 @@ export default function AdminDestinations() {
                 <Input
                   id="dest-slug"
                   value={form.slug}
-                  onChange={(e) => updateField('slug', e.target.value)}
+                  onChange={(e) => updateField("slug", e.target.value)}
                   placeholder="Auto-generado del nombre"
                 />
               </div>
@@ -593,11 +731,13 @@ export default function AdminDestinations() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="dest-region" className="label-required">Región</Label>
+                <Label htmlFor="dest-region" className="label-required">
+                  Región
+                </Label>
                 <Input
                   id="dest-region"
                   value={form.region}
-                  onChange={(e) => updateField('region', e.target.value)}
+                  onChange={(e) => updateField("region", e.target.value)}
                   placeholder="Ej: Caribe, Andina"
                 />
               </div>
@@ -607,18 +747,22 @@ export default function AdminDestinations() {
                   id="dest-price"
                   type="number"
                   value={form.priceFrom}
-                  onChange={(e) => updateField('priceFrom', Number(e.target.value))}
+                  onChange={(e) =>
+                    updateField("priceFrom", Number(e.target.value))
+                  }
                   placeholder="550000"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dest-description" className="label-required">Descripción</Label>
+              <Label htmlFor="dest-description" className="label-required">
+                Descripción
+              </Label>
               <Textarea
                 id="dest-description"
                 value={form.description}
-                onChange={(e) => updateField('description', e.target.value)}
+                onChange={(e) => updateField("description", e.target.value)}
                 placeholder="Descripción del destino..."
                 rows={3}
               />
@@ -633,10 +777,10 @@ export default function AdminDestinations() {
                     alt="Vista previa"
                     className="w-full h-36 object-cover"
                     onError={(e) => {
-                      const img = e.currentTarget
-                      if (img.dataset.fallbackApplied === 'true') return
-                      img.dataset.fallbackApplied = 'true'
-                      img.src = '/images/hero.png'
+                      const img = e.currentTarget;
+                      if (img.dataset.fallbackApplied === "true") return;
+                      img.dataset.fallbackApplied = "true";
+                      img.src = "/images/hero.png";
                     }}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -653,7 +797,7 @@ export default function AdminDestinations() {
                       type="button"
                       size="sm"
                       variant="destructive"
-                      onClick={() => updateField('image', '')}
+                      onClick={() => updateField("image", "")}
                     >
                       <X className="w-4 h-4 mr-1" />
                       Eliminar
@@ -675,26 +819,32 @@ export default function AdminDestinations() {
                   onDragLeave={() => setDragOver(false)}
                   onClick={() => imageInputRef.current?.click()}
                   className={cn(
-                    'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                    "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
                     dragOver
-                      ? 'border-ring bg-accent'
-                      : 'border-border hover:border-ring/60 hover:bg-accent/50',
-                    uploading && 'pointer-events-none opacity-60'
+                      ? "border-ring bg-accent"
+                      : "border-border hover:border-ring/60 hover:bg-accent/50",
+                    uploading && "pointer-events-none opacity-60",
                   )}
                 >
                   {uploading ? (
                     <div className="space-y-2">
                       <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
-                      <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                      <p className="text-sm text-muted-foreground">
+                        Subiendo imagen...
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
                       <p className="text-sm text-muted-foreground">
-                        Arrastra una imagen o{' '}
-                        <span className="text-primary font-medium">haz clic para seleccionar</span>
+                        Arrastra una imagen o{" "}
+                        <span className="text-primary font-medium">
+                          haz clic para seleccionar
+                        </span>
                       </p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPG, WebP, GIF (máx. 5 MB)
+                      </p>
                     </div>
                   )}
                 </div>
@@ -712,15 +862,20 @@ export default function AdminDestinations() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dest-highlights">Highlights (separados por coma)</Label>
+              <Label htmlFor="dest-highlights">
+                Highlights (separados por coma)
+              </Label>
               <Input
                 id="dest-highlights"
                 value={highlightsStr}
                 onChange={(e) => {
                   setHighlightsStr(e.target.value);
                   updateField(
-                    'highlights',
-                    e.target.value.split(',').map((h) => h.trim()).filter(Boolean)
+                    "highlights",
+                    e.target.value
+                      .split(",")
+                      .map((h) => h.trim())
+                      .filter(Boolean),
                   );
                 }}
                 placeholder="Ciudad Amurallada, Playas, Castillo San Felipe"
@@ -737,7 +892,9 @@ export default function AdminDestinations() {
                   max="5"
                   step="0.1"
                   value={form.rating}
-                  onChange={(e) => updateField('rating', Number(e.target.value))}
+                  onChange={(e) =>
+                    updateField("rating", Number(e.target.value))
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -746,7 +903,9 @@ export default function AdminDestinations() {
                   id="dest-reviews"
                   type="number"
                   value={form.reviewCount}
-                  onChange={(e) => updateField('reviewCount', Number(e.target.value))}
+                  onChange={(e) =>
+                    updateField("reviewCount", Number(e.target.value))
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -755,30 +914,84 @@ export default function AdminDestinations() {
                   id="dest-order"
                   type="number"
                   value={form.order}
-                  onChange={(e) => updateField('order', Number(e.target.value))}
+                  onChange={(e) => updateField("order", Number(e.target.value))}
                 />
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
               <div>
-                <div className="form-section-title">Composición relacional del destino</div>
+                <div className="form-section-title">
+                  Composición relacional del destino
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Asocia paquetes, hoteles, excursiones y servicios de transporte a este destino.
+                  Asocia paquetes, hoteles, excursiones y servicios de
+                  transporte a este destino.
                 </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {renderOptionGroup('packages', 'Paquetes en destino', packageOptions, selectedPackageIds, '/admin/paquetes', 'Crear paquete')}
-                {renderOptionGroup('hotels', 'Hoteles en destino', hotelOptions, selectedHotelIds, '/admin/hoteles', 'Crear hotel')}
-                {renderOptionGroup('excursions', 'Excursiones en destino', excursionOptions, selectedExcursionIds, '/admin/excursiones', 'Crear excursión')}
-                {renderOptionGroup('transportServices', 'Transporte en destino', transportOptions, selectedTransportIds, '/admin/transportes/servicios', 'Crear servicio')}
+                {renderOptionGroup(
+                  "packages",
+                  "Paquetes en destino",
+                  packageOptions,
+                  selectedPackageIds,
+                  "/admin/paquetes",
+                  "Crear paquete",
+                )}
+                {renderOptionGroup(
+                  "hotels",
+                  "Hoteles en destino",
+                  hotelOptions,
+                  selectedHotelIds,
+                  "/admin/hoteles",
+                  "Crear hotel",
+                )}
+                {renderOptionGroup(
+                  "excursions",
+                  "Excursiones en destino",
+                  excursionOptions,
+                  selectedExcursionIds,
+                  "/admin/excursiones",
+                  "Crear excursión",
+                )}
+                {renderOptionGroup(
+                  "transportServices",
+                  "Transporte en destino",
+                  transportOptions,
+                  selectedTransportIds,
+                  "/admin/transportes/servicios",
+                  "Crear servicio",
+                )}
               </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <Label htmlFor="dest-reseller">Asignar a Revendedor</Label>
+              <select
+                id="dest-reseller"
+                value={form.resellerId ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, resellerId: e.target.value || "" })
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Ninguno / Global (Administrador)</option>
+                {resellers.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.companyName || r.contactName || r.email}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Si se asigna a un revendedor, solo ese revendedor podrá ver y
+                revender este destino.
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
               <Switch
                 checked={form.active}
-                onCheckedChange={(checked) => updateField('active', checked)}
+                onCheckedChange={(checked) => updateField("active", checked)}
               />
               <Label>Activo</Label>
             </div>
@@ -788,7 +1001,7 @@ export default function AdminDestinations() {
                 Cancelar
               </Button>
               <Button onClick={handleSave} disabled={saving} size="default">
-                {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+                {saving ? "Guardando..." : editingId ? "Actualizar" : "Crear"}
               </Button>
             </div>
           </div>
@@ -801,7 +1014,8 @@ export default function AdminDestinations() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar destino?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El destino será eliminado permanentemente.
+              Esta acción no se puede deshacer. El destino será eliminado
+              permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
