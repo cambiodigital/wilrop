@@ -19,6 +19,7 @@ const prisma = new PrismaClient()
     '20260504120000_add_reseller_capabilities',
     '20260517000000_add_reseller_approval_fields',
     '20260517010000_add_subagent_type_field',
+    '20260604104210_add_reseller_id_to_destination',
   ]
 
 async function main() {
