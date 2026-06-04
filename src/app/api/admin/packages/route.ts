@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 function formatPackage(pkg: any) {
   return {
@@ -14,10 +14,10 @@ function formatPackage(pkg: any) {
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function GET() {
@@ -36,10 +36,10 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching packages:', error);
+    console.error("Error fetching packages:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch packages' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch packages" },
+      { status: 500 },
     );
   }
 }
@@ -70,14 +70,20 @@ export async function POST(request: NextRequest) {
       resellerId,
     } = body;
 
-    if (!destinationId || !destinationName || !title || !duration || price === undefined) {
+    if (
+      !destinationId ||
+      !destinationName ||
+      !title ||
+      !duration ||
+      price === undefined
+    ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            'destinationId, destinationName, title, duration, and price are required',
+            "destinationId, destinationName, title, duration, and price are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,18 +95,18 @@ export async function POST(request: NextRequest) {
         destinationId,
         destinationName,
         title,
-        description: description ?? '',
+        description: description ?? "",
         duration,
         price,
         originalPrice: originalPrice ?? null,
         includes: JSON.stringify(includes || []),
-        image: image ?? '',
-        difficulty: difficulty ?? 'Fácil',
-        groupSize: groupSize ?? '',
+        image: image ?? "",
+        difficulty: difficulty ?? "Fácil",
+        groupSize: groupSize ?? "",
         departureDates: JSON.stringify(departureDates || []),
         rating: rating ?? 0,
         soldOut: soldOut ?? false,
-        category: category ?? 'Cultural',
+        category: category ?? "Cultural",
         commission: commission ?? 10,
         active: active ?? true,
         isTemplate: false,
@@ -108,15 +114,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (resellerId) {
+      await syncResellerCatalogEntry(resellerId, "package", pkg.id);
+    }
+
     return NextResponse.json(
       { success: true, data: formatPackage(pkg) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating package:', error);
+    console.error("Error creating package:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create package' },
-      { status: 500 }
+      { success: false, error: "Failed to create package" },
+      { status: 500 },
     );
   }
 }

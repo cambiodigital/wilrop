@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { handleResellerCatalogSync } from "@/lib/reseller/catalog";
 
 function parseHighlights(highlights: string): string[] {
   try {
@@ -84,6 +85,15 @@ export async function PUT(
       where: { id },
       data: updates,
     });
+
+    if (body.resellerId !== undefined) {
+      await handleResellerCatalogSync(
+        existing.resellerId,
+        body.resellerId,
+        "destination",
+        id,
+      );
+    }
 
     return NextResponse.json({
       success: true,

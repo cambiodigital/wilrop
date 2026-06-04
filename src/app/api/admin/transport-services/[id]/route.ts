@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { handleResellerCatalogSync } from "@/lib/reseller/catalog";
 
 function formatTransportService(service: any) {
   return {
@@ -12,7 +12,7 @@ function formatTransportService(service: any) {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -28,24 +28,27 @@ export async function GET(
 
     if (!service) {
       return NextResponse.json(
-        { success: false, error: 'Transport service not found' },
-        { status: 404 }
+        { success: false, error: "Transport service not found" },
+        { status: 404 },
       );
     }
 
-    return NextResponse.json({ success: true, data: formatTransportService(service) });
+    return NextResponse.json({
+      success: true,
+      data: formatTransportService(service),
+    });
   } catch (error: any) {
-    console.error('Error fetching transport service:', error);
+    console.error("Error fetching transport service:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch transport service' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch transport service" },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -54,8 +57,8 @@ export async function PUT(
     const existing = await db.transportService.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Transport service not found' },
-        { status: 404 }
+        { success: false, error: "Transport service not found" },
+        { status: 404 },
       );
     }
 
@@ -68,13 +71,17 @@ export async function PUT(
     if (body.destination !== undefined) updates.destination = body.destination;
     if (body.cityId !== undefined) updates.cityId = body.cityId;
     if (body.cityName !== undefined) updates.cityName = body.cityName;
-    if (body.durationMins !== undefined) updates.durationMins = body.durationMins;
+    if (body.durationMins !== undefined)
+      updates.durationMins = body.durationMins;
     if (body.basePrice !== undefined) updates.basePrice = body.basePrice;
-    if (body.pricePerExtra !== undefined) updates.pricePerExtra = body.pricePerExtra;
-    if (body.includes !== undefined) updates.includes = JSON.stringify(body.includes);
+    if (body.pricePerExtra !== undefined)
+      updates.pricePerExtra = body.pricePerExtra;
+    if (body.includes !== undefined)
+      updates.includes = JSON.stringify(body.includes);
     if (body.notes !== undefined) updates.notes = body.notes;
     if (body.active !== undefined) updates.active = body.active;
-    if (body.resellerId !== undefined) updates.resellerId = body.resellerId || null;
+    if (body.resellerId !== undefined)
+      updates.resellerId = body.resellerId || null;
 
     const service = await db.transportService.update({
       where: { id },
@@ -86,19 +93,31 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ success: true, data: formatTransportService(service) });
+    if (body.resellerId !== undefined) {
+      await handleResellerCatalogSync(
+        existing.resellerId,
+        body.resellerId,
+        "transport",
+        id,
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: formatTransportService(service),
+    });
   } catch (error: any) {
-    console.error('Error updating transport service:', error);
+    console.error("Error updating transport service:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update transport service' },
-      { status: 500 }
+      { success: false, error: "Failed to update transport service" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -106,8 +125,8 @@ export async function DELETE(
     const existing = await db.transportService.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Transport service not found' },
-        { status: 404 }
+        { success: false, error: "Transport service not found" },
+        { status: 404 },
       );
     }
 
@@ -115,10 +134,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting transport service:', error);
+    console.error("Error deleting transport service:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete transport service' },
-      { status: 500 }
+      { success: false, error: "Failed to delete transport service" },
+      { status: 500 },
     );
   }
 }

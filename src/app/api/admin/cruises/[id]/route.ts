@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { handleResellerCatalogSync } from "@/lib/reseller/catalog";
 
 function formatCruise(cruise: any) {
   return {
@@ -10,17 +10,21 @@ function formatCruise(cruise: any) {
     includes: safeJsonParse<string[]>(cruise.includes, []),
     itinerary: safeJsonParse<any[]>(cruise.itinerary, []),
     tags: safeJsonParse<string[]>(cruise.tags, []),
-    cabins: cruise.cabins ? cruise.cabins.map((cabin: any) => ({
-      ...cabin,
-      includes: safeJsonParse<string[]>(cabin.includes, []),
-    })) : [],
-    destinations: cruise.destinations ? cruise.destinations.map((dc: any) => dc.destinationId) : [],
+    cabins: cruise.cabins
+      ? cruise.cabins.map((cabin: any) => ({
+          ...cabin,
+          includes: safeJsonParse<string[]>(cabin.includes, []),
+        }))
+      : [],
+    destinations: cruise.destinations
+      ? cruise.destinations.map((dc: any) => dc.destinationId)
+      : [],
   };
 }
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -35,24 +39,24 @@ export async function GET(
 
     if (!cruise) {
       return NextResponse.json(
-        { success: false, error: 'Cruise not found' },
-        { status: 404 }
+        { success: false, error: "Cruise not found" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json({ success: true, data: formatCruise(cruise) });
   } catch (error: any) {
-    console.error('Error fetching cruise:', error);
+    console.error("Error fetching cruise:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch cruise' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch cruise" },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -64,8 +68,8 @@ export async function PUT(
 
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Cruise not found' },
-        { status: 404 }
+        { success: false, error: "Cruise not found" },
+        { status: 404 },
       );
     }
 
@@ -108,7 +112,8 @@ export async function PUT(
     if (tags !== undefined) updates.tags = JSON.stringify(tags);
     if (featured !== undefined) updates.featured = featured;
     if (active !== undefined) updates.active = active;
-    if (primaryDestinationId !== undefined) updates.primaryDestinationId = primaryDestinationId || null;
+    if (primaryDestinationId !== undefined)
+      updates.primaryDestinationId = primaryDestinationId || null;
     if (resellerId !== undefined) updates.resellerId = resellerId || null;
 
     // Use transaction to update cruise, reset cabins, and reset destination relations
@@ -133,11 +138,11 @@ export async function PUT(
               cruiseId: id,
               name: cabin.name,
               capacity: Number(cabin.capacity ?? 2),
-              beds: cabin.beds ?? '2 camas individuales',
+              beds: cabin.beds ?? "2 camas individuales",
               basePrice: Number(cabin.basePrice ?? 0),
               originalPrice: Number(cabin.originalPrice ?? 0),
               includes: JSON.stringify(cabin.includes || []),
-              cabinImage: cabin.cabinImage ?? '',
+              cabinImage: cabin.cabinImage ?? "",
               active: cabin.active ?? true,
             })),
           });
@@ -173,19 +178,35 @@ export async function PUT(
       });
     });
 
-    return NextResponse.json({ success: true, data: formatCruise(updatedCruise) });
+    if (resellerId !== undefined) {
+      await handleResellerCatalogSync(
+        existing.resellerId,
+        resellerId,
+        "cruise",
+        id,
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: formatCruise(updatedCruise),
+    });
   } catch (error: any) {
-    console.error('Error updating cruise:', error);
+    console.error("Error updating cruise:", error);
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to update cruise' },
-      { status: 500 }
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update cruise",
+      },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -193,8 +214,8 @@ export async function DELETE(
     const existing = await db.cruise.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Cruise not found' },
-        { status: 404 }
+        { success: false, error: "Cruise not found" },
+        { status: 404 },
       );
     }
 
@@ -202,10 +223,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting cruise:', error);
+    console.error("Error deleting cruise:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete cruise' },
-      { status: 500 }
+      { success: false, error: "Failed to delete cruise" },
+      { status: 500 },
     );
   }
 }

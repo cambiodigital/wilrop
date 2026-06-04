@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 function formatCruise(cruise: any) {
   return {
@@ -10,21 +10,25 @@ function formatCruise(cruise: any) {
     includes: safeJsonParse<string[]>(cruise.includes, []),
     itinerary: safeJsonParse<any[]>(cruise.itinerary, []),
     tags: safeJsonParse<string[]>(cruise.tags, []),
-    cabins: cruise.cabins ? cruise.cabins.map((cabin: any) => ({
-      ...cabin,
-      includes: safeJsonParse<string[]>(cabin.includes, []),
-    })) : [],
-    destinations: cruise.destinations ? cruise.destinations.map((dc: any) => dc.destinationId) : [],
+    cabins: cruise.cabins
+      ? cruise.cabins.map((cabin: any) => ({
+          ...cabin,
+          includes: safeJsonParse<string[]>(cabin.includes, []),
+        }))
+      : [],
+    destinations: cruise.destinations
+      ? cruise.destinations.map((dc: any) => dc.destinationId)
+      : [],
   };
 }
 
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function GET() {
@@ -41,17 +45,17 @@ export async function GET() {
         cabins: true,
         destinations: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     const parsed = cruises.map(formatCruise);
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching cruises:', error);
+    console.error("Error fetching cruises:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch cruises' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch cruises" },
+      { status: 500 },
     );
   }
 }
@@ -84,8 +88,8 @@ export async function POST(request: NextRequest) {
 
     if (!name) {
       return NextResponse.json(
-        { success: false, error: 'Name is required' },
-        { status: 400 }
+        { success: false, error: "Name is required" },
+        { status: 400 },
       );
     }
 
@@ -98,8 +102,8 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Ya existe un crucero con ese slug' },
-        { status: 409 }
+        { success: false, error: "Ya existe un crucero con ese slug" },
+        { status: 409 },
       );
     }
 
@@ -107,9 +111,9 @@ export async function POST(request: NextRequest) {
       data: {
         slug: finalSlug,
         name,
-        description: description ?? '',
-        shipName: shipName ?? '',
-        operator: operator ?? '',
+        description: description ?? "",
+        shipName: shipName ?? "",
+        operator: operator ?? "",
         durationDays: Number(durationDays ?? 3),
         images: JSON.stringify(images || []),
         includes: JSON.stringify(includes || []),
@@ -127,11 +131,11 @@ export async function POST(request: NextRequest) {
           create: (cabins || []).map((cabin: any) => ({
             name: cabin.name,
             capacity: Number(cabin.capacity ?? 2),
-            beds: cabin.beds ?? '2 camas individuales',
+            beds: cabin.beds ?? "2 camas individuales",
             basePrice: Number(cabin.basePrice ?? 0),
             originalPrice: Number(cabin.originalPrice ?? 0),
             includes: JSON.stringify(cabin.includes || []),
-            cabinImage: cabin.cabinImage ?? '',
+            cabinImage: cabin.cabinImage ?? "",
             active: cabin.active ?? true,
           })),
         },
@@ -148,15 +152,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (resellerId) {
+      await syncResellerCatalogEntry(resellerId, "cruise", cruise.id);
+    }
+
     return NextResponse.json(
       { success: true, data: formatCruise(cruise) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating cruise:', error);
+    console.error("Error creating cruise:", error);
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to create cruise' },
-      { status: 500 }
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create cruise",
+      },
+      { status: 500 },
     );
   }
 }

@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import {
   buildHotelCreateData,
   formatAdminHotel,
   isUniqueConstraintError,
-} from '@/lib/admin/hotels';
+} from "@/lib/admin/hotels";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 export async function GET() {
   try {
@@ -22,10 +23,10 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching hotels:', error);
+    console.error("Error fetching hotels:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch hotels' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch hotels" },
+      { status: 500 },
     );
   }
 }
@@ -38,24 +39,29 @@ export async function POST(request: NextRequest) {
       data: { ...buildHotelCreateData(body), isTemplate: false },
     });
 
+    if (hotel.resellerId) {
+      await syncResellerCatalogEntry(hotel.resellerId, "hotel", hotel.id);
+    }
+
     return NextResponse.json(
       { success: true, data: formatAdminHotel(hotel) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating hotel:', error);
+    console.error("Error creating hotel:", error);
     if (isUniqueConstraintError(error)) {
       return NextResponse.json(
-        { success: false, error: 'Ya existe un hotel con ese slug' },
-        { status: 409 }
+        { success: false, error: "Ya existe un hotel con ese slug" },
+        { status: 409 },
       );
     }
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create hotel',
+        error:
+          error instanceof Error ? error.message : "Failed to create hotel",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

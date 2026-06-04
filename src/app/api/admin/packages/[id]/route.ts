@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { handleResellerCatalogSync } from "@/lib/reseller/catalog";
 
 function formatPackage(pkg: any) {
   return {
@@ -13,7 +13,7 @@ function formatPackage(pkg: any) {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -24,24 +24,24 @@ export async function GET(
 
     if (!pkg) {
       return NextResponse.json(
-        { success: false, error: 'Package not found' },
-        { status: 404 }
+        { success: false, error: "Package not found" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json({ success: true, data: formatPackage(pkg) });
   } catch (error: any) {
-    console.error('Error fetching package:', error);
+    console.error("Error fetching package:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch package' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch package" },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -50,51 +50,66 @@ export async function PUT(
     const existing = await db.travelPackage.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Package not found' },
-        { status: 404 }
+        { success: false, error: "Package not found" },
+        { status: 404 },
       );
     }
 
     const updates: any = {};
 
     if (body.slug !== undefined) updates.slug = body.slug;
-    if (body.destinationId !== undefined) updates.destinationId = body.destinationId;
-    if (body.destinationName !== undefined) updates.destinationName = body.destinationName;
+    if (body.destinationId !== undefined)
+      updates.destinationId = body.destinationId;
+    if (body.destinationName !== undefined)
+      updates.destinationName = body.destinationName;
     if (body.title !== undefined) updates.title = body.title;
     if (body.description !== undefined) updates.description = body.description;
     if (body.duration !== undefined) updates.duration = body.duration;
     if (body.price !== undefined) updates.price = body.price;
-    if (body.originalPrice !== undefined) updates.originalPrice = body.originalPrice;
-    if (body.includes !== undefined) updates.includes = JSON.stringify(body.includes);
+    if (body.originalPrice !== undefined)
+      updates.originalPrice = body.originalPrice;
+    if (body.includes !== undefined)
+      updates.includes = JSON.stringify(body.includes);
     if (body.image !== undefined) updates.image = body.image;
     if (body.difficulty !== undefined) updates.difficulty = body.difficulty;
     if (body.groupSize !== undefined) updates.groupSize = body.groupSize;
-    if (body.departureDates !== undefined) updates.departureDates = JSON.stringify(body.departureDates);
+    if (body.departureDates !== undefined)
+      updates.departureDates = JSON.stringify(body.departureDates);
     if (body.rating !== undefined) updates.rating = body.rating;
     if (body.soldOut !== undefined) updates.soldOut = body.soldOut;
     if (body.category !== undefined) updates.category = body.category;
     if (body.commission !== undefined) updates.commission = body.commission;
     if (body.active !== undefined) updates.active = body.active;
-    if (body.resellerId !== undefined) updates.resellerId = body.resellerId || null;
+    if (body.resellerId !== undefined)
+      updates.resellerId = body.resellerId || null;
 
     const pkg = await db.travelPackage.update({
       where: { id },
       data: updates,
     });
 
+    if (body.resellerId !== undefined) {
+      await handleResellerCatalogSync(
+        existing.resellerId,
+        body.resellerId,
+        "package",
+        id,
+      );
+    }
+
     return NextResponse.json({ success: true, data: formatPackage(pkg) });
   } catch (error: any) {
-    console.error('Error updating package:', error);
+    console.error("Error updating package:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update package' },
-      { status: 500 }
+      { success: false, error: "Failed to update package" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -102,8 +117,8 @@ export async function DELETE(
     const existing = await db.travelPackage.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Package not found' },
-        { status: 404 }
+        { success: false, error: "Package not found" },
+        { status: 404 },
       );
     }
 
@@ -111,10 +126,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting package:', error);
+    console.error("Error deleting package:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete package' },
-      { status: 500 }
+      { success: false, error: "Failed to delete package" },
+      { status: 500 },
     );
   }
 }

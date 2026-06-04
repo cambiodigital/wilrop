@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 function parseHighlights(highlights: string): string[] {
   try {
@@ -98,6 +99,10 @@ export async function POST(request: NextRequest) {
         resellerId: resellerId || null,
       },
     });
+
+    if (resellerId) {
+      await syncResellerCatalogEntry(resellerId, "destination", destination.id);
+    }
 
     return NextResponse.json(
       { success: true, data: formatDestination(destination) },

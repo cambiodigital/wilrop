@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 function formatExcursion(excursion: any) {
   return {
@@ -16,10 +16,10 @@ function formatExcursion(excursion: any) {
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function GET() {
@@ -32,17 +32,17 @@ export async function GET() {
       where: {
         isTemplate: realCount > 0 ? false : true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     const parsed = excursions.map(formatExcursion);
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching excursions:', error);
+    console.error("Error fetching excursions:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch excursions' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch excursions" },
+      { status: 500 },
     );
   }
 }
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
 
     if (!name) {
       return NextResponse.json(
-        { success: false, error: 'Name is required' },
-        { status: 400 }
+        { success: false, error: "Name is required" },
+        { status: 400 },
       );
     }
 
@@ -88,21 +88,21 @@ export async function POST(request: NextRequest) {
       data: {
         slug: finalSlug,
         name,
-        destinationId: destinationId ?? '',
-        destinationName: destinationName ?? '',
-        cityName: cityName ?? '',
-        description: description ?? '',
-        shortDesc: shortDesc ?? '',
+        destinationId: destinationId ?? "",
+        destinationName: destinationName ?? "",
+        cityName: cityName ?? "",
+        description: description ?? "",
+        shortDesc: shortDesc ?? "",
         images: JSON.stringify(images || []),
-        duration: duration ?? '3 horas',
-        difficulty: difficulty ?? 'Fácil',
-        groupSize: String(groupSize ?? '20 personas'),
+        duration: duration ?? "3 horas",
+        difficulty: difficulty ?? "Fácil",
+        groupSize: String(groupSize ?? "20 personas"),
         basePrice: basePrice ?? 0,
         childPrice: childPrice ?? 0,
         includes: JSON.stringify(includes || []),
         excludes: JSON.stringify(excludes || []),
         requirements: JSON.stringify(requirements || []),
-        category: category ?? 'Cultural',
+        category: category ?? "Cultural",
         rating: rating ?? 0,
         featured: featured ?? false,
         active: active ?? true,
@@ -111,15 +111,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (resellerId) {
+      await syncResellerCatalogEntry(resellerId, "excursion", excursion.id);
+    }
+
     return NextResponse.json(
       { success: true, data: formatExcursion(excursion) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating excursion:', error);
+    console.error("Error creating excursion:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create excursion' },
-      { status: 500 }
+      { success: false, error: "Failed to create excursion" },
+      { status: 500 },
     );
   }
 }

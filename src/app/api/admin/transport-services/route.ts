@@ -1,7 +1,7 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
 
 function formatTransportService(service: any) {
   return {
@@ -20,7 +20,7 @@ export async function GET() {
       where: {
         isTemplate: realCount > 0 ? false : true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         provider: {
           select: { id: true, name: true, vehicleType: true, capacity: true },
@@ -32,10 +32,10 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: parsed });
   } catch (error: any) {
-    console.error('Error fetching transport services:', error);
+    console.error("Error fetching transport services:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch transport services' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch transport services" },
+      { status: 500 },
     );
   }
 }
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
 
     if (!providerId) {
       return NextResponse.json(
-        { success: false, error: 'Provider ID is required' },
-        { status: 400 }
+        { success: false, error: "Provider ID is required" },
+        { status: 400 },
       );
     }
 
@@ -74,25 +74,25 @@ export async function POST(request: NextRequest) {
 
     if (!provider) {
       return NextResponse.json(
-        { success: false, error: 'Transport provider not found' },
-        { status: 404 }
+        { success: false, error: "Transport provider not found" },
+        { status: 404 },
       );
     }
 
     const service = await db.transportService.create({
       data: {
         providerId,
-        name: name ?? '',
-        routeType: routeType ?? 'aeropuerto-hotel',
-        origin: origin ?? '',
-        destination: destination ?? '',
-        cityId: cityId ?? '',
-        cityName: cityName ?? '',
+        name: name ?? "",
+        routeType: routeType ?? "aeropuerto-hotel",
+        origin: origin ?? "",
+        destination: destination ?? "",
+        cityId: cityId ?? "",
+        cityName: cityName ?? "",
         durationMins: durationMins ?? 60,
         basePrice: basePrice ?? 0,
         pricePerExtra: pricePerExtra ?? 0,
         includes: JSON.stringify(includes || []),
-        notes: notes ?? '',
+        notes: notes ?? "",
         active: active ?? true,
         isTemplate: false,
         resellerId: resellerId || null,
@@ -104,15 +104,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (resellerId) {
+      await syncResellerCatalogEntry(resellerId, "transport", service.id);
+    }
+
     return NextResponse.json(
       { success: true, data: formatTransportService(service) },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
-    console.error('Error creating transport service:', error);
+    console.error("Error creating transport service:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create transport service' },
-      { status: 500 }
+      { success: false, error: "Failed to create transport service" },
+      { status: 500 },
     );
   }
 }
