@@ -1,9 +1,8 @@
-'use client'
-import { formatCurrency } from '@/lib/currency'
+"use client";
+import { formatCurrency } from "@/lib/currency";
 
-
-import { useState, useMemo, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   MapPin,
@@ -30,35 +29,51 @@ import {
   Plus,
   Check,
   Building2,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
-import { Slider } from '@/components/ui/slider'
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { hotels as allHotels, hotelCities, hotelAmenities, type Hotel } from '@/data/hotels'
-import { usePortalNavigation } from '@/hooks/use-portal-navigation'
-import { useEffect } from 'react'
+} from "@/components/ui/sheet";
+import {
+  hotels as allHotels,
+  hotelCities,
+  hotelAmenities,
+  type Hotel,
+} from "@/data/hotels";
+import { usePortalNavigation } from "@/hooks/use-portal-navigation";
+import { useEffect } from "react";
 
 // ─── Icon map ────────────────────────────────────────────────
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Wifi, Waves, UtensilsCrossed, Car, Dumbbell, Sparkles, Thermometer, Coffee, Wine, Clock, Plane, Eye,
-}
+  Wifi,
+  Waves,
+  UtensilsCrossed,
+  Car,
+  Dumbbell,
+  Sparkles,
+  Thermometer,
+  Coffee,
+  Wine,
+  Clock,
+  Plane,
+  Eye,
+};
 
 // ─── Animation variants ─────────────────────────────────────
 const fadeInUp = {
@@ -66,91 +81,95 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
   transition: { duration: 0.3 },
-}
+};
 
 const staggerContainer = {
   animate: { transition: { staggerChildren: 0.06 } },
-}
+};
 
 const staggerItem = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-}
+};
 
 // ─── Main Component ─────────────────────────────────────────
 export default function HotelsPage() {
-  const { goBack, openHotelDetail } = usePortalNavigation()
-  const [hotelsList, setHotelsList] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { goBack, openHotelDetail } = usePortalNavigation();
+  const [hotelsList, setHotelsList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Search state
-  const [selectedCity, setSelectedCity] = useState<string>('')
-  const [checkIn, setCheckIn] = useState('')
-  const [checkOut, setCheckOut] = useState('')
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [guestsOpen, setGuestsOpen] = useState(false)
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [guestsOpen, setGuestsOpen] = useState(false);
 
   // Filter state
-  const [priceRange, setPriceRange] = useState<[number, number]>([150000, 1200000])
-  const [starFilters, setStarFilters] = useState<number[]>([])
-  const [amenityFilters, setAmenityFilters] = useState<string[]>([])
-  const [minRating, setMinRating] = useState(0)
-  const [sortBy, setSortBy] = useState<string>('recommended')
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1200000]);
+  const [starFilters, setStarFilters] = useState<number[]>([]);
+  const [amenityFilters, setAmenityFilters] = useState<string[]>([]);
+  const [minRating, setMinRating] = useState(0);
+  const [sortBy, setSortBy] = useState<string>("recommended");
 
   // Pagination state
-  const [page, setPage] = useState(1)
-  const [paginationInfo, setPaginationInfo] = useState<any>(null)
-  const limit = 10
+  const [page, setPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState<any>(null);
+  const limit = 10;
 
   // Mobile filter sheet
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   // Has searched
-  const [hasSearched, setHasSearched] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Calculate nights
   const nights = useMemo(() => {
-    if (!checkIn || !checkOut) return 1
-    const d1 = new Date(checkIn)
-    const d2 = new Date(checkOut)
-    const diff = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))
-    return diff > 0 ? diff : 1
-  }, [checkIn, checkOut])
+    if (!checkIn || !checkOut) return 1;
+    const d1 = new Date(checkIn);
+    const d2 = new Date(checkOut);
+    const diff = Math.ceil(
+      (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return diff > 0 ? diff : 1;
+  }, [checkIn, checkOut]);
 
-  const totalGuests = adults + children
+  const totalGuests = adults + children;
 
   // Debounced server fetch triggered on any query filter change
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(true)
-      const params = new URLSearchParams()
-      if (selectedCity) params.append('cityId', selectedCity)
-      params.append('priceMin', String(priceRange[0]))
-      params.append('priceMax', String(priceRange[1]))
-      if (starFilters.length > 0) params.append('stars', starFilters.join(','))
-      if (amenityFilters.length > 0) params.append('amenities', amenityFilters.join(','))
-      if (minRating > 0) params.append('minRating', String(minRating))
-      if (sortBy) params.append('sortBy', sortBy)
-      if (hasSearched && totalGuests > 0) params.append('guests', String(totalGuests))
-      params.append('page', String(page))
-      params.append('limit', String(limit))
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (selectedCity) params.append("cityId", selectedCity);
+      params.append("priceMin", String(priceRange[0]));
+      params.append("priceMax", String(priceRange[1]));
+      if (starFilters.length > 0) params.append("stars", starFilters.join(","));
+      if (amenityFilters.length > 0)
+        params.append("amenities", amenityFilters.join(","));
+      if (minRating > 0) params.append("minRating", String(minRating));
+      if (sortBy) params.append("sortBy", sortBy);
+      if (hasSearched && totalGuests > 0)
+        params.append("guests", String(totalGuests));
+      params.append("page", String(page));
+      params.append("limit", String(limit));
 
       fetch(`/api/public/hotels?${params.toString()}`)
         .then((res) => res.json())
         .then((res) => {
           if (res.success && Array.isArray(res.data)) {
-            setHotelsList(res.data)
+            setHotelsList(res.data);
             if (res.pagination) {
-              setPaginationInfo(res.pagination)
+              setPaginationInfo(res.pagination);
             }
           }
         })
-        .catch((err) => console.error('Error fetching hotels:', err))
-        .finally(() => setLoading(false))
-    }, 300) // 300ms debounce
+        .catch((err) => console.error("Error fetching hotels:", err))
+        .finally(() => setLoading(false));
+    }, 300); // 300ms debounce
 
-    return () => clearTimeout(timer)
+    return () => clearTimeout(timer);
   }, [
     selectedCity,
     priceRange,
@@ -161,51 +180,60 @@ export default function HotelsPage() {
     hasSearched,
     totalGuests,
     page,
-  ])
+  ]);
 
-  const filteredHotels = hotelsList
+  const filteredHotels = hotelsList;
 
   // Toggle helpers
   const toggleStar = useCallback((star: number) => {
-    setStarFilters((prev) => (prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star]))
-    setPage(1)
-  }, [])
+    setStarFilters((prev) =>
+      prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star],
+    );
+    setPage(1);
+  }, []);
 
   const toggleAmenity = useCallback((amenityId: string) => {
     setAmenityFilters((prev) =>
-      prev.includes(amenityId) ? prev.filter((a) => a !== amenityId) : [...prev, amenityId],
-    )
-    setPage(1)
-  }, [])
+      prev.includes(amenityId)
+        ? prev.filter((a) => a !== amenityId)
+        : [...prev, amenityId],
+    );
+    setPage(1);
+  }, []);
 
   const clearFilters = useCallback(() => {
-    setPriceRange([150000, 1200000])
-    setStarFilters([])
-    setAmenityFilters([])
-    setMinRating(0)
-    setSelectedCity('')
-    setPage(1)
-  }, [])
+    setPriceRange([0, 1200000]);
+    setStarFilters([]);
+    setAmenityFilters([]);
+    setMinRating(0);
+    setSelectedCity("");
+    setPage(1);
+  }, []);
 
   const handleSearch = useCallback(() => {
-    setHasSearched(true)
-    setPage(1)
-  }, [])
+    setHasSearched(true);
+    setPage(1);
+  }, []);
 
   const cityName = selectedCity
-    ? hotelCities.find((c) => c.id === selectedCity)?.name ?? 'Colombia'
-    : 'Colombia'
+    ? (hotelCities.find((c) => c.id === selectedCity)?.name ?? "Colombia")
+    : "Colombia";
 
   // ─── Filters sidebar content (shared desktop/mobile) ─────
   const filtersContent = (
     <div className="space-y-6">
       {/* Price Range */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold text-neutral-900">Rango de precio</h4>
+        <h4 className="mb-3 text-sm font-semibold text-neutral-900">
+          Rango de precio
+        </h4>
         <Slider
           value={priceRange}
-          onValueChange={(v) => { setPriceRange(v as [number, number]); setPage(1) }}
-          min={150000}
+          onValueChange={(v) => {
+            setPriceRange(v as [number, number]);
+            setPage(1);
+          }}
+          min={0}
           max={1200000}
           step={50000}
           className="mb-2"
@@ -220,7 +248,9 @@ export default function HotelsPage() {
 
       {/* Star Rating */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold text-neutral-900">Estrellas</h4>
+        <h4 className="mb-3 text-sm font-semibold text-neutral-900">
+          Estrellas
+        </h4>
         <div className="space-y-2">
           {[3, 4, 5].map((star) => (
             <label
@@ -233,11 +263,14 @@ export default function HotelsPage() {
               />
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: star }).map((_, i) => (
-                  <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
+                  <Star
+                    key={i}
+                    className="size-3.5 fill-amber-400 text-amber-400"
+                  />
                 ))}
               </div>
               <span className="text-sm text-neutral-600">
-                {star} {star === 3 ? 'estrellas' : 'estrellas'}
+                {star} {star === 3 ? "estrellas" : "estrellas"}
               </span>
             </label>
           ))}
@@ -248,10 +281,12 @@ export default function HotelsPage() {
 
       {/* Amenities */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold text-neutral-900">Servicios</h4>
+        <h4 className="mb-3 text-sm font-semibold text-neutral-900">
+          Servicios
+        </h4>
         <div className="space-y-2 max-h-52 overflow-y-auto">
           {hotelAmenities.map((amenity) => {
-            const AmenityIcon = iconMap[amenity.icon]
+            const AmenityIcon = iconMap[amenity.icon];
             return (
               <label
                 key={amenity.id}
@@ -261,10 +296,12 @@ export default function HotelsPage() {
                   checked={amenityFilters.includes(amenity.id)}
                   onCheckedChange={() => toggleAmenity(amenity.id)}
                 />
-                {AmenityIcon && <AmenityIcon className="size-3.5 text-neutral-500" />}
+                {AmenityIcon && (
+                  <AmenityIcon className="size-3.5 text-neutral-500" />
+                )}
                 <span className="text-sm text-neutral-600">{amenity.name}</span>
               </label>
-            )
+            );
           })}
         </div>
       </div>
@@ -273,26 +310,37 @@ export default function HotelsPage() {
 
       {/* Guest Rating */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold text-neutral-900">Calificación de huéspedes</h4>
+        <h4 className="mb-3 text-sm font-semibold text-neutral-900">
+          Calificación de huéspedes
+        </h4>
         <div className="space-y-2">
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 0}
-              onCheckedChange={() => { setMinRating(0); setPage(1) }}
+              onCheckedChange={() => {
+                setMinRating(0);
+                setPage(1);
+              }}
             />
             <span className="text-sm text-neutral-600">Todas</span>
           </label>
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 8}
-              onCheckedChange={() => { setMinRating(minRating === 8 ? 0 : 8); setPage(1) }}
+              onCheckedChange={() => {
+                setMinRating(minRating === 8 ? 0 : 8);
+                setPage(1);
+              }}
             />
             <span className="text-sm text-neutral-600">8+ Excelente</span>
           </label>
           <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-50">
             <Checkbox
               checked={minRating === 9}
-              onCheckedChange={() => { setMinRating(minRating === 9 ? 0 : 9); setPage(1) }}
+              onCheckedChange={() => {
+                setMinRating(minRating === 9 ? 0 : 9);
+                setPage(1);
+              }}
             />
             <span className="text-sm text-neutral-600">9+ Excepcional</span>
           </label>
@@ -311,7 +359,7 @@ export default function HotelsPage() {
         Limpiar filtros
       </Button>
     </div>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -321,7 +369,13 @@ export default function HotelsPage() {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             {/* City */}
             <div className="flex-1">
-              <Select value={selectedCity} onValueChange={(v) => { setSelectedCity(v === 'all' ? '' : v); setPage(1) }}>
+              <Select
+                value={selectedCity}
+                onValueChange={(v) => {
+                  setSelectedCity(v === "all" ? "" : v);
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger className="w-full rounded-xl border-neutral-200 bg-white">
                   <MapPin className="mr-2 size-4 text-amber-500" />
                   <SelectValue placeholder="¿A dónde viajas?" />
@@ -367,7 +421,10 @@ export default function HotelsPage() {
               >
                 <Users className="size-4 text-amber-500" />
                 <span className="text-neutral-700">
-                  {adults} adulto{adults !== 1 ? 's' : ''}{children > 0 ? `, ${children} niño${children !== 1 ? 's' : ''}` : ''}
+                  {adults} adulto{adults !== 1 ? "s" : ""}
+                  {children > 0
+                    ? `, ${children} niño${children !== 1 ? "s" : ""}`
+                    : ""}
                 </span>
                 <ChevronDown className="ml-auto size-4 text-neutral-400" />
               </button>
@@ -381,7 +438,9 @@ export default function HotelsPage() {
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-700">Adultos</span>
+                        <span className="text-sm text-neutral-700">
+                          Adultos
+                        </span>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setAdults(Math.max(1, adults - 1))}
@@ -389,7 +448,9 @@ export default function HotelsPage() {
                           >
                             <Minus className="size-3" />
                           </button>
-                          <span className="w-6 text-center text-sm font-semibold">{adults}</span>
+                          <span className="w-6 text-center text-sm font-semibold">
+                            {adults}
+                          </span>
                           <button
                             onClick={() => setAdults(Math.min(10, adults + 1))}
                             className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
@@ -402,14 +463,20 @@ export default function HotelsPage() {
                         <span className="text-sm text-neutral-700">Niños</span>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            onClick={() =>
+                              setChildren(Math.max(0, children - 1))
+                            }
                             className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
                           >
                             <Minus className="size-3" />
                           </button>
-                          <span className="w-6 text-center text-sm font-semibold">{children}</span>
+                          <span className="w-6 text-center text-sm font-semibold">
+                            {children}
+                          </span>
                           <button
-                            onClick={() => setChildren(Math.min(6, children + 1))}
+                            onClick={() =>
+                              setChildren(Math.min(6, children + 1))
+                            }
                             className="flex size-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-600 hover:border-neutral-400"
                           >
                             <Plus className="size-3" />
@@ -456,9 +523,7 @@ export default function HotelsPage() {
                     Filtros
                   </SheetTitle>
                 </SheetHeader>
-                <div className="mt-6">
-                  {filtersContent}
-                </div>
+                <div className="mt-6">{filtersContent}</div>
               </SheetContent>
             </Sheet>
           </div>
@@ -479,29 +544,46 @@ export default function HotelsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
-                {hasSearched || selectedCity ? 'Hoteles' : 'Todos los hoteles'}
+                {hasSearched || selectedCity ? "Hoteles" : "Todos los hoteles"}
               </h1>
               <p className="mt-1 text-sm text-neutral-500">
-                <span className="font-semibold text-neutral-700">{paginationInfo?.total ?? filteredHotels.length}</span>{' '}
-                hoteles encontrados en{' '}
+                <span className="font-semibold text-neutral-700">
+                  {paginationInfo?.total ?? filteredHotels.length}
+                </span>{" "}
+                hoteles encontrados en{" "}
                 <span className="font-medium text-amber-600">{cityName}</span>
                 {nights > 1 && (
-                  <span> · <span className="font-medium">{nights} noches</span></span>
+                  <span>
+                    {" "}
+                    · <span className="font-medium">{nights} noches</span>
+                  </span>
                 )}
               </p>
             </div>
 
             {/* Sort */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-500 whitespace-nowrap">Ordenar:</span>
-              <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1) }}>
+              <span className="text-xs text-neutral-500 whitespace-nowrap">
+                Ordenar:
+              </span>
+              <Select
+                value={sortBy}
+                onValueChange={(v) => {
+                  setSortBy(v);
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger className="w-44 rounded-xl border-neutral-200 text-xs h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recommended">Recomendados</SelectItem>
-                  <SelectItem value="price-asc">Precio: menor a mayor</SelectItem>
-                  <SelectItem value="price-desc">Precio: mayor a menor</SelectItem>
+                  <SelectItem value="price-asc">
+                    Precio: menor a mayor
+                  </SelectItem>
+                  <SelectItem value="price-desc">
+                    Precio: mayor a menor
+                  </SelectItem>
                   <SelectItem value="stars">Estrellas</SelectItem>
                   <SelectItem value="rating">Calificación</SelectItem>
                 </SelectContent>
@@ -542,7 +624,9 @@ export default function HotelsPage() {
                   className="flex flex-col items-center justify-center py-20 text-center"
                 >
                   <Building2 className="size-12 text-neutral-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-neutral-700">No se encontraron hoteles</h3>
+                  <h3 className="text-lg font-semibold text-neutral-700">
+                    No se encontraron hoteles
+                  </h3>
                   <p className="mt-1 text-sm text-neutral-500">
                     Intenta ajustar los filtros de búsqueda
                   </p>
@@ -585,32 +669,38 @@ export default function HotelsPage() {
                       >
                         Anterior
                       </Button>
-                      
-                      {Array.from({ length: paginationInfo.totalPages }).map((_, idx) => {
-                        const pageNum = idx + 1
-                        const isCurrent = page === pageNum
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={isCurrent ? 'default' : 'outline'}
-                            size="sm"
-                            className={`rounded-xl h-8 w-8 p-0 ${
-                              isCurrent
-                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                                : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-                            }`}
-                            onClick={() => setPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        )
-                      })}
+
+                      {Array.from({ length: paginationInfo.totalPages }).map(
+                        (_, idx) => {
+                          const pageNum = idx + 1;
+                          const isCurrent = page === pageNum;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={isCurrent ? "default" : "outline"}
+                              size="sm"
+                              className={`rounded-xl h-8 w-8 p-0 ${
+                                isCurrent
+                                  ? "bg-amber-500 hover:bg-amber-600 text-white"
+                                  : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                              }`}
+                              onClick={() => setPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        },
+                      )}
 
                       <Button
                         variant="outline"
                         size="sm"
                         className="rounded-xl border-neutral-200"
-                        onClick={() => setPage((p) => Math.min(paginationInfo.totalPages, p + 1))}
+                        onClick={() =>
+                          setPage((p) =>
+                            Math.min(paginationInfo.totalPages, p + 1),
+                          )
+                        }
                         disabled={page === paginationInfo.totalPages}
                       >
                         Siguiente
@@ -623,9 +713,8 @@ export default function HotelsPage() {
           </div>
         </div>
       </div>
-
     </div>
-  )
+  );
 }
 
 // ─── Hotel Listing Card ──────────────────────────────────────
@@ -634,32 +723,36 @@ function HotelListingCard({
   nights,
   onClick,
 }: {
-  hotel: Hotel
-  nights: number
-  onClick: () => void
+  hotel: Hotel;
+  nights: number;
+  onClick: () => void;
 }) {
   const ratingColor =
     hotel.rating >= 9
-      ? 'bg-emerald-500 text-white'
+      ? "bg-emerald-500 text-white"
       : hotel.rating >= 8
-        ? 'bg-emerald-500 text-white'
-        : 'bg-amber-500 text-white'
+        ? "bg-emerald-500 text-white"
+        : "bg-amber-500 text-white";
 
   const ratingLabel =
     hotel.rating >= 9
-      ? 'Excepcional'
+      ? "Excepcional"
       : hotel.rating >= 8
-        ? 'Excelente'
+        ? "Excelente"
         : hotel.rating >= 7
-          ? 'Muy bueno'
-          : 'Bueno'
+          ? "Muy bueno"
+          : "Bueno";
 
   // Discount percentage
-  const cheapestRoom = hotel.rooms[0]
+  const cheapestRoom = hotel.rooms[0];
   const discount =
     cheapestRoom && cheapestRoom.originalPrice
-      ? Math.round(((cheapestRoom.originalPrice - cheapestRoom.price) / cheapestRoom.originalPrice) * 100)
-      : 0
+      ? Math.round(
+          ((cheapestRoom.originalPrice - cheapestRoom.price) /
+            cheapestRoom.originalPrice) *
+            100,
+        )
+      : 0;
 
   return (
     <motion.div variants={staggerItem}>
@@ -670,7 +763,7 @@ function HotelListingCard({
         {/* Image */}
         <div className="relative h-48 w-full flex-shrink-0 md:h-56 md:w-56">
           <img
-            src={hotel.images[0] || '/placeholder-hotel.png'}
+            src={hotel.images[0] || "/placeholder-hotel.png"}
             alt={hotel.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
@@ -700,7 +793,10 @@ function HotelListingCard({
                 </h3>
                 <div className="mt-1 flex items-center gap-1">
                   {Array.from({ length: hotel.stars }).map((_, i) => (
-                    <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
+                    <Star
+                      key={i}
+                      className="size-3.5 fill-amber-400 text-amber-400"
+                    />
                   ))}
                 </div>
               </div>
@@ -726,19 +822,25 @@ function HotelListingCard({
 
           {/* Row 3: Rating */}
           <div className="mt-2 flex items-center gap-2">
-            <div className={`flex items-center justify-center rounded-lg px-2.5 py-1 text-sm font-bold ${ratingColor}`}>
+            <div
+              className={`flex items-center justify-center rounded-lg px-2.5 py-1 text-sm font-bold ${ratingColor}`}
+            >
               {hotel.rating.toFixed(1)}
             </div>
-            <span className="text-sm font-medium text-neutral-700">{ratingLabel}</span>
-            <span className="text-xs text-neutral-400">({hotel.reviewCount} reseñas)</span>
+            <span className="text-sm font-medium text-neutral-700">
+              {ratingLabel}
+            </span>
+            <span className="text-xs text-neutral-400">
+              ({hotel.reviewCount} reseñas)
+            </span>
           </div>
 
           {/* Row 4: Amenities icons */}
           <div className="mt-2 flex items-center gap-1.5">
             {hotel.amenities.slice(0, 4).map((amenityId) => {
-              const amenity = hotelAmenities.find((a) => a.id === amenityId)
-              if (!amenity) return null
-              const Icon = iconMap[amenity.icon]
+              const amenity = hotelAmenities.find((a) => a.id === amenityId);
+              if (!amenity) return null;
+              const Icon = iconMap[amenity.icon];
               return Icon ? (
                 <div
                   key={amenityId}
@@ -747,7 +849,7 @@ function HotelListingCard({
                 >
                   <Icon className="size-3.5" />
                 </div>
-              ) : null
+              ) : null;
             })}
             {hotel.amenities.length > 4 && (
               <span className="text-xs text-neutral-400 ml-1">
@@ -766,12 +868,18 @@ function HotelListingCard({
               )}
               <div>
                 <span className="text-xs text-neutral-500">
-                  Desde <span className="text-lg font-bold text-amber-600">{formatCurrency(hotel.priceFrom)}</span>
-                  <span className="text-xs font-normal text-neutral-400">/ noche</span>
+                  Desde{" "}
+                  <span className="text-lg font-bold text-amber-600">
+                    {formatCurrency(hotel.priceFrom)}
+                  </span>
+                  <span className="text-xs font-normal text-neutral-400">
+                    / noche
+                  </span>
                 </span>
                 {nights > 1 && (
                   <p className="text-xs text-neutral-400">
-                    {formatCurrency(hotel.priceFrom * nights)} total ({nights} noches)
+                    {formatCurrency(hotel.priceFrom * nights)} total ({nights}{" "}
+                    noches)
                   </p>
                 )}
               </div>
@@ -779,8 +887,8 @@ function HotelListingCard({
             <Button
               className="rounded-xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-amber-600 shadow-sm"
               onClick={(e) => {
-                e.stopPropagation()
-                onClick()
+                e.stopPropagation();
+                onClick();
               }}
             >
               Ver habitaciones
@@ -790,5 +898,5 @@ function HotelListingCard({
         </div>
       </div>
     </motion.div>
-  )
+  );
 }
