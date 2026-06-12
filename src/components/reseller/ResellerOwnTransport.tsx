@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { formatCurrency } from '@/lib/currency';
+import { formatCurrency } from "@/lib/currency";
 
-import { useEffect, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import {
   Bus,
   Plus,
@@ -14,14 +14,14 @@ import {
   Loader2,
   MapPin,
   Clock,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -29,15 +29,15 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface OwnTransport {
   id: string;
@@ -61,23 +61,23 @@ interface ProviderOption {
 }
 
 const emptyForm = {
-  name: '',
-  providerId: '',
-  origin: '',
-  destination: '',
-  cityId: '',
-  cityName: '',
+  name: "",
+  providerId: "",
+  origin: "",
+  destination: "",
+  cityId: "",
+  cityName: "",
   durationMins: 0,
   basePrice: 0,
   pricePerExtra: 0,
-  includes: '',
-  notes: '',
+  includes: "",
+  notes: "",
   active: false,
 };
 
 function splitLines(value: string): string[] {
   return value
-    .split('\n')
+    .split("\n")
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -95,11 +95,11 @@ export default function ResellerOwnTransport() {
   const fetchTransports = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/reseller/products/transport');
+      const res = await fetch("/api/reseller/products/transport");
       const json = await res.json();
       if (json.success) setTransports(json.data);
     } catch {
-      toast.error('No se pudieron cargar tus transportes');
+      toast.error("No se pudieron cargar tus transportes");
     } finally {
       setLoading(false);
     }
@@ -112,13 +112,15 @@ export default function ResellerOwnTransport() {
   useEffect(() => {
     async function fetchProviders() {
       try {
-        const res = await fetch('/api/reseller/catalog?sourceType=provider');
+        const res = await fetch("/api/reseller/transport-providers");
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          setProviderOptions(json.data.map((item: any) => ({
-            id: item.sourceId,
-            name: item.sourceData?.name || item.customName || '',
-          })));
+          setProviderOptions(
+            json.data.map((item: any) => ({
+              id: item.id,
+              name: item.name || "",
+            })),
+          );
         }
       } catch {
         // Optional helper data, form can still be completed manually.
@@ -146,7 +148,7 @@ export default function ResellerOwnTransport() {
       durationMins: t.durationMins,
       basePrice: t.basePrice,
       pricePerExtra: t.pricePerExtra,
-      includes: t.includes.join('\n'),
+      includes: t.includes.join("\n"),
       notes: t.notes,
       active: t.active,
     });
@@ -155,12 +157,12 @@ export default function ResellerOwnTransport() {
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      toast.error('El nombre es obligatorio');
+      toast.error("El nombre es obligatorio");
       return;
     }
 
     if (!form.providerId) {
-      toast.error('El proveedor es obligatorio');
+      toast.error("El proveedor es obligatorio");
       return;
     }
 
@@ -183,25 +185,27 @@ export default function ResellerOwnTransport() {
 
       const url = editingId
         ? `/api/reseller/products/transport/${editingId}`
-        : '/api/reseller/products/transport';
-      const method = editingId ? 'PUT' : 'POST';
+        : "/api/reseller/products/transport";
+      const method = editingId ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const json = await res.json();
       if (json.success) {
-        toast.success(editingId ? 'Transporte actualizado' : 'Transporte creado');
+        toast.success(
+          editingId ? "Transporte actualizado" : "Transporte creado",
+        );
         setDialogOpen(false);
         fetchTransports();
       } else {
-        toast.error(json.error || 'No se pudo guardar');
+        toast.error(json.error || "No se pudo guardar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     } finally {
       setSaving(false);
     }
@@ -210,40 +214,45 @@ export default function ResellerOwnTransport() {
   const handleToggleActive = async (t: OwnTransport) => {
     try {
       const res = await fetch(`/api/reseller/products/transport/${t.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: !t.active }),
       });
       const json = await res.json();
       if (json.success) {
         setTransports((prev) =>
-          prev.map((item) => (item.id === t.id ? { ...item, active: !item.active } : item)),
+          prev.map((item) =>
+            item.id === t.id ? { ...item, active: !item.active } : item,
+          ),
         );
-        toast.success(t.active ? 'Despublicado' : 'Publicado');
+        toast.success(t.active ? "Despublicado" : "Publicado");
       } else {
-        toast.error(json.error || 'No se pudo actualizar');
+        toast.error(json.error || "No se pudo actualizar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar este transporte? Esta acción no se puede deshacer.')) return;
+    if (
+      !confirm("¿Eliminar este transporte? Esta acción no se puede deshacer.")
+    )
+      return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/reseller/products/transport/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       const json = await res.json();
       if (json.success) {
         setTransports((prev) => prev.filter((t) => t.id !== id));
-        toast.success('Transporte eliminado');
+        toast.success("Transporte eliminado");
       } else {
-        toast.error(json.error || 'No se pudo eliminar');
+        toast.error(json.error || "No se pudo eliminar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     } finally {
       setDeletingId(null);
     }
@@ -253,9 +262,12 @@ export default function ResellerOwnTransport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Tus transportes propios</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            Tus transportes propios
+          </h2>
           <p className="text-sm text-gray-500">
-            Crea y gestiona tus propios servicios de transporte. Al publicarlos, aparecen en tu tienda.
+            Crea y gestiona tus propios servicios de transporte. Al publicarlos,
+            aparecen en tu tienda.
           </p>
         </div>
         <Button onClick={openCreateDialog} className="gap-2">
@@ -267,7 +279,10 @@ export default function ResellerOwnTransport() {
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-48 animate-pulse rounded-lg bg-gray-100" />
+            <div
+              key={i}
+              className="h-48 animate-pulse rounded-lg bg-gray-100"
+            />
           ))}
         </div>
       ) : transports.length === 0 ? (
@@ -295,11 +310,11 @@ export default function ResellerOwnTransport() {
                 <Badge
                   className={`absolute right-2 top-2 ${
                     t.active
-                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-100'
+                      ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-100"
                   }`}
                 >
-                  {t.active ? 'Publicado' : 'Borrador'}
+                  {t.active ? "Publicado" : "Borrador"}
                 </Badge>
               </div>
               <CardContent className="space-y-3 p-4">
@@ -378,11 +393,13 @@ export default function ResellerOwnTransport() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="force-light sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-slate-900 border-slate-200">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Editar transporte' : 'Nuevo transporte'}</DialogTitle>
+            <DialogTitle>
+              {editingId ? "Editar transporte" : "Nuevo transporte"}
+            </DialogTitle>
             <DialogDescription>
               {editingId
-                ? 'Modifica los datos de tu transporte.'
-                : 'Completa los datos para crear un servicio de transporte propio.'}
+                ? "Modifica los datos de tu transporte."
+                : "Completa los datos para crear un servicio de transporte propio."}
             </DialogDescription>
           </DialogHeader>
 
@@ -393,7 +410,9 @@ export default function ResellerOwnTransport() {
                 <Input
                   id="tr-name"
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
                   placeholder="Ej: Transfer Aeropuerto"
                 />
               </div>
@@ -401,7 +420,12 @@ export default function ResellerOwnTransport() {
               {providerOptions.length > 0 && (
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="tr-provider">Proveedor *</Label>
-                  <Select value={form.providerId || undefined} onValueChange={(value) => setForm((f) => ({ ...f, providerId: value }))}>
+                  <Select
+                    value={form.providerId || undefined}
+                    onValueChange={(value) =>
+                      setForm((f) => ({ ...f, providerId: value }))
+                    }
+                  >
                     <SelectTrigger id="tr-provider">
                       <SelectValue placeholder="Selecciona un proveedor" />
                     </SelectTrigger>
@@ -422,7 +446,9 @@ export default function ResellerOwnTransport() {
                   <Input
                     id="tr-provider-id"
                     value={form.providerId}
-                    onChange={(e) => setForm((f) => ({ ...f, providerId: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, providerId: e.target.value }))
+                    }
                     placeholder="ID del proveedor"
                   />
                 </div>
@@ -433,7 +459,9 @@ export default function ResellerOwnTransport() {
                 <Input
                   id="tr-origin"
                   value={form.origin}
-                  onChange={(e) => setForm((f) => ({ ...f, origin: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, origin: e.target.value }))
+                  }
                   placeholder="Ej: Aeropuerto"
                 />
               </div>
@@ -443,7 +471,9 @@ export default function ResellerOwnTransport() {
                 <Input
                   id="tr-dest"
                   value={form.destination}
-                  onChange={(e) => setForm((f) => ({ ...f, destination: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, destination: e.target.value }))
+                  }
                   placeholder="Ej: Hotel Cartagena"
                 />
               </div>
@@ -453,7 +483,9 @@ export default function ResellerOwnTransport() {
                 <Input
                   id="tr-city"
                   value={form.cityName}
-                  onChange={(e) => setForm((f) => ({ ...f, cityName: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, cityName: e.target.value }))
+                  }
                   placeholder="Ej: Cartagena"
                 />
               </div>
@@ -466,7 +498,10 @@ export default function ResellerOwnTransport() {
                   min={0}
                   value={form.durationMins}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, durationMins: Number(e.target.value) || 0 }))
+                    setForm((f) => ({
+                      ...f,
+                      durationMins: Number(e.target.value) || 0,
+                    }))
                   }
                 />
               </div>
@@ -479,7 +514,10 @@ export default function ResellerOwnTransport() {
                   min={0}
                   value={form.basePrice}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, basePrice: Number(e.target.value) || 0 }))
+                    setForm((f) => ({
+                      ...f,
+                      basePrice: Number(e.target.value) || 0,
+                    }))
                   }
                 />
               </div>
@@ -492,7 +530,10 @@ export default function ResellerOwnTransport() {
                   min={0}
                   value={form.pricePerExtra}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, pricePerExtra: Number(e.target.value) || 0 }))
+                    setForm((f) => ({
+                      ...f,
+                      pricePerExtra: Number(e.target.value) || 0,
+                    }))
                   }
                 />
               </div>
@@ -503,7 +544,9 @@ export default function ResellerOwnTransport() {
               <Textarea
                 id="tr-incl"
                 value={form.includes}
-                onChange={(e) => setForm((f) => ({ ...f, includes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, includes: e.target.value }))
+                }
                 rows={3}
                 placeholder="Equipaje&#10;Aire acondicionado&#10;Agua"
               />
@@ -514,7 +557,9 @@ export default function ResellerOwnTransport() {
               <Textarea
                 id="tr-notes"
                 value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
                 rows={2}
                 placeholder="Información adicional sobre el servicio..."
               />
@@ -529,7 +574,10 @@ export default function ResellerOwnTransport() {
                 }
               />
               <div className="space-y-1 leading-none">
-                <Label htmlFor="tr-active" className="cursor-pointer text-sm font-medium">
+                <Label
+                  htmlFor="tr-active"
+                  className="cursor-pointer text-sm font-medium"
+                >
                   Publicar transporte
                 </Label>
                 <p className="text-xs text-muted-foreground">
@@ -545,7 +593,7 @@ export default function ResellerOwnTransport() {
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {editingId ? 'Guardar cambios' : 'Crear transporte'}
+              {editingId ? "Guardar cambios" : "Crear transporte"}
             </Button>
           </DialogFooter>
         </DialogContent>
