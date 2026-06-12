@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Megaphone,
   Save,
@@ -37,9 +37,9 @@ import {
   Upload,
   ImagePlus,
   X,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ModalConfig {
   id: string;
@@ -59,21 +59,42 @@ interface ModalConfig {
 }
 
 const emptyConfig: ModalConfig = {
-  id: '',
+  id: "",
   active: false,
-  title: '',
-  subtitle: '',
-  description: '',
-  imageUrl: '',
-  ctaText: 'Ver Oferta',
-  ctaLink: '',
-  ctaType: 'navigate',
+  title: "",
+  subtitle: "",
+  description: "",
+  imageUrl: "",
+  ctaText: "Ver Oferta",
+  ctaLink: "",
+  ctaType: "navigate",
   timerEnabled: false,
-  timerLabel: 'Oferta termina en',
+  timerLabel: "Oferta termina en",
   timerEnd: null,
-  position: 'center',
+  position: "center",
   delayMs: 3000,
 };
+
+function normalizeModalConfig(
+  value: Partial<ModalConfig> | null | undefined,
+): ModalConfig {
+  return {
+    id: value?.id ?? emptyConfig.id,
+    active: value?.active ?? emptyConfig.active,
+    title: value?.title ?? emptyConfig.title,
+    subtitle: value?.subtitle ?? emptyConfig.subtitle,
+    description: value?.description ?? emptyConfig.description,
+    imageUrl: value?.imageUrl ?? emptyConfig.imageUrl,
+    ctaText: value?.ctaText ?? emptyConfig.ctaText,
+    ctaLink: value?.ctaLink ?? emptyConfig.ctaLink,
+    ctaType: value?.ctaType ?? emptyConfig.ctaType,
+    timerEnabled: value?.timerEnabled ?? emptyConfig.timerEnabled,
+    timerLabel: value?.timerLabel ?? emptyConfig.timerLabel,
+    timerEnd: value?.timerEnd ?? emptyConfig.timerEnd,
+    position: value?.position ?? emptyConfig.position,
+    delayMs: value?.delayMs ?? emptyConfig.delayMs,
+  };
+}
 
 export default function AdminMarketingModal() {
   const [config, setConfig] = useState<ModalConfig>(emptyConfig);
@@ -92,12 +113,12 @@ export default function AdminMarketingModal() {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/marketing-modal');
-      if (!res.ok) throw new Error('Error al cargar configuración');
+      const res = await fetch("/api/admin/marketing-modal");
+      if (!res.ok) throw new Error("Error al cargar configuración");
       const json = await res.json();
-      setConfig(json.data || emptyConfig);
+      setConfig(normalizeModalConfig(json.data));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
+      const msg = err instanceof Error ? err.message : "Error";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -105,65 +126,68 @@ export default function AdminMarketingModal() {
   };
 
   const handleImageUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Solo se permiten archivos de imagen');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen no debe superar los 5 MB');
+      toast.error("La imagen no debe superar los 5 MB");
       return;
     }
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'marketing');
+      formData.append("file", file);
+      formData.append("folder", "marketing");
 
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Error al subir la imagen');
+        throw new Error(data.error || "Error al subir la imagen");
       }
 
       const data = await res.json();
       setImgError(false);
-      updateField('imageUrl', data.url);
-      toast.success('Imagen subida correctamente');
+      updateField("imageUrl", data.url);
+      toast.success("Imagen subida correctamente");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al subir';
+      const msg = err instanceof Error ? err.message : "Error al subir";
       toast.error(msg);
     } finally {
       setUploading(false);
-      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (imageInputRef.current) imageInputRef.current.value = "";
     }
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/marketing-modal', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/marketing-modal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      if (!res.ok) throw new Error('Error al guardar');
+      if (!res.ok) throw new Error("Error al guardar");
       const json = await res.json();
-      setConfig(json.data || config);
-      toast.success('Modal de marketing actualizado correctamente');
+      setConfig(normalizeModalConfig(json.data ?? config));
+      toast.success("Modal de marketing actualizado correctamente");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
+      const msg = err instanceof Error ? err.message : "Error";
       toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  const updateField = <K extends keyof ModalConfig>(key: K, value: ModalConfig[K]) => {
+  const updateField = <K extends keyof ModalConfig>(
+    key: K,
+    value: ModalConfig[K],
+  ) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -221,14 +245,11 @@ export default function AdminMarketingModal() {
             size="sm"
             onClick={() => setShowPreview(!showPreview)}
           >
-            {showPreview ? 'Ocultar Vista Previa' : 'Vista Previa'}
+            {showPreview ? "Ocultar Vista Previa" : "Vista Previa"}
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Guardando...' : 'Guardar'}
+            {saving ? "Guardando..." : "Guardar"}
           </Button>
         </div>
       </motion.div>
@@ -254,7 +275,7 @@ export default function AdminMarketingModal() {
                 </div>
                 <Switch
                   checked={config.active}
-                  onCheckedChange={(checked) => updateField('active', checked)}
+                  onCheckedChange={(checked) => updateField("active", checked)}
                 />
               </div>
             </CardContent>
@@ -278,7 +299,7 @@ export default function AdminMarketingModal() {
                   <Input
                     id="mm-title"
                     value={config.title}
-                    onChange={(e) => updateField('title', e.target.value)}
+                    onChange={(e) => updateField("title", e.target.value)}
                     placeholder="¡Oferta Especial de Verano!"
                   />
                 </div>
@@ -287,7 +308,7 @@ export default function AdminMarketingModal() {
                   <Input
                     id="mm-subtitle"
                     value={config.subtitle}
-                    onChange={(e) => updateField('subtitle', e.target.value)}
+                    onChange={(e) => updateField("subtitle", e.target.value)}
                     placeholder="Hasta 30% de descuento"
                   />
                 </div>
@@ -298,7 +319,7 @@ export default function AdminMarketingModal() {
                 <Textarea
                   id="mm-desc"
                   value={config.description}
-                  onChange={(e) => updateField('description', e.target.value)}
+                  onChange={(e) => updateField("description", e.target.value)}
                   placeholder="Describe la oferta o promoción..."
                   rows={3}
                 />
@@ -328,7 +349,10 @@ export default function AdminMarketingModal() {
                         type="button"
                         size="sm"
                         variant="secondary"
-                        onClick={() => { setImgError(false); imageInputRef.current?.click(); }}
+                        onClick={() => {
+                          setImgError(false);
+                          imageInputRef.current?.click();
+                        }}
                       >
                         <Upload className="w-4 h-4 mr-1" />
                         Cambiar
@@ -337,7 +361,10 @@ export default function AdminMarketingModal() {
                         type="button"
                         size="sm"
                         variant="destructive"
-                        onClick={() => { updateField('imageUrl', ''); setImgError(false); }}
+                        onClick={() => {
+                          updateField("imageUrl", "");
+                          setImgError(false);
+                        }}
                       >
                         <X className="w-4 h-4 mr-1" />
                         Eliminar
@@ -359,26 +386,32 @@ export default function AdminMarketingModal() {
                     onDragLeave={() => setDragOver(false)}
                     onClick={() => imageInputRef.current?.click()}
                     className={cn(
-                      'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                      "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
                       dragOver
-                        ? 'border-ring bg-accent'
-                        : 'border-input hover:border-ring/60 hover:bg-accent/50',
-                      uploading && 'pointer-events-none opacity-60'
+                        ? "border-ring bg-accent"
+                        : "border-input hover:border-ring/60 hover:bg-accent/50",
+                      uploading && "pointer-events-none opacity-60",
                     )}
                   >
                     {uploading ? (
                       <div className="space-y-2">
                         <div className="animate-spin w-6 h-6 border-2 border-ring border-t-transparent rounded-full mx-auto" />
-                        <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                        <p className="text-sm text-muted-foreground">
+                          Subiendo imagen...
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         <ImagePlus className="w-8 h-8 text-muted-foreground mx-auto" />
                         <p className="text-sm text-muted-foreground">
-                          Arrastra una imagen o{' '}
-                          <span className="text-primary font-medium">haz clic para seleccionar</span>
+                          Arrastra una imagen o{" "}
+                          <span className="text-primary font-medium">
+                            haz clic para seleccionar
+                          </span>
                         </p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF (máx. 5 MB)</p>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG, WebP, GIF (máx. 5 MB)
+                        </p>
                       </div>
                     )}
                   </div>
@@ -402,7 +435,9 @@ export default function AdminMarketingModal() {
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
                 <MousePointerClick className="w-4 h-4 text-primary" />
-                <CardTitle className="text-base">Botón de Acción (CTA)</CardTitle>
+                <CardTitle className="text-base">
+                  Botón de Acción (CTA)
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -412,7 +447,7 @@ export default function AdminMarketingModal() {
                   <Input
                     id="mm-cta-text"
                     value={config.ctaText}
-                    onChange={(e) => updateField('ctaText', e.target.value)}
+                    onChange={(e) => updateField("ctaText", e.target.value)}
                     placeholder="Ver Oferta"
                   />
                 </div>
@@ -421,7 +456,7 @@ export default function AdminMarketingModal() {
                   <Input
                     id="mm-cta-link"
                     value={config.ctaLink}
-                    onChange={(e) => updateField('ctaLink', e.target.value)}
+                    onChange={(e) => updateField("ctaLink", e.target.value)}
                     placeholder="portal-destinations o https://..."
                   />
                 </div>
@@ -430,20 +465,22 @@ export default function AdminMarketingModal() {
                 <Label htmlFor="mm-cta-type">Tipo de acción</Label>
                 <Select
                   value={config.ctaType}
-                  onValueChange={(v) => updateField('ctaType', v)}
+                  onValueChange={(v) => updateField("ctaType", v)}
                 >
                   <SelectTrigger id="mm-cta-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="navigate">Navegación interna (vista SPA)</SelectItem>
+                    <SelectItem value="navigate">
+                      Navegación interna (vista SPA)
+                    </SelectItem>
                     <SelectItem value="link">Enlace externo (URL)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {config.ctaType === 'navigate'
-                    ? 'El botón navegará a una vista interna del portal (ej: portal-destinations, portal-hotels)'
-                    : 'El botón abrirá una URL externa en una nueva pestaña'}
+                  {config.ctaType === "navigate"
+                    ? "El botón navegará a una vista interna del portal (ej: portal-destinations, portal-hotels)"
+                    : "El botón abrirá una URL externa en una nueva pestaña"}
                 </p>
               </div>
             </CardContent>
@@ -466,25 +503,33 @@ export default function AdminMarketingModal() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="text-sm font-medium">Activar temporizador</Label>
+                  <Label className="text-sm font-medium">
+                    Activar temporizador
+                  </Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Muestra cuenta regresiva en el popup
                   </p>
                 </div>
                 <Switch
                   checked={config.timerEnabled}
-                  onCheckedChange={(checked) => updateField('timerEnabled', checked)}
+                  onCheckedChange={(checked) =>
+                    updateField("timerEnabled", checked)
+                  }
                 />
               </div>
 
               {config.timerEnabled && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="mm-timer-label">Texto del temporizador</Label>
+                    <Label htmlFor="mm-timer-label">
+                      Texto del temporizador
+                    </Label>
                     <Input
                       id="mm-timer-label"
                       value={config.timerLabel}
-                      onChange={(e) => updateField('timerLabel', e.target.value)}
+                      onChange={(e) =>
+                        updateField("timerLabel", e.target.value)
+                      }
                       placeholder="Oferta termina en"
                     />
                   </div>
@@ -496,17 +541,20 @@ export default function AdminMarketingModal() {
                       value={
                         config.timerEnd
                           ? new Date(config.timerEnd).toISOString().slice(0, 16)
-                          : ''
+                          : ""
                       }
                       onChange={(e) =>
                         updateField(
-                          'timerEnd',
-                          e.target.value ? new Date(e.target.value).toISOString() : null
+                          "timerEnd",
+                          e.target.value
+                            ? new Date(e.target.value).toISOString()
+                            : null,
                         )
                       }
                     />
                     <p className="text-xs text-muted-foreground">
-                      Cuando el temporizador llegue a cero, el modal se ocultará automáticamente
+                      Cuando el temporizador llegue a cero, el modal se ocultará
+                      automáticamente
                     </p>
                   </div>
                 </>
@@ -527,15 +575,19 @@ export default function AdminMarketingModal() {
                 <Label htmlFor="mm-position">Posición del popup</Label>
                 <Select
                   value={config.position}
-                  onValueChange={(v) => updateField('position', v)}
+                  onValueChange={(v) => updateField("position", v)}
                 >
                   <SelectTrigger id="mm-position">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="center">Centro de pantalla</SelectItem>
-                    <SelectItem value="bottom-right">Esquina inferior derecha</SelectItem>
-                    <SelectItem value="bottom-left">Esquina inferior izquierda</SelectItem>
+                    <SelectItem value="bottom-right">
+                      Esquina inferior derecha
+                    </SelectItem>
+                    <SelectItem value="bottom-left">
+                      Esquina inferior izquierda
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -549,20 +601,28 @@ export default function AdminMarketingModal() {
                   max={30000}
                   step={500}
                   value={config.delayMs}
-                  onChange={(e) => updateField('delayMs', Number(e.target.value))}
+                  onChange={(e) =>
+                    updateField("delayMs", Number(e.target.value))
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Tiempo en milisegundos antes de mostrar el popup (3000 ms = 3 seg)
+                  Tiempo en milisegundos antes de mostrar el popup (3000 ms = 3
+                  seg)
                 </p>
               </div>
 
               <Separator className="my-2" />
 
               <div className="bg-accent border border-border rounded-lg p-3">
-                <p className="text-xs text-foreground font-medium mb-1">Comportamiento</p>
+                <p className="text-xs text-foreground font-medium mb-1">
+                  Comportamiento
+                </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Se muestra una vez por sesión del navegador</li>
-                  <li>• Si el usuario cierra el popup, no vuelve en la misma sesión</li>
+                  <li>
+                    • Si el usuario cierra el popup, no vuelve en la misma
+                    sesión
+                  </li>
                   <li>• Si pasan 24 horas, se vuelve a mostrar</li>
                   <li>• Si el temporizador expira, el popup se desactiva</li>
                 </ul>
@@ -598,7 +658,8 @@ export default function AdminMarketingModal() {
                           alt=""
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -611,10 +672,10 @@ export default function AdminMarketingModal() {
                         </p>
                       )}
                       <h3 className="text-lg font-bold text-card-foreground mb-2">
-                        {config.title || 'Título del Modal'}
+                        {config.title || "Título del Modal"}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                        {config.description || 'Descripción de la oferta...'}
+                        {config.description || "Descripción de la oferta..."}
                       </p>
                       {config.timerEnabled && config.timerEnd && (
                         <div className="bg-accent rounded-lg p-2.5 mb-4 text-center border border-border">
@@ -627,7 +688,7 @@ export default function AdminMarketingModal() {
                         </div>
                       )}
                       <button className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold text-sm shadow-sm">
-                        {config.ctaText || 'Ver Oferta'}
+                        {config.ctaText || "Ver Oferta"}
                       </button>
                     </div>
                   </div>
