@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { formatCurrency } from '@/lib/currency';
+import { formatCurrency } from "@/lib/currency";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from "react";
 import {
   Building2,
   ImagePlus,
@@ -15,14 +15,15 @@ import {
   X,
   MapPin,
   Star,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+  RefreshCw,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -30,8 +31,8 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface OwnHotel {
   id: string;
@@ -39,6 +40,7 @@ interface OwnHotel {
   name: string;
   cityId: string;
   cityName: string;
+  destinationId?: string | null;
   stars: number;
   address: string;
   description: string;
@@ -48,13 +50,29 @@ interface OwnHotel {
   isTemplate: boolean;
 }
 
+interface DestinationOption {
+  id: string;
+  name: string;
+  region: string;
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 const emptyForm = {
-  name: '',
-  cityId: '',
-  cityName: '',
+  name: "",
+  cityId: "",
+  cityName: "",
+  destinationId: "",
   stars: 3,
-  address: '',
-  description: '',
+  address: "",
+  description: "",
   images: [] as string[],
   priceFrom: 0,
   active: false,
@@ -69,15 +87,22 @@ export default function ResellerOwnHotels() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [destinationOptions, setDestinationOptions] = useState<
+    DestinationOption[]
+  >([]);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
+  const [destinationsError, setDestinationsError] = useState<string | null>(
+    null,
+  );
 
   const fetchHotels = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/reseller/products/hotels');
+      const res = await fetch("/api/reseller/products/hotels");
       const json = await res.json();
       if (json.success) setHotels(json.data);
     } catch {
-      toast.error('No se pudieron cargar tus hoteles');
+      toast.error("No se pudieron cargar tus hoteles");
     } finally {
       setLoading(false);
     }
@@ -86,6 +111,50 @@ export default function ResellerOwnHotels() {
   useEffect(() => {
     fetchHotels();
   }, [fetchHotels]);
+
+  const fetchDestinations = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationsError(null);
+    try {
+      const res = await fetch("/api/public/destinations?limit=200");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || "No se pudieron cargar los destinos");
+      }
+
+      const options = Array.isArray(json.data)
+        ? json.data
+            .filter((item): item is DestinationOption => {
+              if (!item || typeof item !== "object") return false;
+              const option = item as Partial<DestinationOption>;
+              return (
+                typeof option.id === "string" &&
+                typeof option.name === "string" &&
+                typeof option.region === "string"
+              );
+            })
+            .map((item) => ({
+              id: item.id,
+              name: item.name,
+              region: item.region,
+            }))
+        : [];
+
+      setDestinationOptions(options);
+    } catch (error) {
+      setDestinationsError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los destinos",
+      );
+    } finally {
+      setDestinationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDestinations();
+  }, [fetchDestinations]);
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -99,6 +168,7 @@ export default function ResellerOwnHotels() {
       name: h.name,
       cityId: h.cityId,
       cityName: h.cityName,
+      destinationId: h.destinationId ?? "",
       stars: h.stars,
       address: h.address,
       description: h.description,
@@ -111,7 +181,7 @@ export default function ResellerOwnHotels() {
 
   const handleImagesUpload = async (files: FileList | File[]) => {
     const validFiles = Array.from(files).filter((file) => {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast.error(`${file.name} no es una imagen válida`);
         return false;
       }
@@ -129,12 +199,15 @@ export default function ResellerOwnHotels() {
       const uploadedUrls: string[] = [];
       for (const file of validFiles) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append("file", file);
 
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
         const json = await res.json();
         if (!json.success || !json.fileUrl) {
-          throw new Error(json.error || 'No se pudo subir la imagen');
+          throw new Error(json.error || "No se pudo subir la imagen");
         }
         uploadedUrls.push(json.fileUrl);
       }
@@ -142,7 +215,9 @@ export default function ResellerOwnHotels() {
       setForm((f) => ({ ...f, images: [...f.images, ...uploadedUrls] }));
       toast.success(`${uploadedUrls.length} imagen(es) subida(s)`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al subir imágenes');
+      toast.error(
+        error instanceof Error ? error.message : "Error al subir imágenes",
+      );
     } finally {
       setUploading(false);
     }
@@ -150,7 +225,19 @@ export default function ResellerOwnHotels() {
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      toast.error('El nombre es obligatorio');
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+
+    if (!form.destinationId.trim()) {
+      toast.error("Debes seleccionar un destino asociado");
+      return;
+    }
+
+    if (destinationsError) {
+      toast.error(
+        "No se puede guardar hasta cargar los destinos correctamente",
+      );
       return;
     }
 
@@ -160,6 +247,7 @@ export default function ResellerOwnHotels() {
         name: form.name.trim(),
         cityId: form.cityId,
         cityName: form.cityName,
+        destinationId: form.destinationId,
         stars: Math.round(Number(form.stars) || 3),
         address: form.address,
         description: form.description,
@@ -170,25 +258,25 @@ export default function ResellerOwnHotels() {
 
       const url = editingId
         ? `/api/reseller/products/hotels/${editingId}`
-        : '/api/reseller/products/hotels';
-      const method = editingId ? 'PUT' : 'POST';
+        : "/api/reseller/products/hotels";
+      const method = editingId ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const json = await res.json();
       if (json.success) {
-        toast.success(editingId ? 'Hotel actualizado' : 'Hotel creado');
+        toast.success(editingId ? "Hotel actualizado" : "Hotel creado");
         setDialogOpen(false);
         fetchHotels();
       } else {
-        toast.error(json.error || 'No se pudo guardar');
+        toast.error(json.error || "No se pudo guardar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     } finally {
       setSaving(false);
     }
@@ -197,46 +285,53 @@ export default function ResellerOwnHotels() {
   const handleToggleActive = async (h: OwnHotel) => {
     try {
       const res = await fetch(`/api/reseller/products/hotels/${h.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: !h.active }),
       });
       const json = await res.json();
       if (json.success) {
         setHotels((prev) =>
-          prev.map((item) => (item.id === h.id ? { ...item, active: !item.active } : item)),
+          prev.map((item) =>
+            item.id === h.id ? { ...item, active: !item.active } : item,
+          ),
         );
-        toast.success(h.active ? 'Despublicado' : 'Publicado');
+        toast.success(h.active ? "Despublicado" : "Publicado");
       } else {
-        toast.error(json.error || 'No se pudo actualizar');
+        toast.error(json.error || "No se pudo actualizar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar este hotel? Esta acción no se puede deshacer.')) return;
+    if (!confirm("¿Eliminar este hotel? Esta acción no se puede deshacer."))
+      return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/reseller/products/hotels/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       const json = await res.json();
       if (json.success) {
         setHotels((prev) => prev.filter((h) => h.id !== id));
-        toast.success('Hotel eliminado');
+        toast.success("Hotel eliminado");
       } else {
-        toast.error(json.error || 'No se pudo eliminar');
+        toast.error(json.error || "No se pudo eliminar");
       }
     } catch {
-      toast.error('Error de conexión');
+      toast.error("Error de conexión");
     } finally {
       setDeletingId(null);
     }
   };
 
-  const renderStars = (count: number, interactive = false, onSelect?: (n: number) => void) => {
+  const renderStars = (
+    count: number,
+    interactive = false,
+    onSelect?: (n: number) => void,
+  ) => {
     return (
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((n) => (
@@ -245,13 +340,15 @@ export default function ResellerOwnHotels() {
             type="button"
             disabled={!interactive}
             onClick={() => onSelect?.(n)}
-            className={interactive ? 'cursor-pointer' : 'cursor-default'}
-            aria-label={`${n} estrella${n > 1 ? 's' : ''}`}
+            className={interactive ? "cursor-pointer" : "cursor-default"}
+            aria-label={`${n} estrella${n > 1 ? "s" : ""}`}
           >
             <Star
               className={`size-5 ${
-                n <= count ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'
-              } ${interactive ? 'hover:scale-110 transition-transform' : ''}`}
+                n <= count
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "fill-gray-200 text-gray-200"
+              } ${interactive ? "hover:scale-110 transition-transform" : ""}`}
             />
           </button>
         ))}
@@ -263,9 +360,12 @@ export default function ResellerOwnHotels() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Tus hoteles propios</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            Tus hoteles propios
+          </h2>
           <p className="text-sm text-gray-500">
-            Crea y gestiona tus propios hoteles. Al publicarlos, aparecen en tu tienda.
+            Crea y gestiona tus propios hoteles. Al publicarlos, aparecen en tu
+            tienda.
           </p>
         </div>
         <Button onClick={openCreateDialog} className="gap-2">
@@ -277,7 +377,10 @@ export default function ResellerOwnHotels() {
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse rounded-lg bg-gray-100" />
+            <div
+              key={i}
+              className="h-64 animate-pulse rounded-lg bg-gray-100"
+            />
           ))}
         </div>
       ) : hotels.length === 0 ? (
@@ -313,11 +416,11 @@ export default function ResellerOwnHotels() {
                 <Badge
                   className={`absolute right-2 top-2 ${
                     h.active
-                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-100'
+                      ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-100"
                   }`}
                 >
-                  {h.active ? 'Publicado' : 'Borrador'}
+                  {h.active ? "Publicado" : "Borrador"}
                 </Badge>
               </div>
               <CardContent className="space-y-3 p-4">
@@ -335,7 +438,9 @@ export default function ResellerOwnHotels() {
                 </div>
                 <p className="text-sm font-semibold text-gray-900">
                   {formatCurrency(h.priceFrom)}
-                  <span className="ml-1 text-xs font-normal text-gray-500">desde</span>
+                  <span className="ml-1 text-xs font-normal text-gray-500">
+                    desde
+                  </span>
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -387,11 +492,13 @@ export default function ResellerOwnHotels() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="force-light sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-slate-900 border-slate-200">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Editar hotel' : 'Nuevo hotel'}</DialogTitle>
+            <DialogTitle>
+              {editingId ? "Editar hotel" : "Nuevo hotel"}
+            </DialogTitle>
             <DialogDescription>
               {editingId
-                ? 'Modifica los datos de tu hotel.'
-                : 'Completa los datos para crear un hotel propio.'}
+                ? "Modifica los datos de tu hotel."
+                : "Completa los datos para crear un hotel propio."}
             </DialogDescription>
           </DialogHeader>
 
@@ -402,7 +509,9 @@ export default function ResellerOwnHotels() {
                 <Input
                   id="htl-name"
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
                   placeholder="Ej: Hotel Playa Dorada"
                 />
               </div>
@@ -412,9 +521,54 @@ export default function ResellerOwnHotels() {
                 <Input
                   id="htl-city"
                   value={form.cityName}
-                  onChange={(e) => setForm((f) => ({ ...f, cityName: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      cityName: e.target.value,
+                      cityId: slugify(e.target.value),
+                    }))
+                  }
                   placeholder="Ej: Cartagena"
                 />
+                <div className="space-y-1.5 pt-2">
+                  <Label htmlFor="htl-destination">Destino Asociado *</Label>
+                  <select
+                    id="htl-destination"
+                    value={form.destinationId}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, destinationId: e.target.value }))
+                    }
+                    disabled={destinationsLoading}
+                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <option value="">Selecciona un destino</option>
+                    {destinationOptions.map((destination) => (
+                      <option key={destination.id} value={destination.id}>
+                        {destination.name} ({destination.region})
+                      </option>
+                    ))}
+                  </select>
+                  {destinationsLoading && (
+                    <p className="text-xs text-slate-500">
+                      Cargando destinos...
+                    </p>
+                  )}
+                  {destinationsError && (
+                    <div className="flex items-center gap-2 text-xs text-red-600">
+                      <span>{destinationsError}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1"
+                        onClick={fetchDestinations}
+                      >
+                        <RefreshCw className="size-3" />
+                        Reintentar
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -429,7 +583,9 @@ export default function ResellerOwnHotels() {
                 <Input
                   id="htl-address"
                   value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, address: e.target.value }))
+                  }
                   placeholder="Ej: Av. Bocagrande, Cra 1 #5-01"
                 />
               </div>
@@ -442,7 +598,10 @@ export default function ResellerOwnHotels() {
                   min={0}
                   value={form.priceFrom}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, priceFrom: Number(e.target.value) || 0 }))
+                    setForm((f) => ({
+                      ...f,
+                      priceFrom: Number(e.target.value) || 0,
+                    }))
                   }
                 />
               </div>
@@ -452,8 +611,12 @@ export default function ResellerOwnHotels() {
               <Label>Imágenes ({form.images.length})</Label>
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                 <ImagePlus className="mx-auto mb-2 size-7 text-slate-400" />
-                <p className="text-sm text-slate-600">Subí imágenes del hotel</p>
-                <p className="mt-1 text-xs text-slate-400">PNG, JPG, WebP o GIF, máximo 5 MB cada una</p>
+                <p className="text-sm text-slate-600">
+                  Subí imágenes del hotel
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  PNG, JPG, WebP o GIF, máximo 5 MB cada una
+                </p>
                 <Input
                   type="file"
                   accept="image/*"
@@ -461,8 +624,9 @@ export default function ResellerOwnHotels() {
                   disabled={uploading}
                   className="mt-3 bg-white"
                   onChange={(event) => {
-                    if (event.target.files) handleImagesUpload(event.target.files);
-                    event.currentTarget.value = '';
+                    if (event.target.files)
+                      handleImagesUpload(event.target.files);
+                    event.currentTarget.value = "";
                   }}
                 />
                 {uploading && (
@@ -475,11 +639,23 @@ export default function ResellerOwnHotels() {
               {form.images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {form.images.map((image, index) => (
-                    <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-                      <img src={image} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover" />
+                    <div
+                      key={`${image}-${index}`}
+                      className="relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
+                    >
+                      <img
+                        src={image}
+                        alt={`Imagen ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
                       <button
                         type="button"
-                        onClick={() => setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }))}
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            images: f.images.filter((_, i) => i !== index),
+                          }))
+                        }
                         className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow hover:bg-red-50 hover:text-red-600"
                         aria-label="Eliminar imagen"
                       >
@@ -496,7 +672,9 @@ export default function ResellerOwnHotels() {
               <Textarea
                 id="htl-desc"
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 rows={3}
                 placeholder="Descripción del hotel..."
               />
@@ -511,7 +689,10 @@ export default function ResellerOwnHotels() {
                 }
               />
               <div className="space-y-1 leading-none">
-                <Label htmlFor="htl-active" className="cursor-pointer text-sm font-medium">
+                <Label
+                  htmlFor="htl-active"
+                  className="cursor-pointer text-sm font-medium"
+                >
                   Publicar hotel
                 </Label>
                 <p className="text-xs text-muted-foreground">
@@ -527,7 +708,7 @@ export default function ResellerOwnHotels() {
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {editingId ? 'Guardar cambios' : 'Crear hotel'}
+              {editingId ? "Guardar cambios" : "Crear hotel"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
-import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth';
-import { safeJsonParse } from '@/lib/json';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { db } from "@/lib/db";
+import {
+  getPanelSessionCookieName,
+  verifyPanelSessionToken,
+} from "@/lib/panel-auth";
+import { safeJsonParse } from "@/lib/json";
 
 function formatHotel(hotel: any) {
   return {
@@ -13,14 +16,39 @@ function formatHotel(hotel: any) {
 
 async function requireResellerSession() {
   const cookieStore = await cookies();
-  const sessionValue = cookieStore.get(getPanelSessionCookieName('reseller'))?.value;
-  const session = verifyPanelSessionToken(sessionValue, 'reseller');
+  const sessionValue = cookieStore.get(
+    getPanelSessionCookieName("reseller"),
+  )?.value;
+  const session = verifyPanelSessionToken(sessionValue, "reseller");
   if (!session) return null;
   return session;
 }
 
 function toPrice(value: unknown): number {
-  return typeof value === 'number' ? Math.round(value) : 0;
+  return typeof value === "number" ? Math.round(value) : 0;
+}
+
+function generateSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function normalizeCityName(value: unknown, fallback = ""): string {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function normalizeCityId(
+  cityId: unknown,
+  cityName: string,
+  fallback = "",
+): string {
+  if (typeof cityId === "string" && cityId.trim()) return cityId.trim();
+  if (cityName) return generateSlug(cityName);
+  return fallback;
 }
 
 export async function GET(
@@ -30,7 +58,10 @@ export async function GET(
   try {
     const session = await requireResellerSession();
     if (!session) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "No autorizado" },
+        { status: 401 },
+      );
     }
 
     const { id } = await params;
@@ -40,16 +71,16 @@ export async function GET(
 
     if (!hotel) {
       return NextResponse.json(
-        { success: false, error: 'Hotel no encontrado' },
+        { success: false, error: "Hotel no encontrado" },
         { status: 404 },
       );
     }
 
     return NextResponse.json({ success: true, data: formatHotel(hotel) });
   } catch (error: any) {
-    console.error('Error fetching reseller hotel:', error);
+    console.error("Error fetching reseller hotel:", error);
     return NextResponse.json(
-      { success: false, error: 'No se pudo cargar el hotel' },
+      { success: false, error: "No se pudo cargar el hotel" },
       { status: 500 },
     );
   }
@@ -62,7 +93,10 @@ export async function PUT(
   try {
     const session = await requireResellerSession();
     if (!session) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "No autorizado" },
+        { status: 401 },
+      );
     }
 
     const { id } = await params;
@@ -72,7 +106,10 @@ export async function PUT(
 
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Hotel no encontrado o no pertenece a tu cuenta' },
+        {
+          success: false,
+          error: "Hotel no encontrado o no pertenece a tu cuenta",
+        },
         { status: 404 },
       );
     }
@@ -81,9 +118,9 @@ export async function PUT(
     const updates: Record<string, unknown> = {};
 
     if (body.name !== undefined) {
-      if (typeof body.name !== 'string' || body.name.trim().length === 0) {
+      if (typeof body.name !== "string" || body.name.trim().length === 0) {
         return NextResponse.json(
-          { success: false, error: 'El nombre es obligatorio' },
+          { success: false, error: "El nombre es obligatorio" },
           { status: 400 },
         );
       }
@@ -91,10 +128,10 @@ export async function PUT(
 
       const baseSlug = body.name
         .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
       let slug = baseSlug;
       let counter = 1;
       while (true) {
@@ -106,13 +143,70 @@ export async function PUT(
       updates.slug = slug;
     }
 
-    if (body.cityId !== undefined) updates.cityId = body.cityId;
-    if (body.cityName !== undefined) updates.cityName = body.cityName;
+    if (body.destinationId !== undefined) {
+      const relatedDestinationId =
+        typeof body.destinationId === "string" && body.destinationId.trim()
+          ? body.destinationId.trim()
+          : null;
+
+      if (!relatedDestinationId) {
+        return NextResponse.json(
+          { success: false, error: "Debes seleccionar un destino asociado" },
+          { status: 400 },
+        );
+      }
+
+      const destination = await db.destination.findUnique({
+        where: { id: relatedDestinationId },
+        select: { id: true, name: true },
+      });
+
+      if (!destination) {
+        return NextResponse.json(
+          { success: false, error: "El destino seleccionado no existe" },
+          { status: 400 },
+        );
+      }
+
+      updates.destinationId = relatedDestinationId;
+      const normalizedCityName = normalizeCityName(
+        body.cityName,
+        body.cityName === undefined ? existing.cityName : destination.name,
+      );
+      updates.cityName = normalizedCityName;
+      updates.cityId = normalizeCityId(
+        body.cityId,
+        normalizedCityName,
+        existing.cityId,
+      );
+    } else {
+      if (body.cityName !== undefined) {
+        const normalizedCityName = normalizeCityName(
+          body.cityName,
+          existing.cityName,
+        );
+        updates.cityName = normalizedCityName;
+        updates.cityId = normalizeCityId(
+          body.cityId,
+          normalizedCityName,
+          existing.cityId,
+        );
+      } else if (body.cityId !== undefined) {
+        updates.cityId = normalizeCityId(
+          body.cityId,
+          existing.cityName,
+          existing.cityId,
+        );
+      }
+    }
 
     if (body.stars !== undefined) {
-      if (typeof body.stars !== 'number' || body.stars < 1 || body.stars > 5) {
+      if (typeof body.stars !== "number" || body.stars < 1 || body.stars > 5) {
         return NextResponse.json(
-          { success: false, error: 'Las estrellas deben ser un número entre 1 y 5' },
+          {
+            success: false,
+            error: "Las estrellas deben ser un número entre 1 y 5",
+          },
           { status: 400 },
         );
       }
@@ -123,13 +217,15 @@ export async function PUT(
     if (body.description !== undefined) updates.description = body.description;
 
     if (body.images !== undefined) {
-      updates.images = JSON.stringify(Array.isArray(body.images) ? body.images : []);
+      updates.images = JSON.stringify(
+        Array.isArray(body.images) ? body.images : [],
+      );
     }
 
     if (body.priceFrom !== undefined) {
-      if (typeof body.priceFrom !== 'number' || body.priceFrom < 0) {
+      if (typeof body.priceFrom !== "number" || body.priceFrom < 0) {
         return NextResponse.json(
-          { success: false, error: 'El precio debe ser un número no negativo' },
+          { success: false, error: "El precio debe ser un número no negativo" },
           { status: 400 },
         );
       }
@@ -137,7 +233,8 @@ export async function PUT(
     }
 
     if (body.active !== undefined) {
-      updates.active = typeof body.active === 'boolean' ? body.active : existing.active;
+      updates.active =
+        typeof body.active === "boolean" ? body.active : existing.active;
     }
 
     const hotel = await db.hotel.update({
@@ -147,9 +244,9 @@ export async function PUT(
 
     return NextResponse.json({ success: true, data: formatHotel(hotel) });
   } catch (error: any) {
-    console.error('Error updating reseller hotel:', error);
+    console.error("Error updating reseller hotel:", error);
     return NextResponse.json(
-      { success: false, error: 'No se pudo actualizar el hotel' },
+      { success: false, error: "No se pudo actualizar el hotel" },
       { status: 500 },
     );
   }
@@ -162,7 +259,10 @@ export async function DELETE(
   try {
     const session = await requireResellerSession();
     if (!session) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "No autorizado" },
+        { status: 401 },
+      );
     }
 
     const { id } = await params;
@@ -172,7 +272,10 @@ export async function DELETE(
 
     if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Hotel no encontrado o no pertenece a tu cuenta' },
+        {
+          success: false,
+          error: "Hotel no encontrado o no pertenece a tu cuenta",
+        },
         { status: 404 },
       );
     }
@@ -181,9 +284,9 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting reseller hotel:', error);
+    console.error("Error deleting reseller hotel:", error);
     return NextResponse.json(
-      { success: false, error: 'No se pudo eliminar el hotel' },
+      { success: false, error: "No se pudo eliminar el hotel" },
       { status: 500 },
     );
   }
