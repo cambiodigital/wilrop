@@ -421,7 +421,7 @@ export default function ResellerOwnTransport() {
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="tr-provider">Proveedor *</Label>
                   <Select
-                    value={form.providerId || undefined}
+                    value={form.providerId}
                     onValueChange={(value) =>
                       setForm((f) => ({ ...f, providerId: value }))
                     }
