@@ -5,6 +5,16 @@ export interface CatalogOverride {
   customDescription: string;
 }
 
+type OverrideableCatalogFields = {
+  title?: string;
+  name?: string;
+  notes?: string;
+  description?: string;
+  priceFrom?: number;
+  basePrice?: number;
+  price?: number;
+};
+
 export function applyCatalogOverrides<T extends Record<string, unknown>>(
   sourceType: string,
   item: T,
@@ -12,7 +22,7 @@ export function applyCatalogOverrides<T extends Record<string, unknown>>(
 ): T {
   if (!override) return item;
 
-  const next = { ...item };
+  const next: T & OverrideableCatalogFields = { ...item };
 
   if (override.customName) {
     if (sourceType === "package") {
@@ -48,5 +58,5 @@ export function applyCatalogOverrides<T extends Record<string, unknown>>(
     }
   }
 
-  return next;
+  return next as T;
 }
