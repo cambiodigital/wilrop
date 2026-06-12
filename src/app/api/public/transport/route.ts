@@ -1,21 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { db } from "@/lib/db";
 import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
-} from '@/lib/panel-auth';
+} from "@/lib/panel-auth";
 import {
   normalizeTransport,
   resolveIsTemplateFallback,
   resolveDestinationFilter,
-} from '@/lib/catalog/public-hydration';
+} from "@/lib/catalog/public-hydration";
+import {
+  applyCatalogOverrides,
+  getCatalogOverridesMap,
+} from "@/lib/reseller/public-overrides";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const destinationId = searchParams.get('destinationId');
-    const destinationSlug = searchParams.get('destinationSlug');
+    const destinationId = searchParams.get("destinationId");
+    const destinationSlug = searchParams.get("destinationSlug");
 
     // Resolve destination filter (slug → ID lookup)
     const destFilter = await resolveDestinationFilter(
@@ -62,19 +66,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const resellerPanel = searchParams.get('resellerPanel') === 'true';
-    const resellerIdParam = searchParams.get('resellerId');
+    const resellerPanel = searchParams.get("resellerPanel") === "true";
+    const resellerIdParam = searchParams.get("resellerId");
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
       const cookieStore = await cookies();
       const sessionValue = cookieStore.get(
-        getPanelSessionCookieName('reseller'),
+        getPanelSessionCookieName("reseller"),
       )?.value;
-      const session = verifyPanelSessionToken(sessionValue, 'reseller');
+      const session = verifyPanelSessionToken(sessionValue, "reseller");
       if (!session) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 },
         );
       }
@@ -87,7 +91,7 @@ export async function GET(request: NextRequest) {
       const catalogItems = await db.resellerCatalog.findMany({
         where: {
           resellerId: resellerIdParam,
-          sourceType: 'transport',
+          sourceType: "transport",
           active: true,
         },
         select: { sourceId: true },
@@ -101,8 +105,16 @@ export async function GET(request: NextRequest) {
     // --- Query transport services ---
     const where: Record<string, unknown> = { active: true };
 
-    if (catalogTransportIds && catalogTransportIds.length > 0 && resellerIdParam && !resellerPanel) {
-      where.OR = [{ id: { in: catalogTransportIds } }, { resellerId: resellerIdParam }];
+    if (
+      catalogTransportIds &&
+      catalogTransportIds.length > 0 &&
+      resellerIdParam &&
+      !resellerPanel
+    ) {
+      where.OR = [
+        { id: { in: catalogTransportIds } },
+        { resellerId: resellerIdParam },
+      ];
     } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
     } else if (!resellerPanel && !resellerIdParam) {
@@ -116,7 +128,7 @@ export async function GET(request: NextRequest) {
 
     const services = await db.transportService.findMany({
       where: where as any,
-      orderBy: { basePrice: 'asc' },
+      orderBy: { basePrice: "asc" },
       include: {
         provider: {
           select: { id: true, name: true, vehicleType: true, capacity: true },
@@ -124,9 +136,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const catalogOverrides =
+      resellerIdParam && !resellerPanel
+        ? await getCatalogOverridesMap(resellerIdParam, "transport")
+        : null;
+
     // --- Enrich with relatedDestinationIds from DestinationTransportService join ---
     const normalized = services.map((s) =>
-      normalizeTransport(s as Record<string, unknown>),
+      normalizeTransport(
+        applyCatalogOverrides(
+          "transport",
+          s as unknown as Record<string, unknown>,
+          catalogOverrides?.get(s.id),
+        ),
+      ),
     );
 
     if (services.length > 0) {
@@ -158,9 +181,9 @@ export async function GET(request: NextRequest) {
       data: normalized.map((t) => ({ ...t, relatedDestinationIds: [] })),
     });
   } catch (error: any) {
-    console.error('Error fetching public transport services:', error);
+    console.error("Error fetching public transport services:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch transport services' },
+      { success: false, error: "Failed to fetch transport services" },
       { status: 500 },
     );
   }

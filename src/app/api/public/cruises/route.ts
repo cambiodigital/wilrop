@@ -1,30 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { db } from "@/lib/db";
 import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
-} from '@/lib/panel-auth';
+} from "@/lib/panel-auth";
 import {
   normalizeCruise,
   resolveIsTemplateFallback,
   resolveDestinationFilter,
-} from '@/lib/catalog/public-hydration';
+} from "@/lib/catalog/public-hydration";
+import {
+  applyCatalogOverrides,
+  getCatalogOverridesMap,
+} from "@/lib/reseller/public-overrides";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const destinationId = searchParams.get('destinationId');
-    const destinationSlug = searchParams.get('destinationSlug');
+    const destinationId = searchParams.get("destinationId");
+    const destinationSlug = searchParams.get("destinationSlug");
 
     // Parse filter query params
-    const priceMin = searchParams.get('priceMin') ? parseInt(searchParams.get('priceMin')!, 10) : undefined;
-    const priceMax = searchParams.get('priceMax') ? parseInt(searchParams.get('priceMax')!, 10) : undefined;
-    const durationDays = searchParams.get('durationDays') ? parseInt(searchParams.get('durationDays')!, 10) : undefined;
-    const sortBy = searchParams.get('sortBy') || 'recommended';
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined;
-    const featured = searchParams.get('featured') === 'true';
+    const priceMin = searchParams.get("priceMin")
+      ? parseInt(searchParams.get("priceMin")!, 10)
+      : undefined;
+    const priceMax = searchParams.get("priceMax")
+      ? parseInt(searchParams.get("priceMax")!, 10)
+      : undefined;
+    const durationDays = searchParams.get("durationDays")
+      ? parseInt(searchParams.get("durationDays")!, 10)
+      : undefined;
+    const sortBy = searchParams.get("sortBy") || "recommended";
+    const page = searchParams.get("page")
+      ? parseInt(searchParams.get("page")!, 10)
+      : 1;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!, 10)
+      : undefined;
+    const featured = searchParams.get("featured") === "true";
 
     // Resolve destination filter (slug → ID lookup)
     const destFilter = await resolveDestinationFilter(
@@ -61,24 +75,24 @@ export async function GET(request: NextRequest) {
         select: { id: true },
       });
       const fkIds = fkCruises.map((c) => c.id);
-      
+
       // Combine and unique
       cruiseIds = Array.from(new Set([...cruiseIds, ...fkIds]));
     }
 
-    const resellerPanel = searchParams.get('resellerPanel') === 'true';
-    const resellerIdParam = searchParams.get('resellerId');
+    const resellerPanel = searchParams.get("resellerPanel") === "true";
+    const resellerIdParam = searchParams.get("resellerId");
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
       const cookieStore = await cookies();
       const sessionValue = cookieStore.get(
-        getPanelSessionCookieName('reseller'),
+        getPanelSessionCookieName("reseller"),
       )?.value;
-      const session = verifyPanelSessionToken(sessionValue, 'reseller');
+      const session = verifyPanelSessionToken(sessionValue, "reseller");
       if (!session) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 },
         );
       }
@@ -91,7 +105,7 @@ export async function GET(request: NextRequest) {
       const catalogItems = await db.resellerCatalog.findMany({
         where: {
           resellerId: resellerIdParam,
-          sourceType: 'cruise',
+          sourceType: "cruise",
           active: true,
         },
         select: { sourceId: true },
@@ -105,8 +119,16 @@ export async function GET(request: NextRequest) {
     // Build Prisma query filters
     const where: any = { active: true };
 
-    if (catalogCruiseIds && catalogCruiseIds.length > 0 && resellerIdParam && !resellerPanel) {
-      where.OR = [{ id: { in: catalogCruiseIds } }, { resellerId: resellerIdParam }];
+    if (
+      catalogCruiseIds &&
+      catalogCruiseIds.length > 0 &&
+      resellerIdParam &&
+      !resellerPanel
+    ) {
+      where.OR = [
+        { id: { in: catalogCruiseIds } },
+        { resellerId: resellerIdParam },
+      ];
     } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
     } else if (!resellerPanel && !resellerIdParam) {
@@ -140,20 +162,38 @@ export async function GET(request: NextRequest) {
         cabins: true,
       },
       orderBy: [
-        ...(sortBy === 'price-asc' ? [{ priceFrom: 'asc' as const }] : []),
-        ...(sortBy === 'price-desc' ? [{ priceFrom: 'desc' as const }] : []),
-        ...(sortBy === 'recommended' ? [{ featured: 'desc' as const }, { rating: 'desc' as const }] : []),
-        { name: 'asc' as const },
+        ...(sortBy === "price-asc" ? [{ priceFrom: "asc" as const }] : []),
+        ...(sortBy === "price-desc" ? [{ priceFrom: "desc" as const }] : []),
+        ...(sortBy === "recommended"
+          ? [{ featured: "desc" as const }, { rating: "desc" as const }]
+          : []),
+        { name: "asc" as const },
       ],
     });
 
+    const catalogOverrides =
+      resellerIdParam && !resellerPanel
+        ? await getCatalogOverridesMap(resellerIdParam, "cruise")
+        : null;
+
     // Enrich and normalize
-    let normalizedCruises = cruises.map((c) => normalizeCruise(c as Record<string, unknown>));
+    let normalizedCruises = cruises.map((c) =>
+      normalizeCruise(
+        applyCatalogOverrides(
+          "cruise",
+          c as unknown as Record<string, unknown>,
+          catalogOverrides?.get(c.id),
+        ),
+      ),
+    );
 
     // Enrich with relatedDestinationIds from DestinationCruise join
     if (normalizedCruises.length > 0) {
       const destJoins = await db.destinationCruise.findMany({
-        where: { cruiseId: { in: normalizedCruises.map((c) => c.id) }, active: true },
+        where: {
+          cruiseId: { in: normalizedCruises.map((c) => c.id) },
+          active: true,
+        },
         select: { cruiseId: true, destinationId: true },
       });
 
@@ -166,7 +206,10 @@ export async function GET(request: NextRequest) {
 
       normalizedCruises = normalizedCruises.map((c) => {
         const joinedDestinations = destMap.get(c.id) ?? [];
-        if (c.primaryDestinationId && !joinedDestinations.includes(c.primaryDestinationId)) {
+        if (
+          c.primaryDestinationId &&
+          !joinedDestinations.includes(c.primaryDestinationId)
+        ) {
           joinedDestinations.push(c.primaryDestinationId);
         }
         return {
@@ -200,9 +243,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching public cruises:', error);
+    console.error("Error fetching public cruises:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch cruises' },
+      { success: false, error: "Failed to fetch cruises" },
       { status: 500 },
     );
   }

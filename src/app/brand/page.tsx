@@ -1,13 +1,23 @@
-import { notFound } from 'next/navigation'
-import { db } from '@/lib/db'
-import BrandLanding from '@/components/brand/BrandLanding'
+import { notFound } from "next/navigation";
+import { db } from "@/lib/db";
+import BrandLanding from "@/components/brand/BrandLanding";
+import {
+  getResellerCatalog,
+  resolveCatalogPresentation,
+} from "@/lib/reseller/catalog";
+import {
+  applyCatalogOverrides,
+  getCatalogOverridesMap,
+} from "@/lib/reseller/public-overrides";
+
+export const dynamic = "force-dynamic";
 
 interface BrandPageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function getFirst(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value
+  return Array.isArray(value) ? value[0] : value;
 }
 
 /**
@@ -16,12 +26,12 @@ function getFirst(value: string | string[] | undefined): string | undefined {
  * with _domain or _subdomain search params.
  */
 export default async function BrandPage({ searchParams }: BrandPageProps) {
-  const params = await searchParams
-  const domain = getFirst(params._domain)
-  const subdomain = getFirst(params._subdomain)
+  const params = await searchParams;
+  const domain = getFirst(params._domain);
+  const subdomain = getFirst(params._subdomain);
 
   if (!domain && !subdomain) {
-    notFound()
+    notFound();
   }
 
   // Resolve the reseller
@@ -31,12 +41,12 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
       ...(subdomain ? { subdomain } : {}),
       active: true,
       whiteLabelEnabled: true,
-      approvalStatus: 'approved',
+      approvalStatus: "approved",
     },
     include: {
       catalogs: {
         where: { active: true },
-        orderBy: { sortOrder: 'asc' },
+        orderBy: { sortOrder: "asc" },
       },
       hotels: {
         where: { active: true, isTemplate: false },
@@ -59,61 +69,112 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
         take: 20,
       },
     },
-  })
+  });
 
   if (!reseller) {
-    notFound()
+    notFound();
   }
+
+  const [
+    catalogItems,
+    hotelOverrides,
+    packageOverrides,
+    excursionOverrides,
+    cruiseOverrides,
+    transportOverrides,
+  ] = await Promise.all([
+    getResellerCatalog(reseller.id, { active: true }),
+    getCatalogOverridesMap(reseller.id, "hotel"),
+    getCatalogOverridesMap(reseller.id, "package"),
+    getCatalogOverridesMap(reseller.id, "excursion"),
+    getCatalogOverridesMap(reseller.id, "cruise"),
+    getCatalogOverridesMap(reseller.id, "transport"),
+  ]);
 
   // Load catalog-linked products (templates selected by the reseller)
   const catalogHotelIds = reseller.catalogs
-    .filter((c) => c.sourceType === 'hotel')
-    .map((c) => c.sourceId)
+    .filter((c) => c.sourceType === "hotel")
+    .map((c) => c.sourceId);
   const catalogPackageIds = reseller.catalogs
-    .filter((c) => c.sourceType === 'package')
-    .map((c) => c.sourceId)
+    .filter((c) => c.sourceType === "package")
+    .map((c) => c.sourceId);
   const catalogExcursionIds = reseller.catalogs
-    .filter((c) => c.sourceType === 'excursion')
-    .map((c) => c.sourceId)
+    .filter((c) => c.sourceType === "excursion")
+    .map((c) => c.sourceId);
 
-  const [catalogHotels, catalogPackages, catalogExcursions] = await Promise.all([
-    catalogHotelIds.length > 0
-      ? db.hotel.findMany({ where: { id: { in: catalogHotelIds }, active: true, isTemplate: true } })
-      : Promise.resolve([]),
-    catalogPackageIds.length > 0
-      ? db.travelPackage.findMany({ where: { id: { in: catalogPackageIds }, active: true, isTemplate: true } })
-      : Promise.resolve([]),
-    catalogExcursionIds.length > 0
-      ? db.excursion.findMany({ where: { id: { in: catalogExcursionIds }, active: true } })
-      : Promise.resolve([]),
-  ])
+  const [catalogHotels, catalogPackages, catalogExcursions] = await Promise.all(
+    [
+      catalogHotelIds.length > 0
+        ? db.hotel.findMany({
+            where: {
+              id: { in: catalogHotelIds },
+              active: true,
+              isTemplate: true,
+            },
+          })
+        : Promise.resolve([]),
+      catalogPackageIds.length > 0
+        ? db.travelPackage.findMany({
+            where: {
+              id: { in: catalogPackageIds },
+              active: true,
+              isTemplate: true,
+            },
+          })
+        : Promise.resolve([]),
+      catalogExcursionIds.length > 0
+        ? db.excursion.findMany({
+            where: { id: { in: catalogExcursionIds }, active: true },
+          })
+        : Promise.resolve([]),
+    ],
+  );
 
   // Merge: reseller's own products + catalog templates
-  const allHotels = [...reseller.hotels, ...catalogHotels]
-  const allPackages = [...reseller.packages, ...catalogPackages]
-  const allExcursions = [...reseller.excursions, ...catalogExcursions]
-  const allTransport = [...reseller.transportServices]
-  const allCruises = [...reseller.cruises]
+  const allHotels = [...reseller.hotels, ...catalogHotels].map((item) =>
+    applyCatalogOverrides("hotel", item, hotelOverrides.get(item.id)),
+  );
+  const allPackages = [...reseller.packages, ...catalogPackages].map((item) =>
+    applyCatalogOverrides("package", item, packageOverrides.get(item.id)),
+  );
+  const allExcursions = [...reseller.excursions, ...catalogExcursions].map(
+    (item) =>
+      applyCatalogOverrides("excursion", item, excursionOverrides.get(item.id)),
+  );
+  const allTransport = reseller.transportServices.map((item) =>
+    applyCatalogOverrides("transport", item, transportOverrides.get(item.id)),
+  );
+  const allCruises = reseller.cruises.map((item) =>
+    applyCatalogOverrides("cruise", item, cruiseOverrides.get(item.id)),
+  );
+
+  const catalogDestinationMap = new Map(
+    catalogItems
+      .map(resolveCatalogPresentation)
+      .filter((item) => item.sourceType === "destination")
+      .map((item) => [item.sourceId, item]),
+  );
 
   // Destinations that contain at least one of these products
-  const destinationIds = new Set<string>()
+  const destinationIds = new Set<string>();
   for (const h of allHotels) {
-    if (h.destinationId) destinationIds.add(h.destinationId)
+    if (h.destinationId) destinationIds.add(h.destinationId);
   }
   for (const p of allPackages) {
-    if (p.primaryDestinationId) destinationIds.add(p.primaryDestinationId)
+    if (p.primaryDestinationId) destinationIds.add(p.primaryDestinationId);
   }
   for (const e of allExcursions) {
-    if (e.destinationRefId) destinationIds.add(e.destinationRefId)
-    else if (e.destinationId) destinationIds.add(e.destinationId)
+    if (e.destinationRefId) destinationIds.add(e.destinationRefId);
+    else if (e.destinationId) destinationIds.add(e.destinationId);
   }
 
-  const destinations = destinationIds.size > 0
-    ? await db.destination.findMany({
-        where: { id: { in: [...destinationIds] }, active: true },
-        orderBy: { order: 'asc' },
-      })
-    : []
+  const destinations =
+    destinationIds.size > 0
+      ? await db.destination.findMany({
+          where: { id: { in: [...destinationIds] }, active: true },
+          orderBy: { order: "asc" },
+        })
+      : [];
 
   return (
     <BrandLanding
@@ -127,7 +188,15 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
       excursions={allExcursions}
       cruises={allCruises}
       transportServices={allTransport}
-      destinations={destinations}
+      destinations={destinations.map((destination) => {
+        const override = catalogDestinationMap.get(destination.id);
+
+        return {
+          ...destination,
+          name: override?.title || destination.name,
+          description: override?.description || destination.description,
+        };
+      })}
     />
-  )
+  );
 }

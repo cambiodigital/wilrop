@@ -1,8 +1,11 @@
-import { safeJsonParse } from '@/lib/json'
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { resolvePackageDestinationIds } from '@/lib/catalog/public-hydration';
-
+import { safeJsonParse } from "@/lib/json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { resolvePackageDestinationIds } from "@/lib/catalog/public-hydration";
+import {
+  applyCatalogOverrides,
+  getCatalogOverridesMap,
+} from "@/lib/reseller/public-overrides";
 
 function formatPackage(pkg: any) {
   return {
@@ -15,25 +18,66 @@ function formatPackage(pkg: any) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const destinationId = searchParams.get('destinationId');
-    const category = searchParams.get('category');
+    const destinationId = searchParams.get("destinationId");
+    const category = searchParams.get("category");
+    const resellerIdParam = searchParams.get("resellerId");
 
     const realCount = await db.travelPackage.count({
       where: { active: true, isTemplate: false, resellerId: null },
     });
 
+    let catalogPackageIds: string[] | undefined;
+    let resellerIdFilter: string | null = null;
+
+    if (resellerIdParam) {
+      const catalogItems = await db.resellerCatalog.findMany({
+        where: {
+          resellerId: resellerIdParam,
+          sourceType: "package",
+          active: true,
+        },
+        select: { sourceId: true },
+      });
+
+      catalogPackageIds = catalogItems.map((c) => c.sourceId);
+
+      if (catalogPackageIds.length === 0) {
+        resellerIdFilter = resellerIdParam;
+      }
+    }
+
     const packages = await db.travelPackage.findMany({
       where: {
         active: true,
-        isTemplate: realCount > 0 ? false : true,
-        resellerId: null,
+        ...(catalogPackageIds && catalogPackageIds.length > 0 && resellerIdParam
+          ? {
+              OR: [
+                { id: { in: catalogPackageIds } },
+                { resellerId: resellerIdParam },
+              ],
+            }
+          : resellerIdFilter
+            ? { resellerId: resellerIdFilter }
+            : { isTemplate: realCount > 0 ? false : true, resellerId: null }),
         ...(destinationId ? { destinationId } : {}),
         ...(category ? { category } : {}),
       },
-      orderBy: { rating: 'desc' },
+      orderBy: { rating: "desc" },
     });
 
-    const parsed = packages.map(formatPackage);
+    const catalogOverrides = resellerIdParam
+      ? await getCatalogOverridesMap(resellerIdParam, "package")
+      : null;
+
+    const parsed = packages.map((pkg) =>
+      formatPackage(
+        applyCatalogOverrides(
+          "package",
+          pkg as unknown as Record<string, unknown>,
+          catalogOverrides?.get(pkg.id),
+        ),
+      ),
+    );
 
     // ── Resolve relation-based destination IDs from DestinationPackage join ──
 
@@ -57,10 +101,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: enriched });
   } catch (error: any) {
-    console.error('Error fetching public packages:', error);
+    console.error("Error fetching public packages:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch packages' },
-      { status: 500 }
+      { success: false, error: "Failed to fetch packages" },
+      { status: 500 },
     );
   }
 }

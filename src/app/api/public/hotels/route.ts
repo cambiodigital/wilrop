@@ -1,34 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { db } from "@/lib/db";
 import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
-} from '@/lib/panel-auth';
+} from "@/lib/panel-auth";
 import {
   normalizeHotel,
   resolveIsTemplateFallback,
   resolveDestinationFilter,
-} from '@/lib/catalog/public-hydration';
+} from "@/lib/catalog/public-hydration";
+import {
+  applyCatalogOverrides,
+  getCatalogOverridesMap,
+} from "@/lib/reseller/public-overrides";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const destinationId = searchParams.get('destinationId');
-    const destinationSlug = searchParams.get('destinationSlug');
+    const destinationId = searchParams.get("destinationId");
+    const destinationSlug = searchParams.get("destinationSlug");
 
     // Parse filter query params
-    const cityId = searchParams.get('cityId');
-    const priceMin = searchParams.get('priceMin') ? parseInt(searchParams.get('priceMin')!, 10) : undefined;
-    const priceMax = searchParams.get('priceMax') ? parseInt(searchParams.get('priceMax')!, 10) : undefined;
-    const stars = searchParams.get('stars') ? searchParams.get('stars')!.split(',').map((s) => parseInt(s, 10)).filter((s) => !isNaN(s)) : undefined;
-    const amenities = searchParams.get('amenities') ? searchParams.get('amenities')!.split(',').filter(Boolean) : undefined;
-    const minRating = searchParams.get('minRating') ? parseFloat(searchParams.get('minRating')!) : undefined;
-    const sortBy = searchParams.get('sortBy') || 'recommended';
-    const guests = searchParams.get('guests') ? parseInt(searchParams.get('guests')!, 10) : undefined;
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined;
-    const featured = searchParams.get('featured') === 'true';
+    const cityId = searchParams.get("cityId");
+    const priceMin = searchParams.get("priceMin")
+      ? parseInt(searchParams.get("priceMin")!, 10)
+      : undefined;
+    const priceMax = searchParams.get("priceMax")
+      ? parseInt(searchParams.get("priceMax")!, 10)
+      : undefined;
+    const stars = searchParams.get("stars")
+      ? searchParams
+          .get("stars")!
+          .split(",")
+          .map((s) => parseInt(s, 10))
+          .filter((s) => !isNaN(s))
+      : undefined;
+    const amenities = searchParams.get("amenities")
+      ? searchParams.get("amenities")!.split(",").filter(Boolean)
+      : undefined;
+    const minRating = searchParams.get("minRating")
+      ? parseFloat(searchParams.get("minRating")!)
+      : undefined;
+    const sortBy = searchParams.get("sortBy") || "recommended";
+    const guests = searchParams.get("guests")
+      ? parseInt(searchParams.get("guests")!, 10)
+      : undefined;
+    const page = searchParams.get("page")
+      ? parseInt(searchParams.get("page")!, 10)
+      : 1;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!, 10)
+      : undefined;
+    const featured = searchParams.get("featured") === "true";
 
     // Resolve destination filter (slug → ID lookup)
     const destFilter = await resolveDestinationFilter(
@@ -69,19 +93,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const resellerPanel = searchParams.get('resellerPanel') === 'true';
-    const resellerIdParam = searchParams.get('resellerId');
+    const resellerPanel = searchParams.get("resellerPanel") === "true";
+    const resellerIdParam = searchParams.get("resellerId");
     let resellerIdFilter: string | null = null;
 
     if (resellerPanel) {
       const cookieStore = await cookies();
       const sessionValue = cookieStore.get(
-        getPanelSessionCookieName('reseller'),
+        getPanelSessionCookieName("reseller"),
       )?.value;
-      const session = verifyPanelSessionToken(sessionValue, 'reseller');
+      const session = verifyPanelSessionToken(sessionValue, "reseller");
       if (!session) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 },
         );
       }
@@ -94,7 +118,7 @@ export async function GET(request: NextRequest) {
       const catalogItems = await db.resellerCatalog.findMany({
         where: {
           resellerId: resellerIdParam,
-          sourceType: 'hotel',
+          sourceType: "hotel",
           active: true,
         },
         select: { sourceId: true },
@@ -110,8 +134,16 @@ export async function GET(request: NextRequest) {
     // Build Prisma query filters
     const where: any = { active: true };
 
-    if (catalogHotelIds && catalogHotelIds.length > 0 && resellerIdParam && !resellerPanel) {
-      where.OR = [{ id: { in: catalogHotelIds } }, { resellerId: resellerIdParam }];
+    if (
+      catalogHotelIds &&
+      catalogHotelIds.length > 0 &&
+      resellerIdParam &&
+      !resellerPanel
+    ) {
+      where.OR = [
+        { id: { in: catalogHotelIds } },
+        { resellerId: resellerIdParam },
+      ];
     } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
     } else if (!resellerPanel && !resellerIdParam) {
@@ -150,22 +182,37 @@ export async function GET(request: NextRequest) {
     const hotels = await db.hotel.findMany({
       where,
       orderBy: [
-        ...(sortBy === 'price-asc' ? [{ priceFrom: 'asc' as const }] : []),
-        ...(sortBy === 'price-desc' ? [{ priceFrom: 'desc' as const }] : []),
-        ...(sortBy === 'stars' ? [{ stars: 'desc' as const }] : []),
-        ...(sortBy === 'rating' ? [{ rating: 'desc' as const }] : []),
-        ...(sortBy === 'recommended' ? [{ featured: 'desc' as const }, { rating: 'desc' as const }] : []),
-        { name: 'asc' as const },
+        ...(sortBy === "price-asc" ? [{ priceFrom: "asc" as const }] : []),
+        ...(sortBy === "price-desc" ? [{ priceFrom: "desc" as const }] : []),
+        ...(sortBy === "stars" ? [{ stars: "desc" as const }] : []),
+        ...(sortBy === "rating" ? [{ rating: "desc" as const }] : []),
+        ...(sortBy === "recommended"
+          ? [{ featured: "desc" as const }, { rating: "desc" as const }]
+          : []),
+        { name: "asc" as const },
       ],
     });
 
+    const catalogOverrides =
+      resellerIdParam && !resellerPanel
+        ? await getCatalogOverridesMap(resellerIdParam, "hotel")
+        : null;
+
     // --- Enrich and normalize ---
-    let normalizedHotels = hotels.map((h) => normalizeHotel(h as Record<string, unknown>));
+    let normalizedHotels = hotels.map((h) =>
+      normalizeHotel(
+        applyCatalogOverrides(
+          "hotel",
+          h as unknown as Record<string, unknown>,
+          catalogOverrides?.get(h.id),
+        ),
+      ),
+    );
 
     // In-memory filter for amenities
     if (amenities && amenities.length > 0) {
       normalizedHotels = normalizedHotels.filter((h) =>
-        amenities.every((a) => h.amenities.includes(a))
+        amenities.every((a) => h.amenities.includes(a)),
       );
     }
 
@@ -180,7 +227,10 @@ export async function GET(request: NextRequest) {
     // Enrich with relatedDestinationIds from DestinationHotel join
     if (normalizedHotels.length > 0) {
       const destJoins = await db.destinationHotel.findMany({
-        where: { hotelId: { in: normalizedHotels.map((h) => h.id) }, active: true },
+        where: {
+          hotelId: { in: normalizedHotels.map((h) => h.id) },
+          active: true,
+        },
         select: { hotelId: true, destinationId: true },
       });
 
@@ -221,9 +271,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching public hotels:', error);
+    console.error("Error fetching public hotels:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch hotels' },
+      { success: false, error: "Failed to fetch hotels" },
       { status: 500 },
     );
   }

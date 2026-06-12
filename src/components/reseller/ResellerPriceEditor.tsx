@@ -1,85 +1,110 @@
-'use client'
-import { formatCurrency } from '@/lib/currency'
+"use client";
+import { formatCurrency } from "@/lib/currency";
 
-
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { toast } from 'sonner'
-import { resolveSourceFields } from '@/lib/reseller/catalog'
+import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { resolveSourceFields } from "@/lib/reseller/catalog";
 
 export interface CatalogItem {
-  id: string
-  sourceType: string
-  sourceId: string
-  customPrice: number | null
-  customName: string
-  customDescription: string
-  active: boolean
-  featured: boolean
-  sortOrder: number
-  sourceData: Record<string, unknown>
+  id: string;
+  sourceType: string;
+  sourceId: string;
+  customPrice: number | null;
+  customName: string;
+  customDescription: string;
+  active: boolean;
+  featured: boolean;
+  sortOrder: number;
+  sourceData: Record<string, unknown>;
 }
 
 interface ResellerPriceEditorProps {
-  item: CatalogItem | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (itemId: string, data: { customPrice: number | null; customName: string; customDescription: string }) => Promise<void>
-  canCustomizePrices: boolean
+  item: CatalogItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (
+    itemId: string,
+    data: {
+      customPrice: number | null;
+      customName: string;
+      customDescription: string;
+    },
+  ) => Promise<void>;
+  canCustomizePrices: boolean;
 }
 
-export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCustomizePrices }: ResellerPriceEditorProps) {
-  const [customPrice, setCustomPrice] = useState<string>('')
-  const [customName, setCustomName] = useState('')
-  const [customDescription, setCustomDescription] = useState('')
-  const [loading, setLoading] = useState(false)
+export function ResellerPriceEditor({
+  item,
+  open,
+  onOpenChange,
+  onSave,
+  canCustomizePrices,
+}: ResellerPriceEditorProps) {
+  const [customPrice, setCustomPrice] = useState<string>("");
+  const [customName, setCustomName] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const resolved = item ? resolveSourceFields(item.sourceType, item.sourceData) : null
-  const basePrice = resolved?.price ?? 0
-  const sourceTitle = resolved?.title ?? 'Producto'
+  const resolved = item
+    ? resolveSourceFields(item.sourceType, item.sourceData)
+    : null;
+  const basePrice = resolved?.price ?? 0;
+  const sourceTitle = resolved?.title ?? "Producto";
+
+  useEffect(() => {
+    if (!open || !item) return;
+
+    setCustomPrice(
+      item.customPrice !== null ? item.customPrice.toString() : "",
+    );
+    setCustomName(item.customName || "");
+    setCustomDescription(item.customDescription || "");
+  }, [item, open]);
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && item) {
-      setCustomPrice(item.customPrice !== null ? item.customPrice.toString() : '')
-      setCustomName(item.customName || '')
-      setCustomDescription(item.customDescription || '')
-    }
-    onOpenChange(newOpen)
-  }
+    onOpenChange(newOpen);
+  };
 
   const handleSave = async () => {
-    if (!item) return
+    if (!item) return;
 
-    const priceValue = customPrice.trim() ? parseInt(customPrice, 10) : null
+    const priceValue = customPrice.trim() ? parseInt(customPrice, 10) : null;
 
     if (priceValue !== null && (isNaN(priceValue) || priceValue < 0)) {
-      toast.error('El precio debe ser un número positivo')
-      return
+      toast.error("El precio debe ser un número positivo");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       await onSave(item.id, {
         customPrice: priceValue,
         customName: customName.trim(),
         customDescription: customDescription.trim(),
-      })
-      toast.success('Cambios guardados correctamente')
-      onOpenChange(false)
+      });
+      toast.success("Cambios guardados correctamente");
+      onOpenChange(false);
     } catch {
-      toast.error('No se pudieron guardar los cambios')
+      toast.error("No se pudieron guardar los cambios");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  if (!item) return null
+  if (!item) return null;
 
-  const displayPrice = item.customPrice ?? basePrice
+  const displayPrice = item.customPrice ?? basePrice;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -150,7 +175,8 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
           ) : (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-sm text-amber-700">
-                Tu nivel actual no permite personalizar precios. Contacta al administrador para actualizar tu nivel.
+                Tu nivel actual no permite personalizar precios. Contacta al
+                administrador para actualizar tu nivel.
               </p>
             </div>
           )}
@@ -168,10 +194,10 @@ export function ResellerPriceEditor({ item, open, onOpenChange, onSave, canCusto
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? 'Guardando...' : 'Guardar cambios'}
+            {loading ? "Guardando..." : "Guardar cambios"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

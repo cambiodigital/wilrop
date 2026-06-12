@@ -4,6 +4,7 @@ import type {
   UpdateCatalogItemInput,
   CatalogFilters,
 } from "./catalog-validators";
+import { buildCatalogItemScope } from "./catalog-scope";
 
 // Re-export typed source resolution for consumers that render catalog items.
 export {
@@ -117,16 +118,8 @@ export async function updateCatalogItem(
   itemId: string,
   input: UpdateCatalogItemInput,
 ): Promise<CatalogItemWithSource> {
-  const existing = await db.resellerCatalog.findUnique({
-    where: { id: itemId },
-  });
-
-  if (!existing || existing.resellerId !== resellerId) {
-    throw new Error("Item de catálogo no encontrado o sin permisos");
-  }
-
-  const catalog = await db.resellerCatalog.update({
-    where: { id: itemId },
+  const result = await db.resellerCatalog.updateMany({
+    where: buildCatalogItemScope(itemId, resellerId),
     data: {
       ...(input.customPrice !== undefined
         ? { customPrice: input.customPrice }
@@ -142,6 +135,18 @@ export async function updateCatalogItem(
       ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
     },
   });
+
+  if (result.count !== 1) {
+    throw new Error("Item de catálogo no encontrado o sin permisos");
+  }
+
+  const catalog = await db.resellerCatalog.findUnique({
+    where: { id: itemId },
+  });
+
+  if (!catalog || catalog.resellerId !== resellerId) {
+    throw new Error("Item de catálogo no encontrado o sin permisos");
+  }
 
   const sourceData = await fetchSourceData(
     catalog.sourceType,
@@ -191,10 +196,22 @@ export async function toggleFeatured(
     throw new Error("Item de catálogo no encontrado o sin permisos");
   }
 
-  const catalog = await db.resellerCatalog.update({
-    where: { id: itemId },
+  const result = await db.resellerCatalog.updateMany({
+    where: buildCatalogItemScope(itemId, resellerId),
     data: { featured: !existing.featured },
   });
+
+  if (result.count !== 1) {
+    throw new Error("Item de catálogo no encontrado o sin permisos");
+  }
+
+  const catalog = await db.resellerCatalog.findUnique({
+    where: { id: itemId },
+  });
+
+  if (!catalog || catalog.resellerId !== resellerId) {
+    throw new Error("Item de catálogo no encontrado o sin permisos");
+  }
 
   const sourceData = await fetchSourceData(
     catalog.sourceType,

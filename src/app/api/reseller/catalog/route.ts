@@ -1,79 +1,108 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { getPanelSessionCookieName, verifyPanelSessionToken } from '@/lib/panel-auth'
-import { getResellerCatalog, addToCatalog, getCatalogCount, validateParentDestination } from '@/lib/reseller/catalog'
-import { catalogItemSchema, catalogFiltersSchema } from '@/lib/reseller/catalog-validators'
-import { getResellerCapabilities } from '@/lib/reseller-access'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import {
+  getPanelSessionCookieName,
+  verifyPanelSessionToken,
+} from "@/lib/panel-auth";
+import {
+  getResellerCatalog,
+  addToCatalog,
+  getCatalogCount,
+  validateParentDestination,
+} from "@/lib/reseller/catalog";
+import {
+  catalogItemSchema,
+  catalogFiltersSchema,
+} from "@/lib/reseller/catalog-validators";
+import { getResellerCapabilities } from "@/lib/reseller-access";
+import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const sessionValue = cookieStore.get(getPanelSessionCookieName('reseller'))?.value
-    const session = verifyPanelSessionToken(sessionValue, 'reseller')
+    const cookieStore = await cookies();
+    const sessionValue = cookieStore.get(
+      getPanelSessionCookieName("reseller"),
+    )?.value;
+    const session = verifyPanelSessionToken(sessionValue, "reseller");
 
     if (!session) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "No autorizado" },
+        { status: 401 },
+      );
     }
 
-    const url = new URL(request.url)
-    const sourceType = url.searchParams.get('sourceType')
-    const active = url.searchParams.get('active')
-    const featured = url.searchParams.get('featured')
-    const search = url.searchParams.get('search')
+    const url = new URL(request.url);
+    const sourceType = url.searchParams.get("sourceType");
+    const active = url.searchParams.get("active");
+    const featured = url.searchParams.get("featured");
+    const search = url.searchParams.get("search");
 
     const filtersResult = catalogFiltersSchema.safeParse({
       sourceType: sourceType || undefined,
-      active: active !== null ? active === 'true' : undefined,
-      featured: featured !== null ? featured === 'true' : undefined,
+      active: active !== null ? active === "true" : undefined,
+      featured: featured !== null ? featured === "true" : undefined,
       search: search || undefined,
-    })
+    });
 
-    const filters = filtersResult.success ? filtersResult.data : {}
+    const filters = filtersResult.success ? filtersResult.data : {};
 
-    const items = await getResellerCatalog(session.id, filters)
+    const items = await getResellerCatalog(session.id, filters);
 
-    return NextResponse.json({ success: true, data: items })
+    return NextResponse.json({ success: true, data: items });
   } catch (error) {
-    console.error('[ResellerCatalog GET] Error:', error)
+    console.error("[ResellerCatalog GET] Error:", error);
     return NextResponse.json(
-      { success: false, error: 'No se pudo cargar el catálogo' },
+      { success: false, error: "No se pudo cargar el catálogo" },
       { status: 500 },
-    )
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const sessionValue = cookieStore.get(getPanelSessionCookieName('reseller'))?.value
-    const session = verifyPanelSessionToken(sessionValue, 'reseller')
+    const cookieStore = await cookies();
+    const sessionValue = cookieStore.get(
+      getPanelSessionCookieName("reseller"),
+    )?.value;
+    const session = verifyPanelSessionToken(sessionValue, "reseller");
 
     if (!session) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "No autorizado" },
+        { status: 401 },
+      );
     }
 
-    const body = await request.json()
-    const validationResult = catalogItemSchema.safeParse(body)
+    const body = await request.json();
+    const validationResult = catalogItemSchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos', details: validationResult.error.issues },
+        {
+          success: false,
+          error: "Datos inválidos",
+          details: validationResult.error.issues,
+        },
         { status: 400 },
-      )
+      );
     }
 
     const capabilities = getResellerCapabilities({
       sellerLevel: session.appRole,
       whiteLabelEnabled: session.whiteLabelEnabled,
-    })
+    });
 
-    const currentCount = await getCatalogCount(session.id)
+    const currentCount = await getCatalogCount(session.id);
     if (currentCount >= capabilities.maxCatalogItems) {
       return NextResponse.json(
-        { success: false, error: `Límite de catálogo alcanzado (${capabilities.maxCatalogItems} items)` },
+        {
+          success: false,
+          error: `Límite de catálogo alcanzado (${capabilities.maxCatalogItems} items)`,
+        },
         { status: 403 },
-      )
+      );
     }
 
     const existing = await db.resellerCatalog.findUnique({
@@ -84,13 +113,13 @@ export async function POST(request: NextRequest) {
           sourceId: validationResult.data.sourceId,
         },
       },
-    })
+    });
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Este producto ya está en tu catálogo' },
+        { success: false, error: "Este producto ya está en tu catálogo" },
         { status: 409 },
-      )
+      );
     }
 
     // Strict descent validation: non-destination products require a parent
@@ -99,22 +128,27 @@ export async function POST(request: NextRequest) {
       session.id,
       validationResult.data.sourceType,
       validationResult.data.sourceId,
-    )
+    );
     if (!parentValid) {
       return NextResponse.json(
-        { success: false, error: 'No puedes agregar este producto: su destino padre no está en tu catálogo' },
+        {
+          success: false,
+          error:
+            "No puedes agregar este producto: su destino padre no está en tu catálogo",
+        },
         { status: 403 },
-      )
+      );
     }
 
-    const item = await addToCatalog(session.id, validationResult.data)
+    const item = await addToCatalog(session.id, validationResult.data);
+    revalidatePath("/brand");
 
-    return NextResponse.json({ success: true, data: item }, { status: 201 })
+    return NextResponse.json({ success: true, data: item }, { status: 201 });
   } catch (error) {
-    console.error('[ResellerCatalog POST] Error:', error)
+    console.error("[ResellerCatalog POST] Error:", error);
     return NextResponse.json(
-      { success: false, error: 'No se pudo agregar al catálogo' },
+      { success: false, error: "No se pudo agregar al catálogo" },
       { status: 500 },
-    )
+    );
   }
 }
