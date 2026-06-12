@@ -2,53 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import {
+  buildHotelCreateData,
+  formatAdminHotel,
+  generateHotelSlug,
+  isUniqueConstraintError,
+} from "@/lib/admin/hotels";
+import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
 } from "@/lib/panel-auth";
-import { safeJsonParse } from "@/lib/json";
-
-function formatHotel(hotel: any) {
-  return {
-    ...hotel,
-    images: safeJsonParse<string[]>(hotel.images, []),
-  };
-}
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function toPrice(value: unknown): number {
-  return typeof value === "number" ? Math.round(value) : 0;
-}
-
-function normalizeCityName(value: unknown, fallback = ""): string {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
-
-function normalizeCityId(
-  cityId: unknown,
-  cityName: string,
-  fallback = "",
-): string {
-  if (typeof cityId === "string" && cityId.trim()) return cityId.trim();
-  if (cityName) return generateSlug(cityName);
-  return fallback;
-}
 
 async function requireResellerSession() {
   const cookieStore = await cookies();
   const sessionValue = cookieStore.get(
     getPanelSessionCookieName("reseller"),
   )?.value;
-  const session = verifyPanelSessionToken(sessionValue, "reseller");
-  if (!session) return null;
-  return session;
+  return verifyPanelSessionToken(sessionValue, "reseller");
 }
 
 export async function GET() {
@@ -66,8 +35,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, data: hotels.map(formatHotel) });
-  } catch (error: any) {
+    return NextResponse.json({
+      success: true,
+      data: hotels.map(formatAdminHotel),
+    });
+  } catch (error) {
     console.error("Error fetching reseller hotels:", error);
     return NextResponse.json(
       { success: false, error: "No se pudieron cargar los hoteles" },
@@ -87,54 +59,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const relatedDestinationId =
+      typeof body.destinationId === "string" && body.destinationId.trim()
+        ? body.destinationId.trim()
+        : null;
 
-    const {
-      name,
-      cityId,
-      cityName,
-      destinationId,
-      stars,
-      address,
-      description,
-      images,
-      priceFrom,
-      active,
-    } = body;
-
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
+    if (
+      !body.name ||
+      typeof body.name !== "string" ||
+      body.name.trim().length === 0
+    ) {
       return NextResponse.json(
         { success: false, error: "El nombre es obligatorio" },
         { status: 400 },
       );
     }
-
-    if (
-      priceFrom !== undefined &&
-      (typeof priceFrom !== "number" || priceFrom < 0)
-    ) {
-      return NextResponse.json(
-        { success: false, error: "El precio debe ser un número no negativo" },
-        { status: 400 },
-      );
-    }
-
-    if (
-      stars !== undefined &&
-      (typeof stars !== "number" || stars < 1 || stars > 5)
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Las estrellas deben ser un número entre 1 y 5",
-        },
-        { status: 400 },
-      );
-    }
-
-    const relatedDestinationId =
-      typeof destinationId === "string" && destinationId.trim()
-        ? destinationId.trim()
-        : null;
 
     if (!relatedDestinationId) {
       return NextResponse.json(
@@ -147,7 +86,6 @@ export async function POST(request: NextRequest) {
       where: { id: relatedDestinationId },
       select: { id: true, name: true },
     });
-
     if (!destination) {
       return NextResponse.json(
         { success: false, error: "El destino seleccionado no existe" },
@@ -155,42 +93,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const normalizedCityName = normalizeCityName(cityName, destination.name);
-
-    let baseSlug = generateSlug(name.trim());
+    const baseSlug = generateHotelSlug(body.name.trim());
     let slug = baseSlug;
     let counter = 1;
     while (await db.hotel.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`;
-      counter++;
+      counter += 1;
     }
 
     const hotel = await db.hotel.create({
       data: {
-        slug,
-        name: name.trim(),
-        cityId: normalizeCityId(cityId, normalizedCityName),
-        cityName: normalizedCityName,
-        destinationId: relatedDestinationId,
-        stars: typeof stars === "number" ? Math.round(stars) : 3,
-        address: address ?? "",
-        description: description ?? "",
-        images: JSON.stringify(Array.isArray(images) ? images : []),
-        priceFrom: toPrice(priceFrom),
-        active: typeof active === "boolean" ? active : false,
+        ...buildHotelCreateData({
+          ...body,
+          slug,
+          destinationId: relatedDestinationId,
+          cityName:
+            typeof body.cityName === "string" && body.cityName.trim()
+              ? body.cityName
+              : destination.name,
+          resellerId: session.id,
+        }),
         isTemplate: false,
-        resellerId: session.id,
       },
     });
 
     return NextResponse.json(
-      { success: true, data: formatHotel(hotel) },
+      { success: true, data: formatAdminHotel(hotel) },
       { status: 201 },
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating reseller hotel:", error);
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json(
+        { success: false, error: "Ya existe un hotel con ese slug" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
-      { success: false, error: "No se pudo crear el hotel" },
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "No se pudo crear el hotel",
+      },
       { status: 500 },
     );
   }
