@@ -403,18 +403,25 @@ export default function WhiteLabelCreator() {
   const [destinations, setDestinations] = useState<ApiDestination[]>([]);
   const [packages, setPackages] = useState<ApiPackage[]>([]);
 
-  // Load reseller's catalog destinations and packages from API
+  // Load reseller's catalog destinations and packages from API.
+  // Also collects destinations implicitly linked through the reseller's own
+  // products (hotels, packages, excursions) so that the destination picker is
+  // never empty when the reseller has created or been assigned products.
   useEffect(() => {
     async function fetchCatalog() {
       try {
-        const [destRes, pkgRes, ownExcursionRes] = await Promise.all([
+        const [destRes, pkgRes, ownExcursionRes, ownHotelRes, ownPkgRes] = await Promise.all([
           fetch('/api/reseller/catalog?sourceType=destination'),
           fetch('/api/reseller/catalog?sourceType=package'),
           fetch('/api/reseller/products/excursions'),
+          fetch('/api/reseller/products/hotels'),
+          fetch('/api/reseller/products/packages'),
         ]);
         const destJson = await destRes.json();
         const pkgJson = await pkgRes.json();
         const ownExcursionJson = await ownExcursionRes.json();
+        const ownHotelJson = await ownHotelRes.json();
+        const ownPkgJson = await ownPkgRes.json();
         let mappedDestinations: ApiDestination[] = [];
         if (destJson.success && Array.isArray(destJson.data)) {
           // Catalog items have sourceData with the actual destination info
@@ -427,23 +434,66 @@ export default function WhiteLabelCreator() {
             priceFrom: item.sourceData?.priceFrom || 0,
           }));
         }
+        // Collect destination IDs already in the set to avoid duplicates
+        const existingIds = new Set(mappedDestinations.map((d) => d.id));
+
+        // Also fetch destination details for implicit destinations via a
+        // lightweight batch call when we discover new IDs from products.
+        const implicitDestIds = new Set<string>();
+
+        // --- Destinations from own excursions ---
         if (ownExcursionJson.success && Array.isArray(ownExcursionJson.data)) {
-          const existingIds = new Set(mappedDestinations.map((destination) => destination.id));
-          const excursionDestinations: ApiDestination[] = ownExcursionJson.data
-            .filter((excursion: ApiOwnExcursion) => excursion.active && excursion.destinationId && !existingIds.has(excursion.destinationId))
-            .map((excursion: ApiOwnExcursion) => {
-              existingIds.add(excursion.destinationId as string);
-              return {
-                id: excursion.destinationId as string,
+          for (const excursion of ownExcursionJson.data) {
+            if (excursion.active && excursion.destinationId && !existingIds.has(excursion.destinationId)) {
+              implicitDestIds.add(excursion.destinationId);
+              existingIds.add(excursion.destinationId);
+              mappedDestinations.push({
+                id: excursion.destinationId,
                 name: excursion.destinationName || excursion.cityName || 'Destino de excursión',
                 region: excursion.cityName || '',
                 description: excursion.shortDesc || excursion.description || '',
                 image: excursion.images?.[0] || '',
                 priceFrom: excursion.basePrice || 0,
-              };
-            });
-          mappedDestinations = [...mappedDestinations, ...excursionDestinations];
+              });
+            }
+          }
         }
+        // --- Destinations from own hotels ---
+        if (ownHotelJson.success && Array.isArray(ownHotelJson.data)) {
+          for (const hotel of ownHotelJson.data) {
+            if (hotel.active && hotel.destinationId && !existingIds.has(hotel.destinationId)) {
+              implicitDestIds.add(hotel.destinationId);
+              existingIds.add(hotel.destinationId);
+              mappedDestinations.push({
+                id: hotel.destinationId,
+                name: hotel.cityName || hotel.name || 'Destino de hotel',
+                region: hotel.cityName || '',
+                description: hotel.description || '',
+                image: Array.isArray(hotel.images) ? hotel.images[0] : '',
+                priceFrom: hotel.priceFrom || 0,
+              });
+            }
+          }
+        }
+        // --- Destinations from own packages ---
+        if (ownPkgJson.success && Array.isArray(ownPkgJson.data)) {
+          for (const pkg of ownPkgJson.data) {
+            const destId = pkg.primaryDestinationId || pkg.destinationId;
+            if (pkg.active && destId && !existingIds.has(destId)) {
+              implicitDestIds.add(destId);
+              existingIds.add(destId);
+              mappedDestinations.push({
+                id: destId,
+                name: pkg.destinationName || pkg.title || 'Destino de paquete',
+                region: pkg.destinationName || '',
+                description: pkg.description || '',
+                image: pkg.image || '',
+                priceFrom: pkg.price || 0,
+              });
+            }
+          }
+        }
+
         setDestinations(mappedDestinations);
         if (pkgJson.success && Array.isArray(pkgJson.data)) {
           const mapped: ApiPackage[] = pkgJson.data.map((item: any) => ({
@@ -550,6 +600,7 @@ export default function WhiteLabelCreator() {
   // Save config via API
   const handleSave = async () => {
     setSaving(true);
+    const effectiveSubdomain = config.subdomain?.trim() || toSlug(config.storeName) || 'tienda';
     try {
       const res = await fetch('/api/reseller/whitelabel', {
         method: 'PUT',
@@ -564,6 +615,7 @@ export default function WhiteLabelCreator() {
           selectedDestinations: config.selectedDestinations,
           whatsappNumber: config.whatsappNumber,
           commissionRate: config.commissionRate,
+          subdomain: effectiveSubdomain,
         }),
       });
       const json = await res.json();
@@ -698,6 +750,28 @@ export default function WhiteLabelCreator() {
                     onRemove={handleRemoveLogo}
                     uploading={uploading}
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="subdomain" className="text-sm flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-blue-600" />
+                    Subdominio de tu tienda
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      id="subdomain"
+                      value={config.subdomain}
+                      onChange={(e) => updateConfig({ subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                      placeholder={toSlug(config.storeName || 'tienda')}
+                      className="h-10 rounded-r-none"
+                    />
+                    <span className="h-10 px-3 rounded-r-md border border-l-0 border-border bg-muted/50 flex items-center text-sm text-muted-foreground whitespace-nowrap">
+                      .wilropgroup.com
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    https://{config.subdomain?.trim() || toSlug(config.storeName || 'tienda')}.wilropgroup.com
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">

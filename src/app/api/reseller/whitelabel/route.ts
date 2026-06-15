@@ -94,21 +94,42 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
 
     // Extract fields that live on the Reseller model directly
-    const { logoUrl, storeName, ...configFields } = body;
+    const { logoUrl, storeName, subdomain, ...configFields } = body;
 
-    // Build the JSON config blob (everything except logoUrl/storeName)
-    const configJson = JSON.stringify(configFields);
+    // Normalize subdomain: lowercase, strip non-slug chars
+    const normalizedSubdomain = typeof subdomain === 'string'
+      ? subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '')
+      : undefined;
 
-    await db.reseller.update({
+    // Validate: subdomain must not be empty after normalization
+    if (!normalizedSubdomain) {
+      return NextResponse.json(
+        { success: false, error: 'El subdominio es obligatorio y solo puede contener letras minúsculas, números y guiones.' },
+        { status: 400 },
+      );
+    }
+
+    // Build the JSON config blob — storeName and logoUrl are also stored
+    // inside the blob so the white-label config is self-contained.
+    const fullConfig = {
+      ...configFields,
+      ...(storeName !== undefined ? { storeName } : {}),
+      ...(logoUrl !== undefined ? { logoUrl } : {}),
+      subdomain: normalizedSubdomain,
+    };
+    const configJson = JSON.stringify(fullConfig);
+
+    const updated = await db.reseller.update({
       where: { id: session.id },
       data: {
         whiteLabelConfig: configJson,
         ...(logoUrl !== undefined ? { logoUrl: logoUrl || '' } : {}),
         ...(storeName !== undefined ? { companyName: storeName || '' } : {}),
+        subdomain: normalizedSubdomain,
       },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, subdomain: updated.subdomain });
   } catch (error) {
     console.error('[WhiteLabel] PUT error:', error);
     return NextResponse.json(

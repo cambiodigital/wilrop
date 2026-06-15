@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "test:catalog": "bun test tests/catalog-pr2.test.cjs",
+    "test:password": "bun test tests/password-min-length.test.cjs",
     "build": "next build && bun scripts/copy-standalone-assets.mjs",
     "start": "bun scripts/start-with-migrations.mjs",
     "deploy": "next build && bun scripts/copy-standalone-assets.mjs",

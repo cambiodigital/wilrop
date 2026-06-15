@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/password.mjs'
+import { MIN_PASSWORD_LENGTH } from '@/lib/constants'
 
 function generateCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -25,9 +26,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (password.length < 6) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
       return NextResponse.json(
-        { success: false, error: 'La contraseña debe tener al menos 6 caracteres' },
+        { success: false, error: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres` },
         { status: 400 },
       )
     }

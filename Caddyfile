@@ -8,8 +8,25 @@
 	}
 }
 
-# ─── Main domain (wilrop.com.co) ─────────────────────────────────
-wilrop.com.co {
+# ─── Main domain (wilropgroup.com) ───────────────────────────────
+wilropgroup.com {
+	reverse_proxy localhost:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+# ─── Wildcard subdomains (*.wilropgroup.com) ─────────────────────
+# Handles reseller white-label subdomains like cambiof.wilropgroup.com.
+# Uses on-demand TLS — Caddy will request a wildcard cert via the ask
+# endpoint before issuing.
+*.wilropgroup.com {
+	tls {
+		on_demand
+	}
+
 	reverse_proxy localhost:3000 {
 		header_up Host {host}
 		header_up X-Forwarded-For {remote_host}

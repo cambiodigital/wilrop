@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MIN_PASSWORD_LENGTH } from '@/lib/constants'
 
 export const profileFormSchema = z.object({
   contactName: z.string().min(2, 'El nombre de contacto debe tener al menos 2 caracteres').max(100),
@@ -13,7 +14,7 @@ export const profileFormSchema = z.object({
 
 export const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, 'La contraseña actual es obligatoria'),
-  newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres').max(128),
+  newPassword: z.string().min(MIN_PASSWORD_LENGTH, `La nueva contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`).max(128),
 })
 
 export const documentUploadSchema = z.object({

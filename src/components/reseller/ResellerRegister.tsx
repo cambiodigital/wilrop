@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building, Mail, Lock, User, Phone, Globe, ArrowLeft, FileText, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
+import { MIN_PASSWORD_LENGTH } from '@/lib/constants'
 
 export default function ResellerRegister() {
   const router = useRouter()
@@ -40,8 +41,8 @@ export default function ResellerRegister() {
       toast.error('El email es obligatorio')
       return
     }
-    if (form.password.length < 8) {
-      toast.error('La contraseña debe tener al menos 8 caracteres')
+    if (form.password.length < MIN_PASSWORD_LENGTH) {
+      toast.error(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`)
       return
     }
     if (form.password !== form.confirmPassword) {
@@ -157,7 +158,7 @@ export default function ResellerRegister() {
                     type="password"
                     value={form.password}
                     onChange={(e) => updateField('password', e.target.value)}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
                     className="pl-10"
                   />
                 </div>
