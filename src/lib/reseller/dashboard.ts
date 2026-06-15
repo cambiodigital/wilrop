@@ -27,11 +27,22 @@ export interface RecentSaleData {
   saleDate: string
 }
 
+export interface RecentPackageData {
+  id: string
+  title: string
+  destinationName: string
+  price: number
+  category: string
+  active: boolean
+  createdAt: string
+}
+
 export interface DashboardData {
   stats: DashboardStats
   monthlySales: MonthlySaleData[]
   topDestinations: TopDestinationData[]
   recentSales: RecentSaleData[]
+  recentPackages: RecentPackageData[]
 }
 
 export async function getDashboardData(resellerId: string): Promise<DashboardData> {
@@ -46,6 +57,7 @@ export async function getDashboardData(resellerId: string): Promise<DashboardDat
     catalogItems,
     pendingBookings,
     recentSales,
+    recentPackages,
   ] = await Promise.all([
     db.resellerSale.aggregate({
       where: {
@@ -75,6 +87,11 @@ export async function getDashboardData(resellerId: string): Promise<DashboardDat
       orderBy: { saleDate: 'desc' },
       take: 5,
     }),
+    db.travelPackage.findMany({
+      where: { resellerId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
   ])
 
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
@@ -99,6 +116,15 @@ export async function getDashboardData(resellerId: string): Promise<DashboardDat
       commission: sale.commissionAmt,
       status: sale.status,
       saleDate: sale.saleDate.toISOString(),
+    })),
+    recentPackages: recentPackages.map((pkg) => ({
+      id: pkg.id,
+      title: pkg.title,
+      destinationName: pkg.destinationName,
+      price: pkg.price,
+      category: pkg.category,
+      active: pkg.active,
+      createdAt: pkg.createdAt.toISOString(),
     })),
   }
 }

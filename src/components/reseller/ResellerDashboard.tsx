@@ -22,7 +22,7 @@ import {
 import { ArrowRight, Link2, Eye, UserPlus } from 'lucide-react';
 import { ResellerStatsCards } from './ResellerStatsCards';
 import { ResellerSalesChart } from './ResellerSalesChart';
-import type { DashboardData, RecentSaleData } from '@/lib/reseller/dashboard';
+import type { DashboardData, RecentSaleData, RecentPackageData } from '@/lib/reseller/dashboard';
 
 const getStatusBadge = (status: string) => {
   const styles: Record<string, string> = {
@@ -141,6 +141,57 @@ export default function ResellerDashboard() {
         </motion.div>
       </div>
 
+      {/* Recent Packages */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Paquetes Recientes</CardTitle>
+              <p className="text-xs text-gray-500 mt-0.5">Últimos 5 paquetes creados</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 text-xs"
+              onClick={() => router.push('/reseller/productos')}
+            >
+              Ver Todos
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 rounded-lg" />
+                ))}
+              </div>
+            ) : !data?.recentPackages.length ? (
+              <p className="text-sm text-gray-400 text-center py-8">
+                No hay paquetes creados aún.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs font-semibold text-gray-500">Título</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 hidden sm:table-cell">Destino</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 hidden sm:table-cell">Categoría</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 text-right">Precio</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 text-center">Estado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.recentPackages.map((pkg) => (
+                    <RecentPackageRow key={pkg.id} pkg={pkg} />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Recent Sales */}
       <motion.div variants={itemVariants}>
         <Card>
@@ -244,6 +295,24 @@ function RecentSaleRow({ sale }: { sale: RecentSaleData }) {
       <TableCell className="text-center">
         <Badge className={`text-[10px] px-2 py-0.5 ${getStatusBadge(sale.status)}`}>
           {statusLabels[sale.status] ?? sale.status}
+        </Badge>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function RecentPackageRow({ pkg }: { pkg: RecentPackageData }) {
+  return (
+    <TableRow className="cursor-pointer hover:bg-amber-50/50">
+      <TableCell className="font-medium text-sm text-gray-900">{pkg.title}</TableCell>
+      <TableCell className="text-sm text-gray-500 hidden sm:table-cell">{pkg.destinationName || '—'}</TableCell>
+      <TableCell className="hidden sm:table-cell">
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">{pkg.category}</Badge>
+      </TableCell>
+      <TableCell className="text-sm font-medium text-gray-900 text-right">{formatCurrency(pkg.price)}</TableCell>
+      <TableCell className="text-center">
+        <Badge className={`text-[10px] px-2 py-0.5 ${pkg.active ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-100'}`}>
+          {pkg.active ? 'Publicado' : 'Borrador'}
         </Badge>
       </TableCell>
     </TableRow>

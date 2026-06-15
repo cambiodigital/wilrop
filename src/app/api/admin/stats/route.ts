@@ -106,11 +106,11 @@ export async function GET(request: NextRequest) {
           10
         : 0;
 
-    // Get recent 5 packages by createdAt desc
+    // Get recent 5 packages by createdAt desc (all active, regardless of template)
     const recentPackages = await safeDb(
       () =>
         db.travelPackage.findMany({
-          where: packageWhere as any,
+          where: { active: true },
           orderBy: { createdAt: 'desc' },
           take: 5,
         }),
