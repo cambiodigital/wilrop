@@ -48,7 +48,7 @@ services:
       - wilrop-net
     labels:
       - traefik.enable=true
-      - traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)
+      - 'traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)'
       - traefik.http.services.wilrop.loadbalancer.server.port=3000
 
   # ─── Base de datos PostgreSQL ─────────────────────────────────────────────
