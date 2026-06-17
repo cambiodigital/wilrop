@@ -41,6 +41,8 @@ services:
     labels:
       - traefik.enable=true
       - 'traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)'
+      - traefik.http.routers.wilrop.tls=true
+      - traefik.http.routers.wilrop.tls.certResolver=letsencrypt
       - traefik.http.services.wilrop.loadbalancer.server.port=3000
 
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
