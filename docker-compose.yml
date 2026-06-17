@@ -9,20 +9,14 @@ services:
     restart: "no"
     command: ["migrate"]
     environment: &wilrop_app_env
-      # Prisma construye la URL internamente a partir de estas variables
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
       NODE_ENV: production
-      # next-auth — obligatorio en producción
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
-      # Admin bootstrap opcional. Define password para crear el admin inicial.
       WILROP_ADMIN_EMAIL: ${WILROP_ADMIN_EMAIL:-admin@wilrop.com}
       WILROP_ADMIN_PASSWORD: ${WILROP_ADMIN_PASSWORD:-}
       WILROP_ADMIN_NAME: ${WILROP_ADMIN_NAME:-Administrador WILROP}
       WILROP_ADMIN_RESET_PASSWORD: ${WILROP_ADMIN_RESET_PASSWORD:-false}
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - wilrop-net
 
@@ -40,8 +34,6 @@ services:
     volumes:
       - wilrop-uploads:/app/public/uploads
     depends_on:
-      db:
-        condition: service_healthy
       migrate:
         condition: service_completed_successfully
     networks:
@@ -51,30 +43,8 @@ services:
       - 'traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)'
       - traefik.http.services.wilrop.loadbalancer.server.port=3000
 
-  # ─── Base de datos PostgreSQL ─────────────────────────────────────────────
-  db:
-    image: postgres:16-alpine
-    container_name: wilrop-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - wilrop-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - wilrop-net
-
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
 volumes:
-  wilrop-db-data:
-    name: wilrop-db-data
-    driver: local
   wilrop-uploads:
     name: wilrop-uploads
     driver: local
