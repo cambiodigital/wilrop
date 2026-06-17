@@ -38,7 +38,6 @@ services:
         condition: service_completed_successfully
     networks:
       - wilrop-net
-      - coolify
     labels:
       - traefik.enable=true
       - 'traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)'
@@ -54,5 +53,3 @@ volumes:
 networks:
   wilrop-net:
     driver: bridge
-  coolify:
-    external: true
