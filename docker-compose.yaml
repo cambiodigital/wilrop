@@ -34,8 +34,8 @@ services:
     container_name: wilrop-app
     restart: unless-stopped
     command: ["web"]
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment: *wilrop_app_env
     volumes:
       - wilrop-uploads:/app/public/uploads
