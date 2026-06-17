@@ -148,10 +148,14 @@ run_migration_status() {
   if [ "$status_code" -ne 0 ]; then
     if grep -qi "Following migration have not yet been applied" /tmp/migration_status.log; then
       echo "[db] Pending migrations detected. They will be applied in the next step."
+    elif grep -qiE "(P1000|P1001|P1002|Can.t reach database|connection refused|timeout|ECONNREFUSED|ENOTFOUND)" /tmp/migration_status.log; then
+      echo "[db] WARNING: Cannot reach database (connection/network error)."
+      echo "[db] Will attempt migrate deploy directly — this will fail if DB is truly unreachable."
+      echo "[db] Verify DATABASE_URL is correct and the container can reach the host."
+      echo "[db] Neon DBs may require ?sslmode=require in DATABASE_URL."
     else
-      echo "[db] Prisma migrate status failed (exit: ${status_code})."
-      echo "[db] If this is P1000: verify DATABASE_URL credentials."
-      echo "[db] Note: in Postgres containers, POSTGRES_PASSWORD applies only at first init; changing env later won't change an existing volume's password."
+      echo "[db] Prisma migrate status failed with unexpected error (exit: ${status_code})."
+      cat /tmp/migration_status.log
       exit "$status_code"
     fi
   else
