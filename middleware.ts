@@ -41,7 +41,9 @@ function isPublicPath(pathname: string): boolean {
     pathname.startsWith('/api/') ||
     pathname.startsWith('/static/') ||
     pathname === '/favicon.ico' ||
-    !!pathname.match(/\.(png|jpg|jpeg|svg|css|js|woff2?)$/)
+    pathname.startsWith('/uploads/') ||
+    pathname === '/robots.txt' ||
+    !!pathname.match(/\.(png|jpg|jpeg|svg|css|js|woff2?|webp|gif|ico|txt|json|xml|pdf)$/)
   )
 }
 

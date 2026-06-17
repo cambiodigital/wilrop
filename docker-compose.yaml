@@ -48,8 +48,7 @@ services:
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
 volumes:
   wilrop-uploads:
-    name: wilrop-uploads
-    driver: local
+    external: true
 
 # ─── Redes ──────────────────────────────────────────────────────────────────
 networks:
