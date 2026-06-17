@@ -76,5 +76,9 @@ USER nextjs
 
 EXPOSE 3000
 
+LABEL traefik.enable=true
+LABEL traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)
+LABEL traefik.http.services.wilrop.loadbalancer.server.port=3000
+
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["web"]
