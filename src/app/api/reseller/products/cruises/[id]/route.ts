@@ -150,6 +150,10 @@ export async function PUT(
       updates.active = typeof body.active === 'boolean' ? body.active : existing.active;
     }
 
+    if (existing.publishStatus === 'rejected') {
+      updates.publishStatus = 'pending_review';
+    }
+
     const cruise = await db.cruise.update({
       where: { id },
       data: updates,

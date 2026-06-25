@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
           resellerId: session.id,
         }),
         isTemplate: false,
+        publishStatus: 'pending_review',
       },
     });
 

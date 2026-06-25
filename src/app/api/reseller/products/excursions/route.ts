@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
         featured: false,
         active: typeof active === 'boolean' ? active : false,
         isTemplate: false,
+        publishStatus: 'pending_review',
         resellerId: session.id,
       },
     });

@@ -187,6 +187,10 @@ export async function PUT(
         typeof body.active === "boolean" ? body.active : existing.active;
     }
 
+    if (existing.publishStatus === "rejected") {
+      updates.publishStatus = "pending_review";
+    }
+
     const transport = await db.transportService.update({
       where: { id },
       data: updates,
