@@ -11,7 +11,7 @@ export async function GET(
     const { slug } = await params;
 
     const realCount = await db.cruise.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, publishStatus: 'approved' },
     });
     const isTemplateQuery = realCount > 0 ? false : true;
 
@@ -23,6 +23,7 @@ export async function GET(
         ],
         active: true,
         isTemplate: isTemplateQuery,
+        ...(realCount > 0 ? { publishStatus: 'approved' } : {}),
       },
       include: {
         cabins: true,

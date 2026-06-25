@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : undefined;
 
     const realCount = await db.destination.count({
-      where: { active: true, isTemplate: false },
+      where: { active: true, isTemplate: false, publishStatus: 'approved' },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
       where: {
         active: true,
         isTemplate: isTemplateFallback,
+        ...(isTemplateFallback ? {} : { publishStatus: 'approved' }),
         ...categoryFilter,
       },
       orderBy: { order: 'asc' },
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       where: {
         active: true,
         isTemplate: isTemplateFallback,
+        ...(isTemplateFallback ? {} : { publishStatus: 'approved' }),
       },
       include: {
         packages: {
