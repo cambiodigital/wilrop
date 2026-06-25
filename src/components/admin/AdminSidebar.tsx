@@ -18,6 +18,7 @@ import {
   Compass,
   Ship,
   BookOpen,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +52,7 @@ const menuItems: MenuItem[] = [
   { id: 'cruises', label: 'Cruceros', icon: <Ship className="w-5 h-5" />, href: '/admin/cruceros' },
   { id: 'marketing', label: 'Marketing', icon: <Megaphone className="w-5 h-5" />, href: '/admin/marketing-modal' },
   { id: 'documentation', label: 'Documentación', icon: <BookOpen className="w-5 h-5" />, href: '/admin/documentacion' },
+  { id: 'product-review', label: 'Revisión de Productos', icon: <ClipboardCheck className="w-5 h-5" />, href: '/admin/revision-productos' },
 ];
 
 const userMenuItems: MenuItem[] = [
