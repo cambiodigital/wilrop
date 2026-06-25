@@ -20,6 +20,7 @@ const prisma = new PrismaClient()
     '20260517000000_add_reseller_approval_fields',
     '20260517010000_add_subagent_type_field',
     '20260604104210_add_reseller_id_to_destination',
+    '20260625000000_add_publish_status_to_products',
   ]
 
 async function main() {
@@ -80,6 +81,19 @@ async function main() {
       )
       return 10
     }
+
+    if (migrationName === '20260625000000_add_publish_status_to_products') {
+      console.log(`Checking migration ${migrationName}...`)
+      const col = await prisma.$queryRawUnsafe(
+        "SELECT column_name FROM information_schema.columns WHERE table_name='TravelPackage' AND column_name='publishStatus'",
+      )
+      if (Array.isArray(col) && col.length > 0) {
+        console.log('Columns already exist; marking migration as applied.')
+        return 10
+      }
+      console.log('Columns do not exist; letting Prisma apply migration normally.')
+      return 0
+    }
   }
 
   return 0
@@ -101,12 +115,12 @@ NODE
 
   if [ "$repair_status" -eq 10 ]; then
     echo "[pre] Marking failed migration as applied after repair..."
-    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260517010000_add_subagent_type_field; do
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260517010000_add_subagent_type_field 20260625000000_add_publish_status_to_products; do
       node /app/node_modules/prisma/build/index.js migrate resolve --applied "$m" 2>/dev/null || true
     done
   elif [ "$repair_status" -eq 20 ]; then
     echo "[pre] Rolling back failed migration so migrate deploy can retry..."
-    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260517010000_add_subagent_type_field; do
+    for m in 20260504120000_add_reseller_capabilities 20260517000000_add_reseller_approval_fields 20260517010000_add_subagent_type_field 20260625000000_add_publish_status_to_products; do
       node /app/node_modules/prisma/build/index.js migrate resolve --rolled-back "$m" 2>/dev/null || true
     done
   elif [ "$repair_status" -ne 0 ]; then
