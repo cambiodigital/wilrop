@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { PublishStatusBadge } from "@/components/reseller/PublishStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -306,6 +307,9 @@ export default function ResellerOwnTransport() {
               <div className="relative h-24 bg-primary/5">
                 <div className="flex h-full w-full items-center justify-center">
                   <Bus className="size-8 text-primary/30" />
+                </div>
+                <div className="absolute left-2 top-2">
+                  <PublishStatusBadge status={(t as any).publishStatus} />
                 </div>
                 <Badge
                   className={`absolute right-2 top-2 ${
