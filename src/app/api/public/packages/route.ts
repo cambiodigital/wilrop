@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const resellerIdParam = searchParams.get("resellerId");
 
     const realCount = await db.travelPackage.count({
-      where: { active: true, isTemplate: false, resellerId: null },
+      where: { active: true, isTemplate: false, resellerId: null, publishStatus: 'approved' },
     });
 
     let catalogPackageIds: string[] | undefined;
@@ -52,13 +52,13 @@ export async function GET(request: NextRequest) {
         ...(catalogPackageIds && catalogPackageIds.length > 0 && resellerIdParam
           ? {
               OR: [
-                { id: { in: catalogPackageIds } },
-                { resellerId: resellerIdParam },
+                { id: { in: catalogPackageIds }, publishStatus: 'approved' },
+                { resellerId: resellerIdParam, publishStatus: 'approved' },
               ],
             }
           : resellerIdFilter
-            ? { resellerId: resellerIdFilter }
-            : { isTemplate: realCount > 0 ? false : true, resellerId: null }),
+            ? { resellerId: resellerIdFilter, publishStatus: 'approved' }
+            : { isTemplate: realCount > 0 ? false : true, resellerId: null, ...(realCount > 0 ? { publishStatus: 'approved' } : {}) }),
         ...(destinationId ? { destinationId } : {}),
         ...(category ? { category } : {}),
       },

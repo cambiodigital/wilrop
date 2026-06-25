@@ -16,6 +16,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { PublishStatusBadge } from '@/components/reseller/PublishStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -298,6 +299,9 @@ export default function ResellerOwnCruises() {
                     <Ship className="size-8 text-primary/30" />
                   </div>
                 )}
+                <div className="absolute left-2 top-2">
+                  <PublishStatusBadge status={(cruise as any).publishStatus} />
+                </div>
                 <Badge
                   className={`absolute right-2 top-2 ${
                     cruise.active

@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     );
 
     const realCount = await db.hotel.count({
-      where: { active: true, isTemplate: false, resellerId: null },
+      where: { active: true, isTemplate: false, resellerId: null, publishStatus: 'approved' },
     });
     const isTemplateFallback = resolveIsTemplateFallback(realCount);
 
@@ -141,14 +141,16 @@ export async function GET(request: NextRequest) {
       !resellerPanel
     ) {
       where.OR = [
-        { id: { in: catalogHotelIds } },
-        { resellerId: resellerIdParam },
+        { id: { in: catalogHotelIds }, publishStatus: 'approved' },
+        { resellerId: resellerIdParam, publishStatus: 'approved' },
       ];
     } else if (resellerIdFilter) {
       where.resellerId = resellerIdFilter;
+      where.publishStatus = 'approved';
     } else if (!resellerPanel && !resellerIdParam) {
       where.resellerId = null;
       where.isTemplate = isTemplateFallback;
+      if (!isTemplateFallback) where.publishStatus = 'approved';
     }
 
     if (cityId) {

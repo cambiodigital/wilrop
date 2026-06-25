@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { PublishStatusBadge } from "@/components/reseller/PublishStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import UniversalHotelModal, {
@@ -177,6 +178,9 @@ export default function ResellerOwnHotels() {
                     <Building2 className="size-8 text-primary/30" />
                   </div>
                 )}
+                <div className="absolute left-2 top-2">
+                  <PublishStatusBadge status={(hotel as any).publishStatus} />
+                </div>
                 <Badge
                   className={`absolute right-2 top-2 ${hotel.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-gray-100 text-gray-500 hover:bg-gray-100"}`}
                 >

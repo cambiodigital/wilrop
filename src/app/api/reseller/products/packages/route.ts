@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
         category: category ?? 'Cultural',
         active: typeof active === 'boolean' ? active : false,
         isTemplate: false,
+        publishStatus: 'pending_review',
         resellerId: session.id,
       },
     });

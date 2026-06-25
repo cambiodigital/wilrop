@@ -110,7 +110,10 @@ export async function PUT(
 
     const hotel = await db.hotel.update({
       where: { id },
-      data: buildHotelUpdateData({ ...body, resellerId: session.id }),
+      data: {
+        ...buildHotelUpdateData({ ...body, resellerId: session.id }),
+        ...(existing.publishStatus === 'rejected' ? { publishStatus: 'pending_review' } : {}),
+      },
     });
 
     return NextResponse.json({ success: true, data: formatAdminHotel(hotel) });
