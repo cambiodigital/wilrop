@@ -39,7 +39,11 @@ export default async function ResellerProfilePage() {
       {profile?.whiteLabelEnabled && (
         <>
           <Separator />
-          <ResellerWhiteLabelConfig enabled={profile.whiteLabelEnabled} />
+          <ResellerWhiteLabelConfig
+            enabled={profile.whiteLabelEnabled}
+            contactName={profile?.contactName}
+            companyName={profile?.companyName}
+          />
         </>
       )}
     </div>

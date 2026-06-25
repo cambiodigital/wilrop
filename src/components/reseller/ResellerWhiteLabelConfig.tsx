@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -16,6 +17,8 @@ interface WhiteLabelConfigProps {
   brandColor?: string;
   logoUrl?: string;
   customDomain?: string;
+  contactName?: string;
+  companyName?: string;
 }
 
 export default function ResellerWhiteLabelConfig({
@@ -24,7 +27,10 @@ export default function ResellerWhiteLabelConfig({
   brandColor,
   logoUrl,
   customDomain,
+  contactName,
+  companyName,
 }: WhiteLabelConfigProps) {
+  const router = useRouter();
   const [whiteLabelEnabled, setWhiteLabelEnabled] = useState(enabled);
   const [form, setForm] = useState({
     brandName: brandName || '',
@@ -58,16 +64,20 @@ export default function ResellerWhiteLabelConfig({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/reseller/profile', {
+      const subdomain = (form.brandName || companyName || 'mi-agencia')
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/^-+|-+$/g, '');
+
+      const res = await fetch('/api/reseller/whitelabel', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          whiteLabel: {
-            enabled: whiteLabelEnabled,
-            brandName: form.brandName,
-            brandColor: form.brandColor,
-            customDomain: form.customDomain,
-          },
+          storeName: form.brandName,
+          brandColor: form.brandColor,
+          customDomain: form.customDomain,
+          subdomain,
         }),
       });
 
@@ -151,11 +161,16 @@ export default function ResellerWhiteLabelConfig({
 
             <Separator />
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/reseller/whitelabel/preview')}
+                className="flex items-center gap-2"
+              >
                 <Eye className="w-4 h-4" />
-                Vista previa en /reseller/whitelabel/preview
-              </div>
+                Vista Previa
+              </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving}
