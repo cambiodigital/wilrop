@@ -19,6 +19,7 @@ import {
   Ship,
   BookOpen,
   ClipboardCheck,
+  Warehouse,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +46,7 @@ const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/admin' },
   { id: 'destinations', label: 'Destinos', icon: <MapPin className="w-5 h-5" />, href: '/admin/destinos' },
   { id: 'hotels', label: 'Hoteles', icon: <Building2 className="w-5 h-5" />, href: '/admin/hoteles' },
+  { id: 'allotments', label: 'Cupos', icon: <Warehouse className="w-5 h-5" />, href: '/admin/habitaciones' },
   { id: 'excursions', label: 'Excursiones', icon: <Compass className="w-5 h-5" />, href: '/admin/excursiones' },
   { id: 'packages', label: 'Paquetes', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes' },
   { id: 'custom-packages', label: 'Paquetes Armados', icon: <Package className="w-5 h-5" />, href: '/admin/paquetes-personalizados' },
