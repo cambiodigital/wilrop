@@ -32,6 +32,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 interface OwnCruise {
   id: string;
@@ -395,7 +396,10 @@ export default function ResellerOwnCruises() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cruise-name">Nombre *</Label>
+                <Label htmlFor="cruise-name">
+                  Nombre *
+                  <FieldTooltip label="Nombre de tu crucero. Visible en tu catalogo" />
+                </Label>
                 <Input
                   id="cruise-name"
                   value={form.name}

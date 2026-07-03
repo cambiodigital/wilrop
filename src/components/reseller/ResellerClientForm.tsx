@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 interface ClientFormData {
   name: string;
@@ -103,6 +104,7 @@ export default function ResellerClientForm({
           <div className="space-y-2">
             <Label htmlFor="client-name" className="label-required">
               Nombre Completo
+              <FieldTooltip label="Nombre del cliente tal como aparece en documentos" />
             </Label>
             <Input
               id="client-name"
@@ -110,11 +112,15 @@ export default function ResellerClientForm({
               value={form.name}
               onChange={(e) => updateField('name', e.target.value)}
             />
+            <FieldHelper>
+              Nombre y apellidos completos
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="client-email" className="label-required">
-              Correo Electrónico
+              Correo Electronico
+              <FieldTooltip label="Email del cliente para confirmaciones y vouchers" />
             </Label>
             <Input
               id="client-email"
@@ -123,46 +129,73 @@ export default function ResellerClientForm({
               value={form.email}
               onChange={(e) => updateField('email', e.target.value)}
             />
+            <FieldHelper>
+              Debe ser un email valido
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-phone">Teléfono</Label>
+            <Label htmlFor="client-phone">
+              Telefono
+              <FieldTooltip label="Numero de contacto del cliente" />
+            </Label>
             <Input
               id="client-phone"
               placeholder="+57 300 000 0000"
               value={form.phone}
               onChange={(e) => updateField('phone', e.target.value)}
             />
+            <FieldHelper>
+              Para coordinacion y emergencias
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-country">País</Label>
+            <Label htmlFor="client-country">
+              Pais
+              <FieldTooltip label="Pais de residencia del cliente" />
+            </Label>
             <Input
               id="client-country"
-              placeholder="País de residencia"
+              placeholder="Pais de residencia"
               value={form.country}
               onChange={(e) => updateField('country', e.target.value)}
             />
+            <FieldHelper>
+              Define nacionalidad para tramites
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-passport">Pasaporte</Label>
+            <Label htmlFor="client-passport">
+              Pasaporte
+              <FieldTooltip label="Numero de pasaporte del cliente" />
+            </Label>
             <Input
               id="client-passport"
-              placeholder="Número de pasaporte (opcional)"
+              placeholder="Numero de pasaporte (opcional)"
               value={form.passport}
               onChange={(e) => updateField('passport', e.target.value)}
             />
+            <FieldHelper>
+              Requerido para reservas internacionales
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-notes">Notas</Label>
+            <Label htmlFor="client-notes">
+              Notas
+              <FieldTooltip label="Informacion adicional sobre el cliente" />
+            </Label>
             <Input
               id="client-notes"
               placeholder="Notas adicionales (opcional)"
               value={form.notes}
               onChange={(e) => updateField('notes', e.target.value)}
             />
+            <FieldHelper>
+              Preferencias, restricciones alimentarias, observaciones
+            </FieldHelper>
           </div>
         </div>
 

@@ -60,6 +60,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 import {
   buildTransportDestinationCompatibilityFields,
   findTransportDestinationOption,
@@ -839,34 +840,55 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nombre *</Label>
+                <Label>
+                  Nombre *
+                  <FieldTooltip label="Nombre de la empresa de transporte" />
+                </Label>
                 <Input
                   value={providerForm.name}
                   onChange={(e) => setProviderForm((p) => ({ ...p, name: e.target.value }))}
                   placeholder="Transportes del Caribe"
                 />
+                <FieldHelper>
+                  Razon social o nombre comercial del proveedor
+                </FieldHelper>
               </div>
               <div className="space-y-2">
-                <Label>Razón Social</Label>
+                <Label>
+                  Razon Social
+                  <FieldTooltip label="Nombre legal registrado de la empresa" />
+                </Label>
                 <Input
                   value={providerForm.legalName}
                   onChange={(e) => setProviderForm((p) => ({ ...p, legalName: e.target.value }))}
                   placeholder="Transportes del Caribe S.A.S."
                 />
+                <FieldHelper>
+                  Opcional. Para facturacion y registros
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>NIT</Label>
+                <Label>
+                  NIT
+                  <FieldTooltip label="Numero de Identificacion Tributaria" />
+                </Label>
                 <Input
                   value={providerForm.nit}
                   onChange={(e) => setProviderForm((p) => ({ ...p, nit: e.target.value }))}
                   placeholder="900123456-7"
                 />
+                <FieldHelper>
+                  Identificador fiscal de la empresa en Colombia
+                </FieldHelper>
               </div>
               <div className="space-y-2">
-                <Label>Teléfono</Label>
+                <Label>
+                  Telefono
+                  <FieldTooltip label="Numero de contacto del proveedor" />
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -876,11 +898,17 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Formato: +57 300 000 0000
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>
+                Email
+                <FieldTooltip label="Correo electronico de contacto" />
+              </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -891,11 +919,17 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                   className="pl-10"
                 />
               </div>
+              <FieldHelper>
+                Para notificaciones y coordinacion
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Tipo de Vehículo</Label>
+                <Label>
+                  Tipo de Vehiculo
+                  <FieldTooltip label="Categoria del vehiculo principal" />
+                </Label>
                 <Select
                   value={providerForm.vehicleType}
                   onValueChange={(v) => setProviderForm((p) => ({ ...p, vehicleType: v }))}
@@ -911,9 +945,15 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldHelper>
+                  Define el tipo de flota disponible
+                </FieldHelper>
               </div>
               <div className="space-y-2">
-                <Label>Capacidad</Label>
+                <Label>
+                  Capacidad
+                  <FieldTooltip label="Numero maximo de pasajeros por vehiculo" />
+                </Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -924,6 +964,9 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Usado para calcular disponibilidad en reservas
+                </FieldHelper>
               </div>
             </div>
 
@@ -932,7 +975,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 checked={providerForm.active}
                 onCheckedChange={(v) => setProviderForm((p) => ({ ...p, active: v }))}
               />
-              <Label>Proveedor activo</Label>
+              <Label>
+                Proveedor activo
+                <FieldTooltip label="Si esta desactivado, el proveedor no aparece" />
+              </Label>
             </div>
 
             <div className="dialog-footer">
@@ -966,7 +1012,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Proveedor *</Label>
+              <Label>
+                Proveedor *
+                <FieldTooltip label="Empresa que opera este servicio de transporte" />
+              </Label>
               <Select
                 value={serviceForm.providerId}
                 onValueChange={(v) => setServiceForm((s) => ({ ...s, providerId: v }))}
@@ -984,20 +1033,32 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     ))}
                 </SelectContent>
               </Select>
+              <FieldHelper>
+                Debe existir como proveedor registrado
+              </FieldHelper>
             </div>
 
             <div className="space-y-2">
-              <Label>Nombre del Servicio</Label>
+              <Label>
+                Nombre del Servicio
+                <FieldTooltip label="Nombre descriptivo de la ruta o servicio" />
+              </Label>
               <Input
                 value={serviceForm.name}
                 onChange={(e) => setServiceForm((s) => ({ ...s, name: e.target.value }))}
                 placeholder="Traslado Aeropuerto CTG - Centro"
               />
+              <FieldHelper>
+                Ej: Traslado Aeropuerto - Hotel Charleston
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Tipo de Ruta</Label>
+                <Label>
+                  Tipo de Ruta
+                  <FieldTooltip label="Direccion y tipo de traslado" />
+                </Label>
                 <Select
                   value={serviceForm.routeType}
                   onValueChange={(v) => setServiceForm((s) => ({ ...s, routeType: v }))}
@@ -1013,9 +1074,15 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldHelper>
+                  Define como se muestra en los resultados de busqueda
+                </FieldHelper>
               </div>
               <div className="space-y-2">
-                <Label>Duración (min)</Label>
+                <Label>
+                  Duracion (min)
+                  <FieldTooltip label="Tiempo estimado del trayecto en minutos" />
+                </Label>
                 <Input
                   type="number"
                   min="1"
@@ -1024,12 +1091,18 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                     setServiceForm((s) => ({ ...s, durationMins: Number(e.target.value) }))
                   }
                 />
+                <FieldHelper>
+                  Visible en la pagina de detalle del servicio
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Origen relacional *</Label>
+                <Label>
+                  Origen relacional *
+                  <FieldTooltip label="Ciudad o punto de partida del traslado" />
+                </Label>
                 <Select
                   value={serviceForm.originDestinationId ?? ''}
                   onValueChange={(v) => {
@@ -1073,7 +1146,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Destino relacional *</Label>
+                <Label>
+                  Destino relacional *
+                  <FieldTooltip label="Ciudad o punto de llegada del traslado" />
+                </Label>
                 <Select
                   value={serviceForm.destinationDestinationId ?? ''}
                   onValueChange={(v) => {
@@ -1139,7 +1215,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Precio Base (COP)</Label>
+                <Label>
+                  Precio Base (COP)
+                  <FieldTooltip label="Precio base del servicio en COP" />
+                </Label>
                 <Input
                   type="number"
                   min="0"
@@ -1151,7 +1230,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 />
               </div>
               <div className="space-y-2">
-                <Label>Precio por Pasajero Extra (COP)</Label>
+                <Label>
+                  Precio por Pasajero Extra (COP)
+                  <FieldTooltip label="Costo adicional por cada pasajero extra" />
+                </Label>
                 <Input
                   type="number"
                   min="0"
@@ -1165,26 +1247,41 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
             </div>
 
             <div className="space-y-2">
-              <Label>Incluye</Label>
+              <Label>
+                Incluye
+                <FieldTooltip label="Servicios incluidos en el traslado" />
+              </Label>
               <TagInput
                 tags={serviceForm.includes}
                 onChange={(includes) => setServiceForm((s) => ({ ...s, includes }))}
                 placeholder="Ej: Seguro, Equipaje, Agua..."
               />
+              <FieldHelper>
+                Ej: Seguro, Aire acondicionado, WiFi, Agua
+              </FieldHelper>
             </div>
 
             <div className="space-y-2">
-              <Label>Notas</Label>
+              <Label>
+                Notas
+                <FieldTooltip label="Informacion adicional para el cliente o administrador" />
+              </Label>
               <Textarea
                 value={serviceForm.notes}
                 onChange={(e) => setServiceForm((s) => ({ ...s, notes: e.target.value }))}
                 placeholder="Notas adicionales del servicio..."
                 rows={3}
               />
+              <FieldHelper>
+                Ej: Punto de encuentro, instrucciones especiales
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <Label htmlFor="transport-reseller">Asignar a Revendedor</Label>
+              <Label htmlFor="transport-reseller">
+                Asignar a Revendedor
+                <FieldTooltip label="Asigna este servicio a un revendedor o dejalo global" />
+              </Label>
               <select
                 id="transport-reseller"
                 value={serviceForm.resellerId ?? ''}
@@ -1198,9 +1295,9 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este servicio de transporte.
-              </p>
+              <FieldHelper>
+                Servicios asignados solo los ve ese revendedor
+              </FieldHelper>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
@@ -1208,7 +1305,10 @@ export default function AdminTransport({ defaultTab = 'providers' }: AdminTransp
                 checked={serviceForm.active}
                 onCheckedChange={(v) => setServiceForm((s) => ({ ...s, active: v }))}
               />
-              <Label>Servicio activo</Label>
+              <Label>
+                Servicio activo
+                <FieldTooltip label="Si esta desactivado, el servicio no aparece en el portal" />
+              </Label>
             </div>
 
             <div className="dialog-footer">

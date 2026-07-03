@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -546,7 +547,10 @@ export default function AdminAllotments() {
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Hotel</Label>
+              <Label>
+                Hotel
+                <FieldTooltip label="Hotel al que pertenece este cupo" />
+              </Label>
               <Select value={form.hotelId} onValueChange={(v) => setForm((f) => ({ ...f, hotelId: v }))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -559,10 +563,16 @@ export default function AdminAllotments() {
                   ))}
                 </SelectContent>
               </Select>
+              <FieldHelper>
+                Selecciona el hotel destino del allotment
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="label-required">Tipo de Habitación</Label>
+              <Label className="label-required">
+                Tipo de Habitacion
+                <FieldTooltip label="Categoria de habitacion para el cupo" />
+              </Label>
               <Select value={form.roomTypeId} onValueChange={(v) => setForm((f) => ({ ...f, roomTypeId: v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo de habitación" />
@@ -577,51 +587,80 @@ export default function AdminAllotments() {
                     ))}
                 </SelectContent>
               </Select>
+              <FieldHelper>
+                Filtrado automaticamente por el hotel seleccionado
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Fecha Desde</Label>
+                <Label className="label-required">
+                  Fecha Desde
+                  <FieldTooltip label="Fecha de inicio de disponibilidad del cupo" />
+                </Label>
                 <Input
                   type="date"
                   value={form.dateFrom}
                   onChange={(e) => setForm((f) => ({ ...f, dateFrom: e.target.value }))}
                 />
+                <FieldHelper>
+                  Primer dia que aplica este allotment
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Fecha Hasta</Label>
+                <Label className="label-required">
+                  Fecha Hasta
+                  <FieldTooltip label="Fecha de fin de disponibilidad del cupo" />
+                </Label>
                 <Input
                   type="date"
                   value={form.dateTo}
                   onChange={(e) => setForm((f) => ({ ...f, dateTo: e.target.value }))}
                 />
+                <FieldHelper>
+                  Ultimo dia que aplica este allotment
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Total Habitaciones</Label>
+                <Label className="label-required">
+                  Total Habitaciones
+                  <FieldTooltip label="Cantidad total de habitaciones disponibles en este cupo" />
+                </Label>
                 <Input
                   type="number"
                   min="0"
                   value={form.totalRooms}
                   onChange={(e) => setForm((f) => ({ ...f, totalRooms: Number(e.target.value) }))}
                 />
+                <FieldHelper>
+                  Numero de habitaciones del inventario
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label>Release (días)</Label>
+                <Label>
+                  Release (dias)
+                  <FieldTooltip label="Dias antes del check-in en que se libera el cupo no vendido" />
+                </Label>
                 <Input
                   type="number"
                   min="0"
                   value={form.releaseDays}
                   onChange={(e) => setForm((f) => ({ ...f, releaseDays: Number(e.target.value) }))}
                 />
-                <p className="text-xs text-muted-foreground">Días antes del check-in para liberar</p>
+                <FieldHelper>
+                  0 = sin release. Libera inventario no reservado
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Precio Neto (COP/noche)</Label>
+              <Label>
+                Precio Neto (COP/noche)
+                <FieldTooltip label="Precio neto por noche para el revendedor" />
+              </Label>
               <Input
                 type="number"
                 min="0"
@@ -629,7 +668,9 @@ export default function AdminAllotments() {
                 onChange={(e) => setForm((f) => ({ ...f, netPrice: Number(e.target.value) }))}
                 placeholder="0"
               />
-              <p className="text-xs text-muted-foreground">Precio negociado con el hotel</p>
+              <FieldHelper>
+                Lo que paga el revendedor. El portal suma su margen
+              </FieldHelper>
             </div>
 
             <div className="dialog-footer">

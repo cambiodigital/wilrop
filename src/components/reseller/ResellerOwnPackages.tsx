@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 interface OwnPackage {
   id: string;
@@ -433,18 +434,27 @@ export default function ResellerOwnPackages() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="pkg-title">Título *</Label>
+                <Label htmlFor="pkg-title">
+                  Titulo *
+                  <FieldTooltip label="Nombre de tu paquete. Visible en tu catalogo" />
+                </Label>
                 <Input
                   id="pkg-title"
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="Ej: Aventura en Cartagena 5 días"
+                  placeholder="Ej: Aventura en Cartagena 5 dias"
                 />
+                <FieldHelper>
+                  Ej: Escapada Romantica a Cartagena 3 Dias
+                </FieldHelper>
               </div>
 
               {destinationOptions.length > 0 && (
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="pkg-destination-id">Destino</Label>
+                  <Label htmlFor="pkg-destination-id">
+                    Destino
+                    <FieldTooltip label="Destino principal del paquete" />
+                  </Label>
                   <Select value={form.destinationId || 'none'} onValueChange={(value) => handleDestinationChange(value === 'none' ? '' : value)}>
                     <SelectTrigger id="pkg-destination-id">
                       <SelectValue placeholder="Selecciona un destino" />
@@ -472,7 +482,10 @@ export default function ResellerOwnPackages() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="pkg-category">Categoría</Label>
+                <Label htmlFor="pkg-category">
+                  Categoria
+                  <FieldTooltip label="Tipo de paquete. Organiza tu catalogo" />
+                </Label>
                 <Select
                   value={form.category}
                   onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
@@ -491,7 +504,10 @@ export default function ResellerOwnPackages() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="pkg-duration">Duración</Label>
+                <Label htmlFor="pkg-duration">
+                  Duracion
+                  <FieldTooltip label="Duracion total del paquete" />
+                </Label>
                 <Input
                   id="pkg-duration"
                   value={form.duration}
@@ -501,7 +517,10 @@ export default function ResellerOwnPackages() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="pkg-price">Precio</Label>
+                <Label htmlFor="pkg-price">
+                  Precio
+                  <FieldTooltip label="Precio del paquete en COP" />
+                </Label>
                 <Input
                   id="pkg-price"
                   type="number"
@@ -515,7 +534,10 @@ export default function ResellerOwnPackages() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Imagen</Label>
+              <Label>
+                Imagen
+                <FieldTooltip label="Imagen principal del paquete" />
+              </Label>
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                 {form.image ? (
                   <div className="relative mx-auto max-w-xs">
@@ -560,7 +582,10 @@ export default function ResellerOwnPackages() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="pkg-desc">Descripción</Label>
+              <Label htmlFor="pkg-desc">
+                Descripcion
+                <FieldTooltip label="Descripcion detallada del paquete" />
+              </Label>
               <Textarea
                 id="pkg-desc"
                 value={form.description}
@@ -581,10 +606,11 @@ export default function ResellerOwnPackages() {
               <div className="space-y-1 leading-none">
                 <Label htmlFor="pkg-active" className="cursor-pointer text-sm font-medium">
                   Publicar paquete
+                  <FieldTooltip label="Al marcar, el paquete sera visible" />
                 </Label>
-                <p className="text-xs text-muted-foreground">
-                  Si está activo, tus clientes podrán verlo en tu tienda.
-                </p>
+                <FieldHelper>
+                  Revisa antes de publicar
+                </FieldHelper>
               </div>
             </div>
           </div>

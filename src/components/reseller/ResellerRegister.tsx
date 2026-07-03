@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Building, Mail, Lock, User, Phone, Globe, ArrowLeft, FileText, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 import { MIN_PASSWORD_LENGTH } from '@/lib/constants'
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers'
 
 export default function ResellerRegister() {
   const router = useRouter()
@@ -110,7 +111,10 @@ export default function ResellerRegister() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de contacto</Label>
+                <Label className="label-required">
+                  Nombre de contacto
+                  <FieldTooltip label="Nombre de la persona que administrara la cuenta" />
+                </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -122,7 +126,10 @@ export default function ResellerRegister() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de empresa</Label>
+                <Label className="label-required">
+                  Nombre de empresa
+                  <FieldTooltip label="Nombre comercial de tu agencia de viajes" />
+                </Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -136,7 +143,10 @@ export default function ResellerRegister() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="label-required">Email</Label>
+              <Label className="label-required">
+                Email
+                <FieldTooltip label="Correo electronico. Sera tu usuario de acceso al panel" />
+              </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -151,7 +161,10 @@ export default function ResellerRegister() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Contraseña</Label>
+                <Label className="label-required">
+                  Contrasena
+                  <FieldTooltip label="Crea una contrasena segura para tu cuenta" />
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -164,7 +177,10 @@ export default function ResellerRegister() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Confirmar contraseña</Label>
+                <Label className="label-required">
+                  Confirmar contrasena
+                  <FieldTooltip label="Repite la contrasena para verificar" />
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -180,7 +196,10 @@ export default function ResellerRegister() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>País</Label>
+                <Label>
+                  Pais
+                  <FieldTooltip label="Pais donde opera tu agencia" />
+                </Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -192,7 +211,10 @@ export default function ResellerRegister() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Teléfono</Label>
+                <Label>
+                  Telefono
+                  <FieldTooltip label="Numero de contacto de la agencia" />
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -207,7 +229,10 @@ export default function ResellerRegister() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Sitio web</Label>
+                <Label>
+                  Sitio web
+                  <FieldTooltip label="URL del sitio web de tu agencia" />
+                </Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -219,7 +244,10 @@ export default function ResellerRegister() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>NIT / RUT / ID Fiscal</Label>
+                <Label>
+                  NIT / RUT / ID Fiscal
+                  <FieldTooltip label="Numero de identificacion tributaria o fiscal" />
+                </Label>
                 <div className="relative">
                   <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -233,7 +261,10 @@ export default function ResellerRegister() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Dirección</Label>
+              <Label>
+                Direccion
+                <FieldTooltip label="Direccion fisica de tu agencia" />
+              </Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input

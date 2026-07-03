@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getResellerLevelLabel, normalizeResellerLevel, type ResellerLevel } from '@/lib/reseller-access';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -552,7 +553,10 @@ export default function AdminSubagents() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Código</Label>
+                <Label className="label-required">
+                  Codigo
+                  <FieldTooltip label="Identificador unico del subagente. Prefijo automatico SUB-" />
+                </Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                     WIL-
@@ -565,9 +569,15 @@ export default function AdminSubagents() {
                     disabled={!!editingId}
                   />
                 </div>
+                <FieldHelper>
+                  Visible en reportes y comisiones
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Email</Label>
+                <Label className="label-required">
+                  Email
+                  <FieldTooltip label="Correo electronico del subagente. Sera su usuario" />
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -578,18 +588,27 @@ export default function AdminSubagents() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Debe ser unico en el sistema
+                </FieldHelper>
               </div>
             </div>
 
             {!editingId && (
               <div className="space-y-1.5">
-                <Label className="label-required">Contraseña</Label>
+                <Label className="label-required">
+                  Contrasena
+                  <FieldTooltip label="Contrasena de acceso al panel" />
+                </Label>
                 <Input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                  placeholder="Contraseña de acceso"
+                  placeholder="Contrasena de acceso"
                 />
+                <FieldHelper>
+                  Minimo 8 caracteres
+                </FieldHelper>
               </div>
             )}
             {editingId && (
@@ -606,7 +625,10 @@ export default function AdminSubagents() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de Agencia</Label>
+                <Label className="label-required">
+                  Nombre de Agencia
+                  <FieldTooltip label="Nombre comercial del subagente" />
+                </Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -616,36 +638,54 @@ export default function AdminSubagents() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Visible en el panel
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de Contacto</Label>
+                <Label className="label-required">
+                  Nombre de Contacto
+                  <FieldTooltip label="Persona de contacto principal" />
+                </Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.contactName}
                     onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
-                    placeholder="Juan Pérez"
+                    placeholder="Juan Perez"
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Para comunicaciones
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>País</Label>
+                <Label>
+                  Pais
+                  <FieldTooltip label="Pais de operacion" />
+                </Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.country}
                     onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                    placeholder="México"
+                    placeholder="Mexico"
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Define disponibilidad regional
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label>Teléfono</Label>
+                <Label>
+                  Telefono
+                  <FieldTooltip label="Numero de contacto" />
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -655,11 +695,17 @@ export default function AdminSubagents() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Para coordinacion
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Comisión (%)</Label>
+              <Label>
+                Comision (%)
+                <FieldTooltip label="Porcentaje de comision sobre ventas" />
+              </Label>
               <Input
                 type="number"
                 min="0"
@@ -668,14 +714,17 @@ export default function AdminSubagents() {
                 onChange={(e) => setForm((f) => ({ ...f, commission: Number(e.target.value) }))}
                 placeholder="15"
               />
-              <p className="text-xs text-muted-foreground">
-                Porcentaje de comisión sobre las ventas del subagente
-              </p>
+              <FieldHelper>
+                0-100
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Nivel de revendedor</Label>
+                <Label>
+                  Nivel de revendedor
+                  <FieldTooltip label="Categoria del subagente" />
+                </Label>
                 <Select
                   value={form.sellerLevel}
                   onValueChange={(value) =>
@@ -693,12 +742,18 @@ export default function AdminSubagents() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldHelper>
+                  Starter, Standard, Free Light
+                </FieldHelper>
               </div>
 
               <div className="flex items-center gap-3 rounded-lg border border-border p-3">
                 <Palette className="h-5 w-5 text-purple-600" />
                 <div className="flex-1">
-                  <Label>Marca blanca</Label>
+                  <Label>
+                    Marca blanca
+                    <FieldTooltip label="Permite portal personalizado" />
+                  </Label>
                   <p className="text-xs text-muted-foreground">Free Light la incluye; este switch la habilita manualmente.</p>
                 </div>
                 <Switch
@@ -707,14 +762,21 @@ export default function AdminSubagents() {
                 />
               </div>
             </div>
+            <FieldHelper>
+              El subagente usa su propia marca
+            </FieldHelper>
 
             <div className="flex items-center gap-3 pt-2">
               <Switch
                 checked={form.active}
                 onCheckedChange={(v) => setForm((f) => ({ ...f, active: v }))}
               />
-              <Label>Subagente activo</Label>
+              <Label>
+                Subagente activo
+                <FieldTooltip label="Si esta desactivado, no puede acceder" />
+              </Label>
             </div>
+            <FieldHelper>Desactiva para suspender</FieldHelper>
 
             <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>

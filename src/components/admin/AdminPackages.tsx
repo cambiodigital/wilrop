@@ -40,6 +40,7 @@ import {
 import { Plus, Search, Pencil, Trash2, Star, Package, Upload, ImagePlus, X, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 import {
   buildPackageRelationsPayload,
   findPackageDestinationOption,
@@ -690,28 +691,43 @@ export default function AdminPackages() {
               <div className="form-section-title">Información Básica</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-title" className="label-required">Título</Label>
+                  <Label htmlFor="pkg-title" className="label-required">
+                    Titulo
+                    <FieldTooltip label="Nombre del paquete turistico. Visible en el portal" />
+                  </Label>
                   <Input
                     id="pkg-title"
                     value={form.title}
                     onChange={(e) => updateField('title', e.target.value)}
-                    placeholder="Cartagena Romántica"
+                    placeholder="Cartagena Romantica"
                   />
+                  <FieldHelper>
+                    Ej: Cartagena Todo Incluido 5 Dias
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-slug">Slug</Label>
+                  <Label htmlFor="pkg-slug">
+                    Slug
+                    <FieldTooltip label="Identificador unico en la URL. Auto-generado" />
+                  </Label>
                   <Input
                     id="pkg-slug"
                     value={form.slug}
                     onChange={(e) => updateField('slug', e.target.value)}
-                    placeholder="Auto-generado del título"
+                    placeholder="Auto-generado del titulo"
                   />
+                  <FieldHelper>
+                    Solo letras, numeros y guiones
+                  </FieldHelper>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-destination" className="label-required">Destino relacional</Label>
+                  <Label htmlFor="pkg-destination" className="label-required">
+                    Destino relacional
+                    <FieldTooltip label="Ciudad o region principal del paquete" />
+                  </Label>
                   <select
                     id="pkg-destination"
                     value={form.destinationId}
@@ -794,7 +810,10 @@ export default function AdminPackages() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-category">Categoría</Label>
+                  <Label htmlFor="pkg-category">
+                    Categoria
+                    <FieldTooltip label="Tipo de paquete. Define filtros en busquedas" />
+                  </Label>
                   <select
                     id="pkg-category"
                     value={form.category}
@@ -807,16 +826,25 @@ export default function AdminPackages() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-duration">Duración</Label>
+                  <Label htmlFor="pkg-duration">
+                    Duracion
+                    <FieldTooltip label="Duracion del paquete" />
+                  </Label>
                   <Input
                     id="pkg-duration"
                     value={form.duration}
                     onChange={(e) => updateField('duration', e.target.value)}
-                    placeholder="4 días / 3 noches"
+                    placeholder="4 dias / 3 noches"
                   />
+                  <FieldHelper>
+                    Formato libre: '5 dias / 4 noches', '3 dias'
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-difficulty">Dificultad</Label>
+                  <Label htmlFor="pkg-difficulty">
+                    Dificultad
+                    <FieldTooltip label="Nivel de actividad fisica requerida" />
+                  </Label>
                   <select
                     id="pkg-difficulty"
                     value={form.difficulty}
@@ -827,21 +855,33 @@ export default function AdminPackages() {
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
+                  <FieldHelper>
+                    Facil, Moderado, Avanzado
+                  </FieldHelper>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-group">Tamaño Grupo</Label>
+                  <Label htmlFor="pkg-group">
+                    Tamano Grupo
+                    <FieldTooltip label="Cantidad de personas por grupo" />
+                  </Label>
                   <Input
                     id="pkg-group"
                     value={form.groupSize}
                     onChange={(e) => updateField('groupSize', e.target.value)}
                     placeholder="2 – 8 personas"
                   />
+                  <FieldHelper>
+                    Grupo pequeno, mediano o grande
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-rating">Rating</Label>
+                  <Label htmlFor="pkg-rating">
+                    Rating
+                    <FieldTooltip label="Calificacion del paquete. Visible en portal" />
+                  </Label>
                   <Input
                     id="pkg-rating"
                     type="number"
@@ -851,27 +891,39 @@ export default function AdminPackages() {
                     value={form.rating}
                     onChange={(e) => updateField('rating', Number(e.target.value))}
                   />
+                  <FieldHelper>
+                    Valor entre 0 y 10
+                  </FieldHelper>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <div className="form-section-title">Descripción</div>
+              <div className="form-section-title">
+                Descripcion
+                <FieldTooltip label="Descripcion detallada del paquete" />
+              </div>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
-                placeholder="Descripción detallada del paquete..."
+                placeholder="Descripcion detallada del paquete..."
                 rows={4}
               />
+              <FieldHelper>
+                Incluye itinerario dia por dia, recomendaciones
+              </FieldHelper>
             </div>
 
             {/* Pricing */}
             <div>
-              <div className="form-section-title">Precios y Comisión</div>
+              <div className="form-section-title">Precios y Comision</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-price">Precio (COP)</Label>
+                  <Label htmlFor="pkg-price">
+                    Precio (COP)
+                    <FieldTooltip label="Precio de venta actual del paquete en COP" />
+                  </Label>
                   <Input
                     id="pkg-price"
                     type="number"
@@ -879,9 +931,15 @@ export default function AdminPackages() {
                     onChange={(e) => updateField('price', Number(e.target.value))}
                     placeholder="1250000"
                   />
+                  <FieldHelper>
+                    Visible en listados y pagina de detalle
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-original-price">Precio Original (COP)</Label>
+                  <Label htmlFor="pkg-original-price">
+                    Precio Original (COP)
+                    <FieldTooltip label="Precio sin descuento. Si es mayor, se muestra oferta" />
+                  </Label>
                   <Input
                     id="pkg-original-price"
                     type="number"
@@ -891,9 +949,15 @@ export default function AdminPackages() {
                     }
                     placeholder="1480000 (opcional)"
                   />
+                  <FieldHelper>
+                    Opcional. Define si aplica descuento
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pkg-commission">Comisión (%)</Label>
+                  <Label htmlFor="pkg-commission">
+                    Comision (%)
+                    <FieldTooltip label="Porcentaje de comision para revendedores" />
+                  </Label>
                   <Input
                     id="pkg-commission"
                     type="number"
@@ -902,13 +966,19 @@ export default function AdminPackages() {
                     value={form.commission}
                     onChange={(e) => updateField('commission', Number(e.target.value))}
                   />
+                  <FieldHelper>
+                    Define la ganancia del revendedor al vender este paquete
+                  </FieldHelper>
                 </div>
               </div>
             </div>
 
             {/* Image */}
             <div>
-              <div className="form-section-title">Imagen</div>
+              <div className="form-section-title">
+                Imagen
+                <FieldTooltip label="Imagen principal del paquete. Visible en cards" />
+              </div>
               {form.image ? (
                 <div className="relative group rounded-lg overflow-hidden border border-border">
                   {!imageError ? (
@@ -997,7 +1067,10 @@ export default function AdminPackages() {
 
             {/* Includes */}
             <div>
-              <div className="form-section-title">Qué Incluye</div>
+              <div className="form-section-title">
+                Que Incluye
+                <FieldTooltip label="Servicios y elementos incluidos. Uno por linea" />
+              </div>
               <Textarea
                 value={form.includes.join('\n')}
                 onChange={(e) =>
@@ -1009,12 +1082,18 @@ export default function AdminPackages() {
                 placeholder="Alojamiento en hotel boutique 4★&#10;Desayuno buffet diario&#10;Tour privado Ciudad Amurallada"
                 rows={5}
               />
-              <p className="text-xs text-muted-foreground mt-1">Un item por línea</p>
+              <FieldHelper>
+                Ej: Alojamiento, Desayuno, Traslados, Seguro
+              </FieldHelper>
+              <p className="text-xs text-muted-foreground mt-1">Un item por linea</p>
             </div>
 
             {/* Departure Dates */}
             <div>
-              <div className="form-section-title">Fechas de Salida</div>
+              <div className="form-section-title">
+                Fechas de Salida
+                <FieldTooltip label="Fechas disponibles. Separa con comas" />
+              </div>
               <Input
                 value={departureDatesStr}
                 onChange={(e) => {
@@ -1026,11 +1105,17 @@ export default function AdminPackages() {
                 }}
                 placeholder="2025-07-15, 2025-08-10, 2025-09-05"
               />
+              <FieldHelper>
+                Ej: 15 Julio, 1 Agosto, 15 Agosto
+              </FieldHelper>
               <p className="text-xs text-muted-foreground mt-1">Fechas separadas por coma (YYYY-MM-DD)</p>
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <Label htmlFor="package-reseller">Asignar a Revendedor</Label>
+              <Label htmlFor="package-reseller">
+                Asignar a Revendedor
+                <FieldTooltip label="Asigna a un revendedor o dejalo global" />
+              </Label>
               <select
                 id="package-reseller"
                 value={form.resellerId ?? ''}
@@ -1044,9 +1129,9 @@ export default function AdminPackages() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este paquete.
-              </p>
+              <FieldHelper>
+                Paquetes asignados solo los ve ese revendedor
+              </FieldHelper>
             </div>
 
             {/* Toggles */}
@@ -1056,15 +1141,22 @@ export default function AdminPackages() {
                   checked={form.soldOut}
                   onCheckedChange={(checked) => updateField('soldOut', checked)}
                 />
-                <Label>Agotado</Label>
+                <Label>
+                  Agotado
+                  <FieldTooltip label="Marca como agotado para ocultar disponibilidad" />
+                </Label>
               </div>
               <div className="flex items-center gap-3">
                 <Switch
                   checked={form.active}
                   onCheckedChange={(checked) => updateField('active', checked)}
                 />
-                <Label>Activo</Label>
+                <Label>
+                  Activo
+                  <FieldTooltip label="Si esta desactivado, no aparece en el portal" />
+                </Label>
               </div>
+              <FieldHelper>Desactiva para ocultar temporalmente</FieldHelper>
             </div>
 
             <div className="dialog-footer">

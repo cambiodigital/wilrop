@@ -59,6 +59,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getResellerLevelLabel, normalizeResellerLevel, type ResellerLevel } from '@/lib/reseller-access';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -567,7 +568,10 @@ export default function AdminResellers() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Código</Label>
+                <Label className="label-required">
+                  Codigo
+                  <FieldTooltip label="Identificador unico del revendedor. Prefijo automatico WIL-" />
+                </Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                     WIL-
@@ -580,9 +584,15 @@ export default function AdminResellers() {
                     disabled={!!editingId}
                   />
                 </div>
+                <FieldHelper>
+                  Visible en facturacion y reportes
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Email</Label>
+                <Label className="label-required">
+                  Email
+                  <FieldTooltip label="Correo electronico del revendedor. Sera su usuario de acceso" />
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -593,35 +603,53 @@ export default function AdminResellers() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Debe ser un email valido y unico
+                </FieldHelper>
               </div>
             </div>
 
             {!editingId && (
               <div className="space-y-1.5">
-                <Label className="label-required">Contraseña</Label>
+                <Label className="label-required">
+                  Contrasena
+                  <FieldTooltip label="Contrasena de acceso al panel de revendedor" />
+                </Label>
                 <Input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                  placeholder="Contraseña de acceso"
+                  placeholder="Contrasena de acceso"
                 />
+                <FieldHelper>
+                  Minimo 8 caracteres. Solo en creacion
+                </FieldHelper>
               </div>
             )}
             {editingId && (
               <div className="space-y-1.5">
-                <Label>Nueva Contraseña (dejar vacío para no cambiar)</Label>
+                <Label>
+                  Nueva Contrasena (dejar vacio para no cambiar)
+                  <FieldTooltip label="Contrasena de acceso al panel de revendedor" />
+                </Label>
                 <Input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   placeholder="••••••••"
                 />
+                <FieldHelper>
+                  Minimo 8 caracteres
+                </FieldHelper>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de Agencia</Label>
+                <Label className="label-required">
+                  Nombre de Agencia
+                  <FieldTooltip label="Nombre comercial de la agencia de viajes" />
+                </Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -631,36 +659,54 @@ export default function AdminResellers() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Visible en el panel y reportes
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label className="label-required">Nombre de Contacto</Label>
+                <Label className="label-required">
+                  Nombre de Contacto
+                  <FieldTooltip label="Nombre de la persona de contacto principal" />
+                </Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.contactName}
                     onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
-                    placeholder="Juan Pérez"
+                    placeholder="Juan Perez"
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Para comunicaciones y soporte
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>País</Label>
+                <Label>
+                  Pais
+                  <FieldTooltip label="Pais donde opera la agencia" />
+                </Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={form.country}
                     onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                    placeholder="México"
+                    placeholder="Mexico"
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Determina moneda y disponibilidad regional
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label>Teléfono</Label>
+                <Label>
+                  Telefono
+                  <FieldTooltip label="Numero de contacto de la agencia" />
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -670,11 +716,17 @@ export default function AdminResellers() {
                     className="pl-10"
                   />
                 </div>
+                <FieldHelper>
+                  Para coordinacion y soporte
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Comisión (%)</Label>
+              <Label>
+                Comision (%)
+                <FieldTooltip label="Porcentaje de comision sobre ventas realizadas" />
+              </Label>
               <Input
                 type="number"
                 min="0"
@@ -683,14 +735,17 @@ export default function AdminResellers() {
                 onChange={(e) => setForm((f) => ({ ...f, commission: Number(e.target.value) }))}
                 placeholder="15"
               />
-              <p className="text-xs text-muted-foreground">
-                Porcentaje de comisión sobre las ventas del revendedor
-              </p>
+              <FieldHelper>
+                0-100. Define la ganancia del revendedor
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Nivel de revendedor</Label>
+                <Label>
+                  Nivel de revendedor
+                  <FieldTooltip label="Plan o categoria del revendedor" />
+                </Label>
                 <Select
                   value={form.sellerLevel}
                   onValueChange={(value) =>
@@ -713,7 +768,10 @@ export default function AdminResellers() {
               <div className="flex items-center gap-3 rounded-lg border border-border p-3">
                 <Palette className="h-5 w-5 text-purple-600" />
                 <div className="flex-1">
-                  <Label>Marca blanca</Label>
+                  <Label>
+                    Marca blanca
+                    <FieldTooltip label="Permite personalizar la apariencia del portal" />
+                  </Label>
                   <p className="text-xs text-muted-foreground">Free Light la incluye; este switch la habilita manualmente.</p>
                 </div>
                 <Switch
@@ -722,14 +780,21 @@ export default function AdminResellers() {
                 />
               </div>
             </div>
+            <FieldHelper>
+              El revendedor puede usar su propia marca
+            </FieldHelper>
 
             <div className="flex items-center gap-3 pt-2">
               <Switch
                 checked={form.active}
                 onCheckedChange={(v) => setForm((f) => ({ ...f, active: v }))}
               />
-              <Label>Revendedor activo</Label>
+              <Label>
+                Revendedor activo
+                <FieldTooltip label="Si esta desactivado, el revendedor no puede acceder" />
+              </Label>
             </div>
+            <FieldHelper>Desactiva para suspender acceso sin eliminar</FieldHelper>
 
             <div className="dialog-footer">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>

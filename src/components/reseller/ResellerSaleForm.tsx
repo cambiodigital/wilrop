@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Users, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 interface ClientOption {
   id: string;
@@ -157,6 +158,7 @@ export default function ResellerSaleForm({
           <div className="space-y-2">
             <Label htmlFor="sale-client-select">
               Cliente Existente <span className="text-gray-400">(opcional)</span>
+              <FieldTooltip label="Selecciona un cliente ya registrado o dejalo vacio para crear uno nuevo" />
             </Label>
             <Select value={form.clientId} onValueChange={(v) => updateField('clientId', v)}>
               <SelectTrigger id="sale-client-select">
@@ -184,6 +186,7 @@ export default function ResellerSaleForm({
           <div className="space-y-2">
             <Label htmlFor="sale-client-name" className="label-required">
               Nombre del Cliente
+              <FieldTooltip label="Nombre completo del comprador" />
             </Label>
             <Input
               id="sale-client-name"
@@ -191,10 +194,16 @@ export default function ResellerSaleForm({
               value={form.clientName}
               onChange={(e) => updateField('clientName', e.target.value)}
             />
+            <FieldHelper>
+              Visible en la factura y voucher
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sale-client-email">Correo Electrónico</Label>
+            <Label htmlFor="sale-client-email">
+              Correo Electronico
+              <FieldTooltip label="Email para envio de confirmacion y voucher" />
+            </Label>
             <Input
               id="sale-client-email"
               type="email"
@@ -202,11 +211,15 @@ export default function ResellerSaleForm({
               value={form.clientEmail}
               onChange={(e) => updateField('clientEmail', e.target.value)}
             />
+            <FieldHelper>
+              El cliente recibira la confirmacion aqui
+            </FieldHelper>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="sale-amount" className="label-required">
               Monto Total
+              <FieldTooltip label="Valor total de la venta en COP" />
             </Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -227,7 +240,10 @@ export default function ResellerSaleForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sale-notes">Notas</Label>
+            <Label htmlFor="sale-notes">
+              Notas
+              <FieldTooltip label="Observaciones internas de la venta" />
+            </Label>
             <Textarea
               id="sale-notes"
               placeholder="Notas adicionales sobre la venta (opcional)"
@@ -235,6 +251,9 @@ export default function ResellerSaleForm({
               onChange={(e) => updateField('notes', e.target.value)}
               rows={2}
             />
+            <FieldHelper>
+              No visible para el cliente. Solo para tu equipo
+            </FieldHelper>
           </div>
         </div>
 

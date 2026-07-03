@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { FieldHelper, FieldTooltip } from "@/components/ui/form-helpers";
 
 interface OwnTransport {
   id: string;
@@ -410,7 +411,10 @@ export default function ResellerOwnTransport() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="tr-name">Nombre *</Label>
+                <Label htmlFor="tr-name">
+                  Nombre *
+                  <FieldTooltip label="Nombre del servicio de transporte" />
+                </Label>
                 <Input
                   id="tr-name"
                   value={form.name}
@@ -423,7 +427,10 @@ export default function ResellerOwnTransport() {
 
               {providerOptions.length > 0 && (
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="tr-provider">Proveedor *</Label>
+                  <Label htmlFor="tr-provider">
+                    Proveedor *
+                    <FieldTooltip label="Empresa que opera el servicio" />
+                  </Label>
                   <Select
                     value={form.providerId}
                     onValueChange={(value) =>
@@ -459,7 +466,10 @@ export default function ResellerOwnTransport() {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="tr-origin">Origen</Label>
+                <Label htmlFor="tr-origin">
+                  Origen
+                  <FieldTooltip label="Ciudad o punto de partida" />
+                </Label>
                 <Input
                   id="tr-origin"
                   value={form.origin}
@@ -471,7 +481,10 @@ export default function ResellerOwnTransport() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="tr-dest">Destino</Label>
+                <Label htmlFor="tr-dest">
+                  Destino
+                  <FieldTooltip label="Ciudad o punto de llegada" />
+                </Label>
                 <Input
                   id="tr-dest"
                   value={form.destination}

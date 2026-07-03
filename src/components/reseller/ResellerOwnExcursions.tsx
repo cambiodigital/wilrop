@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 interface OwnExcursion {
   id: string;
@@ -473,17 +474,26 @@ export default function ResellerOwnExcursions() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="exc-name">Nombre *</Label>
+                <Label htmlFor="exc-name">
+                  Nombre *
+                  <FieldTooltip label="Nombre de tu excursion. Visible en tu catalogo" />
+                </Label>
                 <Input
                   id="exc-name"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Ej: Tour Ciudad Perdida"
                 />
+                <FieldHelper>
+                  Ej: Tour Privado a Islas del Rosario
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-city">Ciudad</Label>
+                <Label htmlFor="exc-city">
+                  Ciudad
+                  <FieldTooltip label="Ciudad donde se realiza la excursion" />
+                </Label>
                 <Input
                   id="exc-city"
                   value={form.cityName}
@@ -494,7 +504,10 @@ export default function ResellerOwnExcursions() {
 
               {destinationOptions.length > 0 && (
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="exc-destination-id">Destino relacionado</Label>
+                  <Label htmlFor="exc-destination-id">
+                    Destino relacionado
+                    <FieldTooltip label="Destino turistico asociado a esta excursion" />
+                  </Label>
                   <Select value={form.destinationId || 'none'} onValueChange={(value) => handleDestinationChange(value === 'none' ? '' : value)}>
                     <SelectTrigger id="exc-destination-id">
                       <SelectValue placeholder="Selecciona un destino" />
@@ -508,34 +521,52 @@ export default function ResellerOwnExcursions() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FieldHelper>
+                    Vincula con el destino para que aparezca en sus resultados
+                  </FieldHelper>
                   <p className="text-xs text-muted-foreground">
-                    Ayuda a que la excursión aparezca agrupada en tu tienda de marca blanca.
+                    Ayuda a que la excursion aparezca agrupada en tu tienda de marca blanca.
                   </p>
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-dest">Destino</Label>
+                <Label htmlFor="exc-dest">
+                  Destino
+                  <FieldTooltip label="Nombre visible del destino" />
+                </Label>
                 <Input
                   id="exc-dest"
                   value={form.destinationName}
                   onChange={(e) => setForm((f) => ({ ...f, destinationName: e.target.value }))}
                   placeholder="Ej: Sierra Nevada"
                 />
+                <FieldHelper>
+                  Se completa al seleccionar el destino relacionado
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-cat">Categoría</Label>
+                <Label htmlFor="exc-cat">
+                  Categoria
+                  <FieldTooltip label="Tipo de excursion. Ayuda a organizar tu catalogo" />
+                </Label>
                 <Input
                   id="exc-cat"
                   value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                   placeholder="Ej: Cultural, Aventura"
                 />
+                <FieldHelper>
+                  Aventura, Cultural, Naturaleza, Gastronomica
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-diff">Dificultad</Label>
+                <Label htmlFor="exc-diff">
+                  Dificultad
+                  <FieldTooltip label="Nivel de exigencia fisica" />
+                </Label>
                 <Select
                   value={form.difficulty}
                   onValueChange={(v) => setForm((f) => ({ ...f, difficulty: v }))}
@@ -544,36 +575,54 @@ export default function ResellerOwnExcursions() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Fácil">Fácil</SelectItem>
+                    <SelectItem value="Facil">Facil</SelectItem>
                     <SelectItem value="Moderada">Moderada</SelectItem>
-                    <SelectItem value="Difícil">Difícil</SelectItem>
+                    <SelectItem value="Dificil">Dificil</SelectItem>
                     <SelectItem value="Extrema">Extrema</SelectItem>
                   </SelectContent>
                 </Select>
+                <FieldHelper>
+                  Facil: todo publico. Moderado: basico. Dificil: experiencia
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-dur">Duración</Label>
+                <Label htmlFor="exc-dur">
+                  Duracion
+                  <FieldTooltip label="Tiempo total de la excursion" />
+                </Label>
                 <Input
                   id="exc-dur"
                   value={form.duration}
                   onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
                   placeholder="Ej: 8 horas"
                 />
+                <FieldHelper>
+                  Formato libre: '4 horas', '1 dia'
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-group">Grupo</Label>
+                <Label htmlFor="exc-group">
+                  Grupo
+                  <FieldTooltip label="Numero de personas por grupo" />
+                </Label>
                 <Input
                   id="exc-group"
                   value={form.groupSize}
                   onChange={(e) => setForm((f) => ({ ...f, groupSize: e.target.value }))}
                   placeholder="Ej: Max 15 personas"
                 />
+                <FieldHelper>
+                  Tamano estimado del grupo
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-price">Precio base</Label>
+                <Label htmlFor="exc-price">
+                  Precio base
+                  <FieldTooltip label="Precio por adulto en COP" />
+                </Label>
                 <Input
                   id="exc-price"
                   type="number"
@@ -583,10 +632,16 @@ export default function ResellerOwnExcursions() {
                     setForm((f) => ({ ...f, basePrice: Number(e.target.value) || 0 }))
                   }
                 />
+                <FieldHelper>
+                  Visible en tu catalogo
+                </FieldHelper>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="exc-child">Precio niño</Label>
+                <Label htmlFor="exc-child">
+                  Precio nino
+                  <FieldTooltip label="Precio por nino. 0 si no aplica" />
+                </Label>
                 <Input
                   id="exc-child"
                   type="number"
@@ -596,11 +651,17 @@ export default function ResellerOwnExcursions() {
                     setForm((f) => ({ ...f, childPrice: Number(e.target.value) || 0 }))
                   }
                 />
+                <FieldHelper>
+                  Opcional. Define precio infantil
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Imágenes ({form.images.length})</Label>
+              <Label>
+                Imagenes ({form.images.length})
+                <FieldTooltip label="Fotos de tu excursion" />
+              </Label>
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                 <ImagePlus className="mx-auto mb-2 size-7 text-slate-400" />
                 <p className="text-sm text-slate-600">Subí imágenes de la excursión</p>
@@ -643,39 +704,60 @@ export default function ResellerOwnExcursions() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="exc-desc">Descripción</Label>
+              <Label htmlFor="exc-desc">
+                Descripcion
+                <FieldTooltip label="Descripcion detallada de la excursion" />
+              </Label>
               <Textarea
                 id="exc-desc"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 rows={3}
-                placeholder="Descripción de la excursión..."
+                placeholder="Descripcion de la excursion..."
               />
+              <FieldHelper>
+                Incluye itinerario y recomendaciones
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="exc-short">Descripción corta</Label>
+              <Label htmlFor="exc-short">
+                Descripcion corta
+                <FieldTooltip label="Resumen breve. Aparece en tarjetas" />
+              </Label>
               <Input
                 id="exc-short"
                 value={form.shortDesc}
                 onChange={(e) => setForm((f) => ({ ...f, shortDesc: e.target.value }))}
-                placeholder="Una línea corta para listados"
+                placeholder="Una linea corta para listados"
               />
+              <FieldHelper>
+                Maximo 100 palabras
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="exc-incl">Incluye (uno por línea)</Label>
+              <Label htmlFor="exc-incl">
+                Incluye (uno por linea)
+                <FieldTooltip label="Lo que incluye el precio. Uno por linea" />
+              </Label>
               <Textarea
                 id="exc-incl"
                 value={form.includes}
                 onChange={(e) => setForm((f) => ({ ...f, includes: e.target.value }))}
                 rows={3}
-                placeholder="Transporte&#10;Guía&#10;Almuerzo"
+                placeholder="Transporte&#10;Guia&#10;Almuerzo"
               />
+              <FieldHelper>
+                Ej: Transporte, Guia, Almuerzo, Seguro
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="exc-excl">No incluye (uno por línea)</Label>
+              <Label htmlFor="exc-excl">
+                No incluye (uno por linea)
+                <FieldTooltip label="Lo que NO incluye. Uno por linea" />
+              </Label>
               <Textarea
                 id="exc-excl"
                 value={form.excludes}
@@ -683,17 +765,26 @@ export default function ResellerOwnExcursions() {
                 rows={2}
                 placeholder="Propinas&#10;Bebidas"
               />
+              <FieldHelper>
+                Ej: Propinas, Bebidas, Gastos personales
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="exc-req">Requisitos (uno por línea)</Label>
+              <Label htmlFor="exc-req">
+                Requisitos (uno por linea)
+                <FieldTooltip label="Condiciones para participar" />
+              </Label>
               <Textarea
                 id="exc-req"
                 value={form.requirements}
                 onChange={(e) => setForm((f) => ({ ...f, requirements: e.target.value }))}
                 rows={2}
-                placeholder="Calzado cómodo&#10;Protector solar"
+                placeholder="Calzado comodo&#10;Protector solar"
               />
+              <FieldHelper>
+                Ej: Edad minima, documentos requeridos
+              </FieldHelper>
             </div>
 
             <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-3">
@@ -706,11 +797,12 @@ export default function ResellerOwnExcursions() {
               />
               <div className="space-y-1 leading-none">
                 <Label htmlFor="exc-active" className="cursor-pointer text-sm font-medium">
-                  Publicar excursión
+                  Publicar excursion
+                  <FieldTooltip label="Al marcar, la excursion sera visible en el portal" />
                 </Label>
-                <p className="text-xs text-muted-foreground">
-                  Si está activa, tus clientes podrán verla en tu tienda y usarla en el armador de paquetes.
-                </p>
+                <FieldHelper>
+                  Revisa los datos antes de publicar
+                </FieldHelper>
               </div>
             </div>
           </div>

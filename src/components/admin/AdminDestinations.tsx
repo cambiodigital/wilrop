@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { FieldHelper, FieldTooltip } from "@/components/ui/form-helpers";
 import {
   getPackageRelationSelectorSmokeState,
   normalizePackageRelationOptions,
@@ -710,6 +711,7 @@ export default function AdminDestinations() {
               <div className="space-y-1.5">
                 <Label htmlFor="dest-name" className="label-required">
                   Nombre
+                  <FieldTooltip label="Nombre del destino turistico. Visible en filtros y busquedas del portal" />
                 </Label>
                 <Input
                   id="dest-name"
@@ -717,22 +719,32 @@ export default function AdminDestinations() {
                   onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Ej: Cartagena de Indias"
                 />
+                <FieldHelper>
+                  Ej: Cartagena, Santa Marta, Eje Cafetero
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="dest-slug">Slug</Label>
+                <Label htmlFor="dest-slug">
+                  Slug
+                  <FieldTooltip label="Identificador unico para la URL. Se genera automaticamente del nombre" />
+                </Label>
                 <Input
                   id="dest-slug"
                   value={form.slug}
                   onChange={(e) => updateField("slug", e.target.value)}
                   placeholder="Auto-generado del nombre"
                 />
+                <FieldHelper>
+                  Solo letras, numeros y guiones. Auto-generado al escribir el nombre
+                </FieldHelper>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="dest-region" className="label-required">
-                  Región
+                  Region
+                  <FieldTooltip label="Region geografica donde se ubica el destino" />
                 </Label>
                 <Input
                   id="dest-region"
@@ -740,9 +752,15 @@ export default function AdminDestinations() {
                   onChange={(e) => updateField("region", e.target.value)}
                   placeholder="Ej: Caribe, Andina"
                 />
+                <FieldHelper>
+                  Ej: Caribe, Pacifico, Andina, Amazonia
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="dest-price">Precio Desde (COP)</Label>
+                <Label htmlFor="dest-price">
+                  Precio Desde (COP)
+                  <FieldTooltip label="Precio de referencia mas bajo para paquetes a este destino" />
+                </Label>
                 <Input
                   id="dest-price"
                   type="number"
@@ -752,24 +770,34 @@ export default function AdminDestinations() {
                   }
                   placeholder="550000"
                 />
+                <FieldHelper>
+                  Visible en cards de destino. Precio en COP
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="dest-description" className="label-required">
-                Descripción
+                Descripcion
+                <FieldTooltip label="Descripcion del destino que aparece en la pagina de detalle" />
               </Label>
               <Textarea
                 id="dest-description"
                 value={form.description}
                 onChange={(e) => updateField("description", e.target.value)}
-                placeholder="Descripción del destino..."
+                placeholder="Descripcion del destino..."
                 rows={3}
               />
+              <FieldHelper>
+                Maximo recomendado: 200 palabras
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="label-required">Imagen</Label>
+              <Label className="label-required">
+                Imagen
+                <FieldTooltip label="Imagen principal del destino. Se muestra en cards y pagina de detalle" />
+              </Label>
               {form.image ? (
                 <div className="relative group rounded-lg overflow-hidden border border-border">
                   <img
@@ -859,11 +887,15 @@ export default function AdminDestinations() {
                 }}
                 className="hidden"
               />
+              <FieldHelper>
+                PNG, JPG, WebP. Max 5MB. Arrastra o haz clic
+              </FieldHelper>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="dest-highlights">
                 Highlights (separados por coma)
+                <FieldTooltip label="Atracciones o caracteristicas destacadas. Separa con comas" />
               </Label>
               <Input
                 id="dest-highlights"
@@ -880,11 +912,17 @@ export default function AdminDestinations() {
                 }}
                 placeholder="Ciudad Amurallada, Playas, Castillo San Felipe"
               />
+              <FieldHelper>
+                Ej: Playas, Historia, Gastronomia, Aventura
+              </FieldHelper>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="dest-rating">Rating (1-5)</Label>
+                <Label htmlFor="dest-rating">
+                  Rating (1-5)
+                  <FieldTooltip label="Calificacion del destino (1-5). Visible en el portal" />
+                </Label>
                 <Input
                   id="dest-rating"
                   type="number"
@@ -896,9 +934,15 @@ export default function AdminDestinations() {
                     updateField("rating", Number(e.target.value))
                   }
                 />
+                <FieldHelper>
+                  Valor entre 1 y 5. Afecta orden en busquedas
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="dest-reviews">Cantidad Reviews</Label>
+                <Label htmlFor="dest-reviews">
+                  Cantidad Reviews
+                  <FieldTooltip label="Numero total de resenas del destino. Genera confianza" />
+                </Label>
                 <Input
                   id="dest-reviews"
                   type="number"
@@ -907,26 +951,35 @@ export default function AdminDestinations() {
                     updateField("reviewCount", Number(e.target.value))
                   }
                 />
+                <FieldHelper>
+                  Cantidad acumulada de resenas de viajeros
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="dest-order">Orden</Label>
+                <Label htmlFor="dest-order">
+                  Orden
+                  <FieldTooltip label="Orden de aparicion en listados. Menor numero = primero" />
+                </Label>
                 <Input
                   id="dest-order"
                   type="number"
                   value={form.order}
                   onChange={(e) => updateField("order", Number(e.target.value))}
                 />
+                <FieldHelper>
+                  Controla la posicion en grillas y listados del portal
+                </FieldHelper>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
               <div>
                 <div className="form-section-title">
-                  Composición relacional del destino
+                  Composicion relacional del destino
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Asocia paquetes, hoteles, excursiones y servicios de
-                  transporte a este destino.
+                  <FieldTooltip label="Tipos de contenido asociados a este destino. Define que productos se vinculan" />
+                  Marca las casillas para habilitar hoteles, paquetes, etc. en este destino
                 </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -966,7 +1019,10 @@ export default function AdminDestinations() {
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <Label htmlFor="dest-reseller">Asignar a Revendedor</Label>
+              <Label htmlFor="dest-reseller">
+                Asignar a Revendedor
+                <FieldTooltip label="Asigna este destino a un revendedor especifico o dejalo global" />
+              </Label>
               <select
                 id="dest-reseller"
                 value={form.resellerId ?? ""}
@@ -982,10 +1038,9 @@ export default function AdminDestinations() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                Si se asigna a un revendedor, solo ese revendedor podrá ver y
-                revender este destino.
-              </p>
+              <FieldHelper>
+                Los destinos asignados solo los ve ese revendedor
+              </FieldHelper>
             </div>
 
             <div className="flex items-center gap-3">
@@ -993,7 +1048,11 @@ export default function AdminDestinations() {
                 checked={form.active}
                 onCheckedChange={(checked) => updateField("active", checked)}
               />
-              <Label>Activo</Label>
+              <Label>
+                Activo
+                <FieldTooltip label="Si esta desactivado, el destino no aparece en el portal" />
+              </Label>
+              <FieldHelper>Desactiva para ocultar sin eliminar</FieldHelper>
             </div>
 
             <div className="dialog-footer">

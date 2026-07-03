@@ -65,6 +65,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -703,7 +704,10 @@ export default function AdminCruises() {
               <TabsContent value="info" className="space-y-4 pt-4 overflow-y-auto flex-1 min-h-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nombre del Crucero *</Label>
+                    <Label htmlFor="name">
+                      Nombre del Crucero *
+                      <FieldTooltip label="Nombre del crucero. Visible en el portal" />
+                    </Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -711,39 +715,60 @@ export default function AdminCruises() {
                       placeholder="Ej. Caribe de Ensueño Premium"
                       required
                     />
+                    <FieldHelper>
+                      Ej: Caribe Sonado - 7 Noches
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="slug">Slug (URL corta)</Label>
+                    <Label htmlFor="slug">
+                      Slug (URL corta)
+                      <FieldTooltip label="Identificador unico en la URL. Auto-generado" />
+                    </Label>
                     <Input
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      placeholder="Autogenerado si se deja vacío"
+                      placeholder="Autogenerado si se deja vacio"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="operator">Operador / Naviera</Label>
+                    <Label htmlFor="operator">
+                      Operador / Naviera
+                      <FieldTooltip label="Empresa que opera el crucero" />
+                    </Label>
                     <Input
                       id="operator"
                       value={formData.operator}
                       onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
                       placeholder="Ej. Royal Caribbean, Pullmantur"
                     />
+                    <FieldHelper>
+                      Ej: Royal Caribbean, Carnival, MSC
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shipName">Nombre del Barco</Label>
+                    <Label htmlFor="shipName">
+                      Nombre del Barco
+                      <FieldTooltip label="Nombre del barco o embarcacion" />
+                    </Label>
                     <Input
                       id="shipName"
                       value={formData.shipName}
                       onChange={(e) => setFormData({ ...formData, shipName: e.target.value })}
                       placeholder="Ej. Monarch, Oasis of the Seas"
                     />
+                    <FieldHelper>
+                      Ej: Wonder of the Seas, Carnival Celebration
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="durationDays">Duración en Días</Label>
+                    <Label htmlFor="durationDays">
+                      Duracion en Dias
+                      <FieldTooltip label="Duracion total del crucero en dias" />
+                    </Label>
                     <Input
                       id="durationDays"
                       type="number"
@@ -751,12 +776,18 @@ export default function AdminCruises() {
                       value={formData.durationDays}
                       onChange={(e) => setFormData({ ...formData, durationDays: parseInt(e.target.value, 10) })}
                     />
+                    <FieldHelper>
+                      Numero de dias de navegacion
+                    </FieldHelper>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="rating">Calificación (Rating)</Label>
+                    <Label htmlFor="rating">
+                      Calificacion (Rating)
+                      <FieldTooltip label="Calificacion del crucero. Visible en portal" />
+                    </Label>
                     <Input
                       id="rating"
                       type="number"
@@ -766,9 +797,15 @@ export default function AdminCruises() {
                       value={formData.rating}
                       onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
                     />
+                    <FieldHelper>
+                      Valor entre 0 y 10
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reviewCount">Número de Reseñas</Label>
+                    <Label htmlFor="reviewCount">
+                      Numero de Resenas
+                      <FieldTooltip label="Cantidad de resenas de pasajeros" />
+                    </Label>
                     <Input
                       id="reviewCount"
                       type="number"
@@ -776,9 +813,15 @@ export default function AdminCruises() {
                       value={formData.reviewCount}
                       onChange={(e) => setFormData({ ...formData, reviewCount: parseInt(e.target.value, 10) })}
                     />
+                    <FieldHelper>
+                      Numero acumulado de resenas
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="primaryDestinationId">Destino Principal de Salida</Label>
+                    <Label htmlFor="primaryDestinationId">
+                      Destino Principal de Salida
+                      <FieldTooltip label="Puerto o ciudad de embarque" />
+                    </Label>
                     <Select
                       value={formData.primaryDestinationId || 'none'}
                       onValueChange={(val) => setFormData({ ...formData, primaryDestinationId: val === 'none' ? null : val })}
@@ -799,32 +842,50 @@ export default function AdminCruises() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Descripción del crucero</Label>
+                  <Label htmlFor="description">
+                    Descripcion del crucero
+                    <FieldTooltip label="Descripcion detallada del crucero" />
+                  </Label>
                   <Textarea
                     id="description"
                     rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe los puntos más atractivos de este viaje en crucero..."
+                    placeholder="Describe los puntos mas atractivos de este viaje en crucero..."
                   />
+                  <FieldHelper>
+                    Incluye ruta, atracciones, vida a bordo
+                  </FieldHelper>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>¿Qué Incluye el Crucero? (Servicios generales)</Label>
+                    <Label>
+                      Que Incluye el Crucero? (Servicios generales)
+                      <FieldTooltip label="Servicios incluidos en el precio" />
+                    </Label>
                     <TagInput
                       tags={formData.includes}
                       onChange={(tags) => setFormData({ ...formData, includes: tags })}
-                      placeholder="Ej. Pensión Completa, Shows en vivo, Propinas, Wifi"
+                      placeholder="Ej. Pension Completa, Shows en vivo, Propinas, Wifi"
                     />
+                    <FieldHelper>
+                      Ej: Comidas, Entretenimiento, Impuestos portuarios
+                    </FieldHelper>
                   </div>
                   <div className="space-y-2">
-                    <Label>Etiquetas / Categorías del crucero</Label>
+                    <Label>
+                      Etiquetas / Categorias del crucero
+                      <FieldTooltip label="Tags para filtros y busquedas" />
+                    </Label>
                     <TagInput
                       tags={formData.tags}
                       onChange={(tags) => setFormData({ ...formData, tags: tags })}
-                      placeholder="Ej. Familias, Romántico, Todo Incluido, Lujo"
+                      placeholder="Ej. Familias, Romantico, Todo Incluido, Lujo"
                     />
+                    <FieldHelper>
+                      Ej: Familiar, Lujo, Aventura, Todo Incluido
+                    </FieldHelper>
                   </div>
                 </div>
 
@@ -832,13 +893,19 @@ export default function AdminCruises() {
                   <ImageGallery
                     images={formData.images}
                     onImagesChange={(images) => setFormData({ ...formData, images })}
-                    label="Galería de Fotos del Crucero (barco, itinerarios, vistas)"
+                    label="Galeria de Fotos del Crucero (barco, itinerarios, vistas)"
                     maxImages={6}
                   />
+                  <FieldHelper>
+                    PNG, JPG, WebP. Max 5MB. Arrastra para reordenar
+                  </FieldHelper>
                 </div>
 
                 <div className="space-y-1.5 pt-2">
-                  <Label htmlFor="cruise-reseller">Asignar a Revendedor</Label>
+                  <Label htmlFor="cruise-reseller">
+                    Asignar a Revendedor
+                    <FieldTooltip label="Asigna este crucero a un revendedor o dejalo global" />
+                  </Label>
                   <select
                     id="cruise-reseller"
                     value={formData.resellerId ?? ''}
@@ -852,9 +919,9 @@ export default function AdminCruises() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-muted-foreground">
-                    Si se asigna a un revendedor, solo ese revendedor podrá ver y revender este crucero.
-                  </p>
+                  <FieldHelper>
+                    Cruceros asignados solo los ve ese revendedor
+                  </FieldHelper>
                 </div>
 
                 <div className="flex gap-6 border-t border-border pt-4">
@@ -864,7 +931,10 @@ export default function AdminCruises() {
                       checked={formData.active}
                       onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
                     />
-                    <Label htmlFor="active">Crucero Activo (Visible en portal)</Label>
+                    <Label htmlFor="active">
+                      Crucero Activo (Visible en portal)
+                      <FieldTooltip label="Si esta desactivado, no aparece en el portal" />
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
@@ -872,7 +942,10 @@ export default function AdminCruises() {
                       checked={formData.featured}
                       onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
                     />
-                    <Label htmlFor="featured">Destacar Crucero (Aparece en home)</Label>
+                    <Label htmlFor="featured">
+                      Destacar Crucero (Aparece en home)
+                      <FieldTooltip label="Los cruceros destacados aparecen primero en el portal" />
+                    </Label>
                   </div>
                 </div>
               </TabsContent>
@@ -886,7 +959,10 @@ export default function AdminCruises() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                     <div className="space-y-1">
-                      <Label className="text-xs">Día</Label>
+                      <Label className="text-xs">
+                        Dia
+                        <FieldTooltip label="Numero de dia del itinerario" />
+                      </Label>
                       <Input
                         type="number"
                         min={1}
@@ -895,7 +971,10 @@ export default function AdminCruises() {
                       />
                     </div>
                     <div className="space-y-1 md:col-span-2">
-                      <Label className="text-xs">Puerto / Ciudad / Título</Label>
+                      <Label className="text-xs">
+                        Puerto / Ciudad / Titulo
+                        <FieldTooltip label="Nombre del puerto o ciudad de la parada" />
+                      </Label>
                       <Input
                         value={newStop.title}
                         onChange={(e) => setNewStop({ ...newStop, title: e.target.value })}
@@ -903,7 +982,10 @@ export default function AdminCruises() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Actividad Principal (Opcional)</Label>
+                      <Label className="text-xs">
+                        Actividad Principal (Opcional)
+                        <FieldTooltip label="Descripcion breve de la actividad del dia" />
+                      </Label>
                       <Input
                         value={newStop.activity || ''}
                         onChange={(e) => setNewStop({ ...newStop, activity: e.target.value })}
@@ -912,7 +994,10 @@ export default function AdminCruises() {
                     </div>
                   </div>
                   <div className="space-y-1 mt-3">
-                    <Label className="text-xs">Descripción del Día</Label>
+                    <Label className="text-xs">
+                      Descripcion del Dia
+                      <FieldTooltip label="Detalle completo de las actividades del dia" />
+                    </Label>
                     <Textarea
                       rows={2}
                       value={newStop.description}
@@ -975,23 +1060,38 @@ export default function AdminCruises() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Nombre de Categoría *</Label>
+                      <Label className="text-xs">
+                        Nombre de Categoria *
+                        <FieldTooltip label="Nombre de la categoria de camarote" />
+                      </Label>
                       <Input
                         value={newCabin.name}
                         onChange={(e) => setNewCabin({ ...newCabin, name: e.target.value })}
-                        placeholder="Ej. Cabina Interior, Suite con Balcón"
+                        placeholder="Ej. Cabina Interior, Suite con Balcon"
                       />
+                      <FieldHelper>
+                        Ej: Interior, Vista al Mar, Balcon, Suite
+                      </FieldHelper>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Camas / Distribución</Label>
+                      <Label className="text-xs">
+                        Camas / Distribucion
+                        <FieldTooltip label="Configuracion de camas del camarote" />
+                      </Label>
                       <Input
                         value={newCabin.beds}
                         onChange={(e) => setNewCabin({ ...newCabin, beds: e.target.value })}
                         placeholder="Ej. 1 Cama King o 2 Twin"
                       />
+                      <FieldHelper>
+                        Ej: 2 camas twin, 1 cama king
+                      </FieldHelper>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Capacidad Máxima (personas)</Label>
+                      <Label className="text-xs">
+                        Capacidad Maxima (personas)
+                        <FieldTooltip label="Numero maximo de pasajeros en este camarote" />
+                      </Label>
                       <Input
                         type="number"
                         min={1}
@@ -999,40 +1099,64 @@ export default function AdminCruises() {
                         value={newCabin.capacity}
                         onChange={(e) => setNewCabin({ ...newCabin, capacity: parseInt(e.target.value, 10) || 2 })}
                       />
+                      <FieldHelper>
+                        Usado para filtrar disponibilidad
+                      </FieldHelper>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Precio Base (COP) *</Label>
+                      <Label className="text-xs">
+                        Precio Base (COP) *
+                        <FieldTooltip label="Precio por persona en COP" />
+                      </Label>
                       <Input
                         type="number"
                         min={0}
                         value={newCabin.basePrice}
                         onChange={(e) => setNewCabin({ ...newCabin, basePrice: parseInt(e.target.value, 10) || 0 })}
                       />
+                      <FieldHelper>
+                        Visible en pagina de detalle del crucero
+                      </FieldHelper>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Precio Original / Antes (COP - Opcional)</Label>
+                      <Label className="text-xs">
+                        Precio Original / Antes (COP - Opcional)
+                        <FieldTooltip label="Precio sin descuento. Si es mayor, se muestra oferta" />
+                      </Label>
                       <Input
                         type="number"
                         min={0}
                         value={newCabin.originalPrice}
                         onChange={(e) => setNewCabin({ ...newCabin, originalPrice: parseInt(e.target.value, 10) || 0 })}
                       />
+                      <FieldHelper>
+                        Opcional. Define descuento
+                      </FieldHelper>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">URL Imagen del Camarote</Label>
+                      <Label className="text-xs">
+                        URL Imagen del Camarote
+                        <FieldTooltip label="Imagen del camarote. Ingresa una URL" />
+                      </Label>
                       <Input
                         value={newCabin.cabinImage}
                         onChange={(e) => setNewCabin({ ...newCabin, cabinImage: e.target.value })}
                         placeholder="Ej. https://url-de-la-foto.jpg"
                       />
+                      <FieldHelper>
+                        URL de la imagen del camarote
+                      </FieldHelper>
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Servicios Incluidos en el Camarote (Separados por coma)</Label>
+                    <Label className="text-xs">
+                      Servicios Incluidos en el Camarote (Separados por coma)
+                      <FieldTooltip label="Amenidades del camarote. Separa con comas" />
+                    </Label>
                     <Input
                       value={cabinIncludesInput}
                       onChange={(e) => {

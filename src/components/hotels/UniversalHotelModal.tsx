@@ -59,6 +59,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { FieldHelper, FieldTooltip } from "@/components/ui/form-helpers";
 import {
   buildHotelDestinationCompatibilityFields,
   findHotelDestinationOption,
@@ -165,25 +166,6 @@ function normalizeUploadUrl(payload: Record<string, unknown>): string {
   if (typeof payload.fileUrl === "string" && payload.fileUrl)
     return payload.fileUrl;
   return "";
-}
-
-function FieldHelper({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs text-muted-foreground mt-1">{children}</p>
-  );
-}
-
-function FieldTooltip({ label }: { label: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger type="button" className="inline-flex ml-1 text-muted-foreground hover:text-foreground transition-colors">
-        <Info className="w-3 h-3" />
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-[220px]">
-        {label}
-      </TooltipContent>
-    </Tooltip>
-  );
 }
 
 function TagInput({
@@ -1444,6 +1426,7 @@ export default function UniversalHotelModal({
                           <div className="space-y-1.5">
                             <Label className="text-xs label-required">
                               Nombre de la habitacion
+                              <FieldTooltip label="Nombre visible de la habitacion (ej: Suite Deluxe, Habitacion Estandar)" />
                             </Label>
                             <Input
                               value={roomTypeForm.name}
@@ -1456,9 +1439,14 @@ export default function UniversalHotelModal({
                               placeholder="Suite Deluxe"
                               className="text-sm h-8"
                             />
+                            <FieldHelper>
+                              Nombre que se mostrara en listados y pagina de detalle del hotel
+                            </FieldHelper>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Camas / Tipo</Label>
+                            <Label className="text-xs">Camas / Tipo
+                              <FieldTooltip label="Distribucion de camas (ej: 1 cama king, 2 camas dobles)" />
+                            </Label>
                             <Input
                               value={roomTypeForm.beds}
                               onChange={(e) =>
@@ -1470,12 +1458,17 @@ export default function UniversalHotelModal({
                               placeholder="1 cama king o 2 camas dobles"
                               className="text-sm h-8"
                             />
+                            <FieldHelper>
+                              Describe la configuracion de camas. Visible en la pagina de detalle
+                            </FieldHelper>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Max. Huespedes</Label>
+                            <Label className="text-xs">Max. Huespedes
+                              <FieldTooltip label="Capacidad maxima de personas que pueden alojarse en esta habitacion" />
+                            </Label>
                             <Input
                               type="number"
                               min="1"
@@ -1489,10 +1482,14 @@ export default function UniversalHotelModal({
                               }
                               className="text-sm h-8"
                             />
+                            <FieldHelper>
+                              Numero maximo de huespedes. Se usa para filtrar por ocupacion
+                            </FieldHelper>
                           </div>
                           <div className="space-y-1.5">
                             <Label className="text-xs label-required">
                               Precio Base (COP)
+                              <FieldTooltip label="Precio por noche en pesos colombianos. Es el precio de venta actual" />
                             </Label>
                             <Input
                               type="number"
@@ -1506,10 +1503,14 @@ export default function UniversalHotelModal({
                               }
                               className="text-sm h-8"
                             />
+                            <FieldHelper>
+                              Precio actual de venta al publico. Visible en listados y booking
+                            </FieldHelper>
                           </div>
                           <div className="space-y-1.5">
                             <Label className="text-xs">
                               Precio Original (COP)
+                              <FieldTooltip label="Precio original antes de descuento. Si es mayor que el precio base, se muestra tachado como oferta" />
                             </Label>
                             <Input
                               type="number"
@@ -1525,12 +1526,16 @@ export default function UniversalHotelModal({
                               }
                               className="text-sm h-8"
                             />
+                            <FieldHelper>
+                              Opcional. Si lo defines mayor que el precio base, se muestra descuento
+                            </FieldHelper>
                           </div>
                         </div>
 
                         <div className="space-y-1.5">
                           <Label className="text-xs">
                             Servicios / Que incluye
+                            <FieldTooltip label="Servicios y amenidades incluidos en esta habitacion. Agrega uno por uno con Enter" />
                           </Label>
                           <TagInput
                             tags={roomTypeForm.includes}
@@ -1542,6 +1547,9 @@ export default function UniversalHotelModal({
                             }
                             placeholder="Wi-Fi, Aire acondicionado, Desayuno incluido..."
                           />
+                          <FieldHelper>
+                            Ej: WiFi, Aire acondicionado, TV, Minibar, Room service
+                          </FieldHelper>
                         </div>
 
                         <div className="space-y-3 pt-1">
@@ -1549,6 +1557,7 @@ export default function UniversalHotelModal({
                             <div>
                               <Label className="text-xs font-semibold">
                                 Fotos de la habitacion
+                                <FieldTooltip label="Imagenes de la habitacion. La primera imagen sera la portada" />
                               </Label>
                               <p className="text-[10px] text-muted-foreground">
                                 {roomTypeForm.roomImages.length} foto(s)
@@ -1610,6 +1619,9 @@ export default function UniversalHotelModal({
                               </div>
                             )}
                           </div>
+                          <FieldHelper>
+                            PNG, JPG, WebP. Max 5MB. Arrastra para reordenar
+                          </FieldHelper>
                           <input
                             ref={roomImagesInputRef}
                             type="file"
@@ -1779,8 +1791,12 @@ export default function UniversalHotelModal({
                                 }))
                               }
                             />
-                            <Label className="text-xs">Activo</Label>
+                            <Label className="text-xs">
+                              Activo
+                              <FieldTooltip label="Si esta desactivado, la habitacion no aparecera en el portal" />
+                            </Label>
                           </div>
+                          <FieldHelper>Desactiva para ocultar temporalmente sin eliminar</FieldHelper>
                         </div>
 
                         <div className="flex items-center gap-2 pt-1">

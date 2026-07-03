@@ -60,6 +60,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { FieldHelper, FieldTooltip } from '@/components/ui/form-helpers';
 import {
   buildExcursionDestinationCompatibilityFields,
   findExcursionDestinationOption,
@@ -631,26 +632,41 @@ export default function AdminExcursions() {
             <TabsContent value="basic" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Nombre *</Label>
+                  <Label>
+                    Nombre *
+                    <FieldTooltip label="Nombre de la excursion. Visible en listados y pagina de detalle" />
+                  </Label>
                   <Input
                     value={form.name}
                     onChange={(e) => updateField('name', e.target.value)}
                     placeholder="Tour Ciudad Amurallada"
                   />
+                  <FieldHelper>
+                    Ej: Tour a Islas del Rosario, Caminata Ciudad Perdida
+                  </FieldHelper>
                 </div>
                 <div className="space-y-2">
-                  <Label>Slug</Label>
+                  <Label>
+                    Slug
+                    <FieldTooltip label="Identificador unico en la URL. Auto-generado del nombre" />
+                  </Label>
                   <Input
                     value={form.slug}
                     onChange={(e) => updateField('slug', e.target.value)}
                     placeholder="Auto-generado del nombre"
                   />
+                  <FieldHelper>
+                    Solo letras, numeros y guiones
+                  </FieldHelper>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="excursion-destination">Destino relacional</Label>
+                  <Label htmlFor="excursion-destination">
+                    Destino relacional
+                    <FieldTooltip label="Ciudad o region donde se realiza la excursion" />
+                  </Label>
                   <select
                     id="excursion-destination"
                     value={form.destinationId}
@@ -693,7 +709,7 @@ export default function AdminExcursions() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    El API actual de excursiones guarda `destinationId`, `destinationName` y `cityName` como campos de compatibilidad.
+                    Selecciona el destino principal de la excursion
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -712,15 +728,24 @@ export default function AdminExcursions() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Duración</Label>
+                  <Label>
+                    Duracion
+                    <FieldTooltip label="Duracion total de la excursion" />
+                  </Label>
                   <Input
                     value={form.duration}
                     onChange={(e) => updateField('duration', e.target.value)}
                     placeholder="3 horas"
                   />
+                  <FieldHelper>
+                    Formato libre: '4 horas', '2 dias', 'Medio dia'
+                  </FieldHelper>
                 </div>
                 <div className="space-y-2">
-                  <Label>Dificultad</Label>
+                  <Label>
+                    Dificultad
+                    <FieldTooltip label="Nivel de exigencia fisica de la excursion" />
+                  </Label>
                   <Select
                     value={form.difficulty}
                     onValueChange={(v) => updateField('difficulty', v)}
@@ -734,20 +759,32 @@ export default function AdminExcursions() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FieldHelper>
+                    Facil: apto todo publico. Moderado: requiere condicion basica. Dificil: experiencia requerida
+                  </FieldHelper>
                 </div>
                 <div className="space-y-2">
-                  <Label>Grupo Máximo</Label>
+                  <Label>
+                    Grupo Maximo
+                    <FieldTooltip label="Cantidad maxima de personas por grupo" />
+                  </Label>
                   <Input
                     value={form.groupSize}
                     onChange={(e) => updateField('groupSize', e.target.value)}
                     placeholder="20 personas"
                   />
+                  <FieldHelper>
+                    0 = sin limite. Controla capacidad disponible
+                  </FieldHelper>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Precio Adulto (COP)</Label>
+                  <Label>
+                    Precio Adulto (COP)
+                    <FieldTooltip label="Precio por persona adulta en COP" />
+                  </Label>
                   <Input
                     type="number"
                     min="0"
@@ -755,9 +792,15 @@ export default function AdminExcursions() {
                     onChange={(e) => updateField('basePrice', Number(e.target.value))}
                     placeholder="150000"
                   />
+                  <FieldHelper>
+                    Visible en listados y pagina de detalle
+                  </FieldHelper>
                 </div>
                 <div className="space-y-2">
-                  <Label>Precio Niño (COP)</Label>
+                  <Label>
+                    Precio Nino (COP)
+                    <FieldTooltip label="Precio por nino en COP. Si no aplica, dejar en 0" />
+                  </Label>
                   <Input
                     type="number"
                     min="0"
@@ -765,9 +808,15 @@ export default function AdminExcursions() {
                     onChange={(e) => updateField('childPrice', Number(e.target.value))}
                     placeholder="75000"
                   />
+                  <FieldHelper>
+                    Se aplica a menores segun politica de edad del operador
+                  </FieldHelper>
                 </div>
                 <div className="space-y-2">
-                  <Label>Rating (0-10)</Label>
+                  <Label>
+                    Rating (0-10)
+                    <FieldTooltip label="Calificacion de la excursion. Visible en el portal" />
+                  </Label>
                   <Input
                     type="number"
                     min="0"
@@ -776,12 +825,18 @@ export default function AdminExcursions() {
                     value={form.rating}
                     onChange={(e) => updateField('rating', Number(e.target.value))}
                   />
+                  <FieldHelper>
+                    Valor entre 0 y 10
+                  </FieldHelper>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Categoría</Label>
+                  <Label>
+                    Categoria
+                    <FieldTooltip label="Tipo de excursion. Define filtros en el portal" />
+                  </Label>
                   <Select
                     value={form.category}
                     onValueChange={(v) => updateField('category', v)}
@@ -795,9 +850,15 @@ export default function AdminExcursions() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FieldHelper>
+                    Aventura, Cultural, Naturaleza, Gastronomica, etc.
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5 pt-2">
-                  <Label htmlFor="excursion-reseller">Asignar a Revendedor</Label>
+                  <Label htmlFor="excursion-reseller">
+                    Asignar a Revendedor
+                    <FieldTooltip label="Asigna esta excursion a un revendedor o dejala global" />
+                  </Label>
                   <select
                     id="excursion-reseller"
                     value={form.resellerId ?? ''}
@@ -811,9 +872,9 @@ export default function AdminExcursions() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-muted-foreground">
-                    Si se asigna a un revendedor, solo ese revendedor podrá ver y revender esta excursión.
-                  </p>
+                  <FieldHelper>
+                    Excursiones asignadas solo las ve ese revendedor
+                  </FieldHelper>
                 </div>
 
                 <div className="flex items-center gap-4 pt-6">
@@ -822,15 +883,22 @@ export default function AdminExcursions() {
                       checked={form.featured}
                       onCheckedChange={(v) => updateField('featured', v)}
                     />
-                    <Label>Destacado</Label>
+                    <Label>
+                      Destacado
+                      <FieldTooltip label="Las excursiones destacadas aparecen primero en el portal" />
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={form.active}
                       onCheckedChange={(v) => updateField('active', v)}
                     />
-                    <Label>Activo</Label>
+                    <Label>
+                      Activo
+                      <FieldTooltip label="Si esta desactivado, no aparece en el portal" />
+                    </Label>
                   </div>
+                  <FieldHelper>Desactiva para ocultar temporalmente</FieldHelper>
                 </div>
               </div>
             </TabsContent>
@@ -838,60 +906,93 @@ export default function AdminExcursions() {
             {/* Detalles */}
             <TabsContent value="details" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
-                <Label>Descripción Corta</Label>
+                <Label>
+                  Descripcion Corta
+                  <FieldTooltip label="Resumen breve de la excursion. Aparece en tarjetas y listados" />
+                </Label>
                 <Textarea
                   value={form.shortDesc}
                   onChange={(e) => updateField('shortDesc', e.target.value)}
-                  placeholder="Breve resumen de la excursión (1-2 líneas)"
+                  placeholder="Breve resumen de la excursion (1-2 lineas)"
                   rows={2}
                 />
+                <FieldHelper>
+                  Maximo 100 palabras. Engancha al usuario
+                </FieldHelper>
               </div>
 
               <div className="space-y-2">
-                <Label>Descripción Completa</Label>
+                <Label>
+                  Descripcion Completa
+                  <FieldTooltip label="Descripcion detallada. Aparece en la pagina de detalle" />
+                </Label>
                 <Textarea
                   value={form.description}
                   onChange={(e) => updateField('description', e.target.value)}
-                  placeholder="Descripción detallada de la excursión, itinerario, puntos de interés..."
+                  placeholder="Descripcion detallada de la excursion, itinerario, puntos de interes..."
                   rows={6}
                 />
+                <FieldHelper>
+                  Incluye itinerario, recomendaciones, que llevar
+                </FieldHelper>
               </div>
 
               <div className="space-y-2">
-                <Label>Requisitos</Label>
+                <Label>
+                  Requisitos
+                  <FieldTooltip label="Requisitos o restricciones para participar" />
+                </Label>
                 <TagInput
                   tags={form.requirements}
                   onChange={(v) => updateField('requirements', v)}
-                  placeholder="Ej: Ropa cómoda, Protector solar..."
+                  placeholder="Ej: Ropa comoda, Protector solar..."
                 />
+                <FieldHelper>
+                  Ej: Edad minima 12 anos, llevar pasaporte, no apto embarazadas
+                </FieldHelper>
               </div>
             </TabsContent>
 
             {/* Incluidos */}
             <TabsContent value="includes" className="space-y-6 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-green-700">✓ Qué incluye</Label>
+                <Label className="text-sm font-semibold text-green-700">
+                  ✓ Que incluye
+                  <FieldTooltip label="Servicios y elementos incluidos en el precio" />
+                </Label>
                 <TagInput
                   tags={form.includes}
                   onChange={(v) => updateField('includes', v)}
-                  placeholder="Ej: Guía bilingüe, Entradas, Snack..."
+                  placeholder="Ej: Guia bilingue, Entradas, Snack..."
                 />
+                <FieldHelper>
+                  Ej: Transporte, Guia bilingue, Almuerzo, Seguro
+                </FieldHelper>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-destructive">✗ Qué no incluye</Label>
+                <Label className="text-sm font-semibold text-destructive">
+                  ✗ Que no incluye
+                  <FieldTooltip label="Lo que NO esta incluido en el precio. Transparencia para el cliente" />
+                </Label>
                 <TagInput
                   tags={form.excludes}
                   onChange={(v) => updateField('excludes', v)}
                   placeholder="Ej: Almuerzo, Propinas, Compras personales..."
                 />
+                <FieldHelper>
+                  Ej: Propinas, Gastos personales, Bebidas
+                </FieldHelper>
               </div>
             </TabsContent>
 
             {/* Media */}
             <TabsContent value="media" className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0">
               <div className="space-y-2">
-                <Label>Imágenes ({form.images.length})</Label>
+                <Label>
+                  Imagenes ({form.images.length})
+                  <FieldTooltip label="Galeria de fotos de la excursion" />
+                </Label>
                 <div
                   onDrop={(e) => {
                     e.preventDefault();
