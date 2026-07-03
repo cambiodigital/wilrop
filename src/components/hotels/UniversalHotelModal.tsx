@@ -44,6 +44,7 @@ import {
   ExternalLink,
   GripVertical,
   ImagePlus,
+  Info,
   Link2,
   Pencil,
   Plus,
@@ -53,6 +54,11 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import {
   buildHotelDestinationCompatibilityFields,
   findHotelDestinationOption,
@@ -159,6 +165,25 @@ function normalizeUploadUrl(payload: Record<string, unknown>): string {
   if (typeof payload.fileUrl === "string" && payload.fileUrl)
     return payload.fileUrl;
   return "";
+}
+
+function FieldHelper({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs text-muted-foreground mt-1">{children}</p>
+  );
+}
+
+function FieldTooltip({ label }: { label: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger type="button" className="inline-flex ml-1 text-muted-foreground hover:text-foreground transition-colors">
+        <Info className="w-3 h-3" />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[220px]">
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 function TagInput({
@@ -287,6 +312,29 @@ export default function UniversalHotelModal({
     roomImages: [] as string[],
     active: true,
   });
+  const [pendingRoomTypes, setPendingRoomTypes] = useState<RoomTypeRow[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (key: string, value: string) => {
+    if (!value.trim()) {
+      setFieldErrors((prev) => ({ ...prev, [key]: "Este campo es obligatorio" }));
+    } else {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+  };
+
+  const clearFieldError = (key: string) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   const [imagesUploading, setImagesUploading] = useState(false);
   const [imagesDragOver, setImagesDragOver] = useState(false);
   const [draggedImageIdx, setDraggedImageIdx] = useState<number | null>(null);
@@ -332,6 +380,8 @@ export default function UniversalHotelModal({
       setTagsStr("");
       setRoomTypes([]);
     }
+    setPendingRoomTypes([]);
+    setFieldErrors({});
     setEditingRoomTypeId(null);
     setRoomTypeDeleteId(null);
     setShowRoomTypeForm(false);
@@ -585,6 +635,87 @@ export default function UniversalHotelModal({
     }
   };
 
+  const isCreateMode = !editingId;
+
+  const handleSavePendingRoomType = () => {
+    if (!roomTypeForm.name.trim()) {
+      toast.error("El nombre de la habitación es obligatorio");
+      return;
+    }
+    const newRoom: RoomTypeRow = {
+      id: `temp_${crypto.randomUUID()}`,
+      hotelId: "",
+      name: roomTypeForm.name,
+      maxGuests: roomTypeForm.maxGuests,
+      beds: roomTypeForm.beds,
+      basePrice: roomTypeForm.basePrice,
+      originalPrice: roomTypeForm.originalPrice,
+      includes: JSON.stringify(roomTypeForm.includes),
+      roomImage: roomTypeForm.roomImage || roomTypeForm.roomImages[0] || "",
+      roomImages: roomTypeForm.roomImages,
+      active: roomTypeForm.active,
+    };
+    setPendingRoomTypes((prev) => [...prev, newRoom]);
+    resetRoomTypeForm();
+    toast.success("Habitación agregada (se creará junto con el hotel)");
+  };
+
+  const handleUpdatePendingRoomType = () => {
+    if (!roomTypeForm.name.trim()) {
+      toast.error("El nombre de la habitación es obligatorio");
+      return;
+    }
+    if (!editingRoomTypeId) return;
+    setPendingRoomTypes((prev) =>
+      prev.map((rt) =>
+        rt.id === editingRoomTypeId
+          ? {
+              ...rt,
+              name: roomTypeForm.name,
+              maxGuests: roomTypeForm.maxGuests,
+              beds: roomTypeForm.beds,
+              basePrice: roomTypeForm.basePrice,
+              originalPrice: roomTypeForm.originalPrice,
+              includes: JSON.stringify(roomTypeForm.includes),
+              roomImage:
+                roomTypeForm.roomImage || roomTypeForm.roomImages[0] || "",
+              roomImages: roomTypeForm.roomImages,
+              active: roomTypeForm.active,
+            }
+          : rt,
+      ),
+    );
+    resetRoomTypeForm();
+    toast.success("Habitación actualizada correctamente");
+  };
+
+  const openEditPendingRoomType = (roomType: RoomTypeRow) => {
+    setEditingRoomTypeId(roomType.id);
+    setShowRoomTypeForm(true);
+    setRoomTypeForm({
+      name: roomType.name,
+      maxGuests: roomType.maxGuests,
+      beds: roomType.beds,
+      basePrice: roomType.basePrice,
+      originalPrice: roomType.originalPrice,
+      includes: parseRoomTypeIncludes(roomType.includes),
+      roomImage: roomType.roomImage || "",
+      roomImages: roomType.roomImages ?? [],
+      active: roomType.active,
+    });
+    setRoomImageUrlInput("");
+  };
+
+  const handleDeletePendingRoomType = (id: string) => {
+    setPendingRoomTypes((prev) => prev.filter((rt) => rt.id !== id));
+    if (editingRoomTypeId === id) {
+      resetRoomTypeForm();
+    }
+    toast.success("Habitación eliminada correctamente");
+  };
+
+  const displayRoomTypes = isCreateMode ? pendingRoomTypes : roomTypes;
+
   const handleDeleteRoomType = async () => {
     if (!roomTypeDeleteId) return;
     try {
@@ -617,10 +748,19 @@ export default function UniversalHotelModal({
       toast.error("Selecciona un destino válido");
       return;
     }
+    if (!editingId && pendingRoomTypes.length === 0) {
+      toast.error(
+        "Debes agregar al menos una habitación antes de guardar el hotel",
+      );
+      return;
+    }
     setSaving(true);
     try {
-      const activeRoomTypes = roomTypes.filter((roomType) => roomType.active);
-      const payload = {
+      const activeRoomTypes = editingId
+        ? roomTypes.filter((roomType) => roomType.active)
+        : [];
+
+      const payload: any = {
         ...form,
         slug: form.slug || generateSlug(form.name),
         rooms:
@@ -628,6 +768,20 @@ export default function UniversalHotelModal({
             ? syncRoomTypesToHotelRooms(activeRoomTypes)
             : form.rooms,
       };
+
+      if (!editingId && pendingRoomTypes.length > 0) {
+        payload._pendingRoomTypes = pendingRoomTypes.map((rt) => ({
+          name: rt.name,
+          maxGuests: rt.maxGuests,
+          beds: rt.beds,
+          basePrice: rt.basePrice,
+          originalPrice: rt.originalPrice,
+          includes: parseRoomTypeIncludes(rt.includes),
+          roomImage: rt.roomImage,
+          roomImages: rt.roomImages || [],
+          active: rt.active,
+        }));
+      }
       const res = await fetch(
         editingId ? `${hotelApiBase}/${editingId}` : hotelApiBase,
         {
@@ -704,9 +858,14 @@ export default function UniversalHotelModal({
               <TabsTrigger value="amenities" className="flex-1">
                 Servicios
               </TabsTrigger>
-              <TabsTrigger value="rooms" className="flex-1">
+              <TabsTrigger value="rooms" className="flex-1 relative">
                 <BedDouble className="w-3.5 h-3.5 mr-1" />
                 Habitaciones
+                {!editingId && pendingRoomTypes.length > 0 && (
+                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {pendingRoomTypes.length}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="extra" className="flex-1">
                 Extra
@@ -722,28 +881,47 @@ export default function UniversalHotelModal({
                 <div className="space-y-1.5">
                   <Label htmlFor="hotel-name" className="label-required">
                     Nombre
+                    <FieldTooltip label="Nombre comercial del hotel tal como aparecera en el portal y busquedas" />
                   </Label>
                   <Input
                     id="hotel-name"
                     value={form.name}
-                    onChange={(e) => updateField("name", e.target.value)}
+                    onChange={(e) => {
+                      updateField("name", e.target.value);
+                      clearFieldError("name");
+                    }}
+                    onBlur={() => validateField("name", form.name)}
                     placeholder="Hotel Charleston Santa Teresa"
+                    className={fieldErrors.name ? "input-error" : ""}
                   />
+                  {fieldErrors.name && (
+                    <p className="field-error-text text-xs">{fieldErrors.name}</p>
+                  )}
+                  <FieldHelper>
+                    Nombre comercial visible en listados, pagina de detalle y resultados de busqueda.
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-slug">Slug</Label>
+                  <Label htmlFor="hotel-slug">
+                    Slug
+                    <FieldTooltip label="Identificador unico en la URL. Se genera automaticamente del nombre pero puedes personalizarlo" />
+                  </Label>
                   <Input
                     id="hotel-slug"
                     value={form.slug}
                     onChange={(e) => updateField("slug", e.target.value)}
                     placeholder="Auto-generado del nombre"
                   />
+                  <FieldHelper>
+                    Identificador unico para la URL del hotel. Solo letras, numeros y guiones.
+                  </FieldHelper>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="hotel-destination" className="label-required">
                     Destino relacional
+                    <FieldTooltip label="Ciudad o region donde se ubica el hotel. Define la ubicacion en busquedas y filtros" />
                   </Label>
                   <select
                     id="hotel-destination"
@@ -757,9 +935,16 @@ export default function UniversalHotelModal({
                         ...prev,
                         ...buildHotelDestinationCompatibilityFields(option),
                       }));
+                      clearFieldError("destinationId");
                     }}
+                    onBlur={() =>
+                      validateField("destinationId", form.destinationId ?? "")
+                    }
                     disabled={destinationsLoading || Boolean(destinationsError)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className={cn(
+                      "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                      fieldErrors.destinationId && "input-error",
+                    )}
                   >
                     <option value="">Selecciona un destino</option>
                     {destinationSelectorState.options.map((option) => (
@@ -771,6 +956,14 @@ export default function UniversalHotelModal({
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.destinationId && (
+                    <p className="field-error-text text-xs">
+                      {fieldErrors.destinationId}
+                    </p>
+                  )}
+                  <FieldHelper>
+                    Selecciona la ciudad o region donde se ubica el hotel. Define filtros y busquedas.
+                  </FieldHelper>
                   {destinationSelectorState.status === "loading" && (
                     <p className="text-xs text-muted-foreground">
                       {destinationSelectorState.statusLabel}
@@ -817,6 +1010,7 @@ export default function UniversalHotelModal({
                 <div className="space-y-1.5">
                   <Label htmlFor="hotel-city-name">
                     Nombre destino (snapshot)
+                    <FieldTooltip label="Se completa automaticamente al seleccionar el destino. Es el texto visible de la ubicacion" />
                   </Label>
                   <Input
                     id="hotel-city-name"
@@ -824,12 +1018,18 @@ export default function UniversalHotelModal({
                     readOnly
                     placeholder="Se completa al seleccionar destino"
                   />
+                  <FieldHelper>
+                    Texto visible de la ubicacion. Se completa automaticamente al seleccionar el destino.
+                  </FieldHelper>
                 </div>
               </div>
               <div className="form-section-title">Datos del hotel</div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-stars">Estrellas (1-5)</Label>
+                  <Label htmlFor="hotel-stars">
+                    Estrellas (1-5)
+                    <FieldTooltip label="Categoria oficial del hotel (1-5 estrellas). Afecta el filtro de categorias en el portal" />
+                  </Label>
                   <Input
                     id="hotel-stars"
                     type="number"
@@ -840,9 +1040,15 @@ export default function UniversalHotelModal({
                       updateField("stars", Number(e.target.value))
                     }
                   />
+                  <FieldHelper>
+                    Categoria oficial del hotel. Valores entre 1 y 5.
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-rating">Rating (0-10)</Label>
+                  <Label htmlFor="hotel-rating">
+                    Rating (0-10)
+                    <FieldTooltip label="Calificacion promedio de huespedes en escala 0-10. Se muestra como estrellas en el portal" />
+                  </Label>
                   <Input
                     id="hotel-rating"
                     type="number"
@@ -854,9 +1060,15 @@ export default function UniversalHotelModal({
                       updateField("rating", Number(e.target.value))
                     }
                   />
+                  <FieldHelper>
+                    Promedio de calificaciones de huespedes (0-10). Se muestra como estrellas.
+                  </FieldHelper>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="hotel-reviews">Reviews</Label>
+                  <Label htmlFor="hotel-reviews">
+                    Reviews
+                    <FieldTooltip label="Cantidad total de resenas de huespedes. Ayuda a generar confianza" />
+                  </Label>
                   <Input
                     id="hotel-reviews"
                     type="number"
@@ -865,19 +1077,31 @@ export default function UniversalHotelModal({
                       updateField("reviewCount", Number(e.target.value))
                     }
                   />
+                  <FieldHelper>
+                    Numero total de resenas. Ayuda a generar confianza en el portal.
+                  </FieldHelper>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="hotel-address">Direccion</Label>
+                <Label htmlFor="hotel-address">
+                  Direccion
+                  <FieldTooltip label="Direccion fisica completa del hotel. Se muestra en la pagina de detalle" />
+                </Label>
                 <Input
                   id="hotel-address"
                   value={form.address}
                   onChange={(e) => updateField("address", e.target.value)}
                   placeholder="Calle de la Inquisicion, Centro Historico"
                 />
+                <FieldHelper>
+                  Direccion fisica del hotel. Visible en la pagina de detalle.
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="hotel-price">Precio Desde (COP)</Label>
+                <Label htmlFor="hotel-price">
+                  Precio Desde (COP)
+                  <FieldTooltip label="Precio mas bajo disponible en pesos colombianos. Se muestra en tarjetas y listados como 'Desde $X'" />
+                </Label>
                 <Input
                   id="hotel-price"
                   type="number"
@@ -887,9 +1111,15 @@ export default function UniversalHotelModal({
                   }
                   placeholder="720000"
                 />
+                <FieldHelper>
+                  Precio mas bajo disponible en COP. Se muestra como &quot;Desde $X&quot; en listados.
+                </FieldHelper>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="hotel-description">Descripcion</Label>
+                <Label htmlFor="hotel-description">
+                  Descripcion
+                  <FieldTooltip label="Descripcion detallada del hotel. Aparece en la pagina de detalle. Maximo recomendado: 300 palabras" />
+                </Label>
                 <Textarea
                   id="hotel-description"
                   value={form.description}
@@ -897,6 +1127,9 @@ export default function UniversalHotelModal({
                   placeholder="Descripcion del hotel..."
                   rows={4}
                 />
+                <FieldHelper>
+                  Descripcion detallada. Aparece en la pagina de detalle del hotel.
+                </FieldHelper>
               </div>
             </TabsContent>
 
@@ -1157,42 +1390,39 @@ export default function UniversalHotelModal({
                   <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
                     <BedDouble className="w-4 h-4 text-primary" />
                     Habitaciones del hotel
+                    {isCreateMode && (
+                      <span className="label-required text-xs font-normal text-muted-foreground ml-0.5">
+                        (obligatorio)
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {editingId
-                      ? `${roomTypes.length} habitacion(es) registradas en el sistema`
-                      : "Guarda el hotel primero para gestionar las habitaciones"}
+                    {isCreateMode
+                      ? `${displayRoomTypes.length} habitacion(es) pendientes por crear — mínimo 1 requerida`
+                      : `${displayRoomTypes.length} habitacion(es) registradas en el sistema`}
                   </p>
                 </div>
-                {editingId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      resetRoomTypeForm();
-                      setShowRoomTypeForm(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nueva habitacion
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetRoomTypeForm();
+                    setShowRoomTypeForm(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nueva habitacion
+                </Button>
               </div>
 
               <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                Define las habitaciones y sus precios. Los cambios y la
-                disponibilidad se sincronizan automaticamente.
+                {isCreateMode
+                  ? "Agrega al menos una habitacion. Se crearan junto con el hotel al guardar."
+                  : "Define las habitaciones y sus precios. Los cambios y la disponibilidad se sincronizan automaticamente."}
               </div>
 
-              {!editingId ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">
-                    Guarda el hotel primero para gestionar las habitaciones
-                  </p>
-                </div>
-              ) : roomTypesLoading ? (
+              {!isCreateMode && roomTypesLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 3 }).map((_, index) => (
                     <Skeleton key={index} className="h-12 w-full" />
@@ -1557,9 +1787,17 @@ export default function UniversalHotelModal({
                           <Button
                             type="button"
                             size="sm"
-                            onClick={() =>
-                              saveRoomType(editingRoomTypeId ? "PUT" : "POST")
-                            }
+                            onClick={() => {
+                              if (isCreateMode) {
+                                editingRoomTypeId
+                                  ? handleUpdatePendingRoomType()
+                                  : handleSavePendingRoomType();
+                              } else {
+                                saveRoomType(
+                                  editingRoomTypeId ? "PUT" : "POST",
+                                );
+                              }
+                            }}
                             disabled={
                               savingRoomType || !roomTypeForm.name.trim()
                             }
@@ -1584,7 +1822,7 @@ export default function UniversalHotelModal({
                     </Card>
                   )}
 
-                  {roomTypes.length > 0 && (
+                  {displayRoomTypes.length > 0 && (
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1599,7 +1837,7 @@ export default function UniversalHotelModal({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {roomTypes.map((roomType) => (
+                        {displayRoomTypes.map((roomType) => (
                           <TableRow key={roomType.id}>
                             <TableCell className="text-sm font-medium">
                               {roomType.name}
@@ -1633,7 +1871,13 @@ export default function UniversalHotelModal({
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                  onClick={() => openEditRoomType(roomType)}
+                                  onClick={() => {
+                                    if (isCreateMode) {
+                                      openEditPendingRoomType(roomType);
+                                    } else {
+                                      openEditRoomType(roomType);
+                                    }
+                                  }}
                                 >
                                   <Pencil className="w-3.5 h-3.5" />
                                 </Button>
@@ -1641,9 +1885,13 @@ export default function UniversalHotelModal({
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                  onClick={() =>
-                                    setRoomTypeDeleteId(roomType.id)
-                                  }
+                                  onClick={() => {
+                                    if (isCreateMode) {
+                                      handleDeletePendingRoomType(roomType.id);
+                                    } else {
+                                      setRoomTypeDeleteId(roomType.id);
+                                    }
+                                  }}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </Button>
@@ -1655,16 +1903,30 @@ export default function UniversalHotelModal({
                     </Table>
                   )}
 
-                  {roomTypes.length === 0 && !editingRoomTypeId && (
+                  {displayRoomTypes.length === 0 && !editingRoomTypeId && (
                     <div className="text-center py-8 text-muted-foreground">
                       <BedDouble className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm">
-                        No hay habitaciones registradas para este hotel
-                      </p>
-                      <p className="text-xs mt-1">
-                        Crea una habitacion para configurar precios y
-                        disponibilidad
-                      </p>
+                      {isCreateMode ? (
+                        <>
+                          <p className="text-sm font-medium text-destructive">
+                            Debes agregar al menos una habitacion
+                          </p>
+                          <p className="text-xs mt-1">
+                            El hotel no se puede guardar sin habitaciones. Haz
+                            clic en "Nueva habitacion" para agregar la primera.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm">
+                            No hay habitaciones registradas para este hotel
+                          </p>
+                          <p className="text-xs mt-1">
+                            Crea una habitacion para configurar precios y
+                            disponibilidad
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                 </>

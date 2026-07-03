@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
+import { safeJsonParse } from "@/lib/json";
 import {
   buildHotelCreateData,
   formatAdminHotel,
@@ -11,6 +12,52 @@ import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
 } from "@/lib/panel-auth";
+
+async function syncHotelRoomsCache(hotelId: string) {
+  const roomTypes = await db.roomType.findMany({ where: { hotelId } });
+  const formattedRooms = roomTypes
+    .filter((rt) => rt.active)
+    .map((rt) => ({
+      id: rt.id,
+      name: rt.name,
+      maxGuests: rt.maxGuests,
+      beds: rt.beds,
+      price: rt.basePrice,
+      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
+      includes: safeJsonParse<string[]>(rt.includes, []),
+      available: 1,
+      roomImage: rt.roomImage,
+      roomImages: safeJsonParse<string[]>(rt.roomImages, []),
+    }));
+  await db.hotel.update({
+    where: { id: hotelId },
+    data: { rooms: JSON.stringify(formattedRooms) },
+  });
+}
+
+async function batchCreateRoomTypes(
+  hotelId: string,
+  pendingRoomTypes: Array<Record<string, unknown>>
+) {
+  for (const rt of pendingRoomTypes) {
+    const roomImages = Array.isArray(rt.roomImages) ? rt.roomImages : [];
+    const roomImage = (typeof rt.roomImage === "string" && rt.roomImage) || roomImages[0] || "";
+    await db.roomType.create({
+      data: {
+        hotelId,
+        name: (typeof rt.name === "string" && rt.name) || "Habitación Estándar",
+        maxGuests: typeof rt.maxGuests === "number" ? rt.maxGuests : 2,
+        beds: (typeof rt.beds === "string" && rt.beds) || "1 cama doble",
+        basePrice: typeof rt.basePrice === "number" ? rt.basePrice : 0,
+        originalPrice: typeof rt.originalPrice === "number" ? rt.originalPrice : 0,
+        includes: JSON.stringify(Array.isArray(rt.includes) ? rt.includes : []),
+        roomImage,
+        roomImages: JSON.stringify(roomImages),
+        active: typeof rt.active === "boolean" ? rt.active : true,
+      },
+    });
+  }
+}
 
 async function requireResellerSession() {
   const cookieStore = await cookies();
@@ -117,6 +164,14 @@ export async function POST(request: NextRequest) {
         publishStatus: 'pending_review',
       },
     });
+
+    if (
+      Array.isArray(body._pendingRoomTypes) &&
+      body._pendingRoomTypes.length > 0
+    ) {
+      await batchCreateRoomTypes(hotel.id, body._pendingRoomTypes);
+      await syncHotelRoomsCache(hotel.id);
+    }
 
     return NextResponse.json(
       { success: true, data: formatAdminHotel(hotel) },
