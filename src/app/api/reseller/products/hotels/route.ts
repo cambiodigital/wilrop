@@ -148,30 +148,73 @@ export async function POST(request: NextRequest) {
       counter += 1;
     }
 
-    const hotel = await db.hotel.create({
-      data: {
-        ...buildHotelCreateData({
-          ...body,
-          slug,
-          destinationId: relatedDestinationId,
-          cityName:
-            typeof body.cityName === "string" && body.cityName.trim()
-              ? body.cityName
-              : destination.name,
-          resellerId: session.id,
-        }),
-        isTemplate: false,
-        publishStatus: 'pending_review',
-      },
-    });
+    // Use a transaction so hotel + rooms are created atomically.
+    // If room creation fails, the hotel is rolled back — no orphaned rows.
+    const hotel = await db.$transaction(async (tx) => {
+      const created = await tx.hotel.create({
+        data: {
+          ...buildHotelCreateData({
+            ...body,
+            slug,
+            destinationId: relatedDestinationId,
+            cityName:
+              typeof body.cityName === "string" && body.cityName.trim()
+                ? body.cityName
+                : destination.name,
+            resellerId: session.id,
+          }),
+          isTemplate: false,
+          publishStatus: 'pending_review',
+        },
+      });
 
-    if (
-      Array.isArray(body._pendingRoomTypes) &&
-      body._pendingRoomTypes.length > 0
-    ) {
-      await batchCreateRoomTypes(hotel.id, body._pendingRoomTypes);
-      await syncHotelRoomsCache(hotel.id);
-    }
+      if (
+        Array.isArray(body._pendingRoomTypes) &&
+        body._pendingRoomTypes.length > 0
+      ) {
+        for (const rt of body._pendingRoomTypes) {
+          const roomImages = Array.isArray(rt.roomImages) ? rt.roomImages : [];
+          const roomImage = (typeof rt.roomImage === "string" && rt.roomImage) || roomImages[0] || "";
+          await tx.roomType.create({
+            data: {
+              hotelId: created.id,
+              name: (typeof rt.name === "string" && rt.name) || "Habitación Estándar",
+              maxGuests: typeof rt.maxGuests === "number" ? rt.maxGuests : 2,
+              beds: (typeof rt.beds === "string" && rt.beds) || "1 cama doble",
+              basePrice: typeof rt.basePrice === "number" ? rt.basePrice : 0,
+              originalPrice: typeof rt.originalPrice === "number" ? rt.originalPrice : 0,
+              includes: JSON.stringify(Array.isArray(rt.includes) ? rt.includes : []),
+              roomImage,
+              roomImages: JSON.stringify(roomImages),
+              active: typeof rt.active === "boolean" ? rt.active : true,
+            },
+          });
+        }
+
+        // Sync the rooms JSON cache inside the transaction
+        const createdRoomTypes = await tx.roomType.findMany({ where: { hotelId: created.id } });
+        const formattedRooms = createdRoomTypes
+          .filter((rt) => rt.active)
+          .map((rt) => ({
+            id: rt.id,
+            name: rt.name,
+            maxGuests: rt.maxGuests,
+            beds: rt.beds,
+            price: rt.basePrice,
+            originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
+            includes: safeJsonParse<string[]>(rt.includes, []),
+            available: 1,
+            roomImage: rt.roomImage,
+            roomImages: safeJsonParse<string[]>(rt.roomImages, []),
+          }));
+        await tx.hotel.update({
+          where: { id: created.id },
+          data: { rooms: JSON.stringify(formattedRooms) },
+        });
+      }
+
+      return created;
+    });
 
     return NextResponse.json(
       { success: true, data: formatAdminHotel(hotel) },

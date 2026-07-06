@@ -8,7 +8,30 @@
 	}
 }
 
-# ─── Main domain (wilropgroup.com) ───────────────────────────────
+# ─── DNS REQUIREMENT (MANDATORY) ──────────────────────────────────
+# For white-label subdomains to work, you MUST configure DNS:
+#
+#   Type:  A
+#   Name:  *.wilropgroup.com  (wildcard)
+#   Value: <YOUR_SERVER_IP>
+#
+#   OR alternatively a wildcard CNAME:
+#   Type:  CNAME
+#   Name:  *.wilropgroup.com
+#   Value: wilropgroup.com
+#
+# Without this wildcard DNS record, subdomains won't resolve to your
+# server at all. Verify with:  nslookup jimmy.wilropgroup.com
+#
+# ─── TLS strategy ──────────────────────────────────────────────────
+# Subdomains (*.wilropgroup.com) are handled by the :443 catch-all
+# block below. Each subdomain gets its own TLS certificate via on-demand
+# HTTP-01 challenge — NO wildcard cert needed (avoids DNS-01 complexity).
+# The ask endpoint validates that the subdomain belongs to an active,
+# approved reseller before Caddy issues the certificate.
+# ───────────────────────────────────────────────────────────────────
+
+# ─── Main domain (wilropgroup.com) ─────────────────────────────────
 wilropgroup.com {
 	reverse_proxy localhost:3000 {
 		header_up Host {host}
@@ -18,26 +41,13 @@ wilropgroup.com {
 	}
 }
 
-# ─── Wildcard subdomains (*.wilropgroup.com) ─────────────────────
-# Handles reseller white-label subdomains like cambiof.wilropgroup.com.
-# Uses on-demand TLS — Caddy will request a wildcard cert via the ask
-# endpoint before issuing.
-*.wilropgroup.com {
-	tls {
-		on_demand
-	}
-
-	reverse_proxy localhost:3000 {
-		header_up Host {host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Real-IP {remote_host}
-	}
-}
-
-# ─── Custom domains (on-demand TLS) ──────────────────────────────
-# Any domain not explicitly listed above falls here.
-# Caddy will auto-issue certificates after verifying via the ask endpoint.
+# ─── Custom domains + subdomains (on-demand TLS) ───────────────────
+# Any domain not explicitly listed above falls here, including:
+#   - Custom domains (travelagency.com mapped via Reseller.customDomain)
+#   - White-label subdomains (jimmy.wilropgroup.com via Reseller.subdomain)
+#
+# Caddy auto-issues individual certificates per domain after verifying
+# via the ask endpoint. No wildcard cert needed.
 :443 {
 	tls {
 		on_demand

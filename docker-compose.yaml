@@ -40,7 +40,7 @@ services:
       - wilrop-net
     labels:
       - traefik.enable=true
-      - 'traefik.http.routers.wilrop.rule=(Host(`wilropgroup.com`) || Host(`*.wilropgroup.com`)) && PathPrefix(`/`)'
+      - 'traefik.http.routers.wilrop.rule=Host(`wilropgroup.com`) || HostRegexp(`^[a-zA-Z0-9][a-zA-Z0-9-]+[.]wilropgroup[.]com$`)'
       - traefik.http.routers.wilrop.tls=true
       - traefik.http.routers.wilrop.tls.certResolver=letsencrypt
       - traefik.http.services.wilrop.loadbalancer.server.port=3000

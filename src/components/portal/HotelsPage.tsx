@@ -59,6 +59,25 @@ import {
 import { usePortalNavigation } from "@/hooks/use-portal-navigation";
 import { useEffect } from "react";
 
+// Normalize a string for fuzzy comparison: lowercase, strip accents, trim
+function normalizeStr(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
+function findAmenity(value: string) {
+  let match = hotelAmenities.find((a) => a.id === value)
+  if (match) return match
+  const normalizedValue = normalizeStr(value)
+  match = hotelAmenities.find((a) => normalizeStr(a.name) === normalizedValue)
+  if (match) return match
+  match = hotelAmenities.find((a) => normalizeStr(a.name).includes(normalizedValue))
+  return match || null
+}
+
 // ─── Icon map ────────────────────────────────────────────────
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Wifi,
@@ -838,7 +857,7 @@ function HotelListingCard({
           {/* Row 4: Amenities icons */}
           <div className="mt-2 flex items-center gap-1.5">
             {hotel.amenities.slice(0, 4).map((amenityId) => {
-              const amenity = hotelAmenities.find((a) => a.id === amenityId);
+              const amenity = findAmenity(amenityId);
               if (!amenity) return null;
               const Icon = iconMap[amenity.icon];
               return Icon ? (

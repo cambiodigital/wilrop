@@ -38,6 +38,22 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { hotels } from '@/data/hotels'
+
+/**
+ * Check if the hotel has an amenity, matching by both English ID and
+ * Spanish name (case + accent insensitive). Handles legacy data where
+ * admins may have entered Spanish names instead of English IDs.
+ */
+function hasAmenity(amenities: string[], targetId: string, targetNameEs: string): boolean {
+  if (!Array.isArray(amenities)) return false
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  const targetNorm = norm(targetId)
+  const nameNorm = norm(targetNameEs)
+  return amenities.some((a) => {
+    const an = norm(a)
+    return an === targetNorm || an === nameNorm || an.includes(nameNorm) || nameNorm.includes(an)
+  })
+}
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
@@ -467,7 +483,7 @@ export default function HotelBookingFlow({
                     <p className="mt-1 text-sm text-neutral-500">Agrega servicios opcionales a tu estadía</p>
                     <div className="mt-5 space-y-3">
                       {/* Desayuno */}
-                      {(hotel.amenities.includes('breakfast') || isBreakfastIncluded) && (
+                      {(hasAmenity(hotel.amenities, 'breakfast', 'desayuno') || isBreakfastIncluded) && (
                         <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.breakfastAdd ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isBreakfastIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
                           <Checkbox checked={form.breakfastAdd} disabled={isBreakfastIncluded} onCheckedChange={(c) => !isBreakfastIncluded && set({ breakfastAdd: c === true })} />
                           <div className="flex-1">
@@ -493,7 +509,7 @@ export default function HotelBookingFlow({
                       </label>
 
                       {/* Traslado Aeropuerto */}
-                      {(hotel.amenities.includes('transfer') || isTransferIncluded) && (
+                      {(hasAmenity(hotel.amenities, 'transfer', 'translado') || isTransferIncluded) && (
                         <label className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${form.airportTransfer ? 'border-amber-300 bg-amber-50' : 'border-neutral-200 hover:border-neutral-300'} ${isTransferIncluded ? 'opacity-90 cursor-default bg-emerald-50/30 border-emerald-200' : ''}`}>
                           <Checkbox checked={form.airportTransfer} disabled={isTransferIncluded} onCheckedChange={(c) => !isTransferIncluded && set({ airportTransfer: c === true })} />
                           <div className="flex-1">

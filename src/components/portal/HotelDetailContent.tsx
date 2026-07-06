@@ -32,6 +32,54 @@ import { Separator } from '@/components/ui/separator'
 import { hotelAmenities, type Hotel, type HotelRoom } from '@/data/hotels'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
+// Normalize a string for fuzzy comparison: lowercase, strip accents, trim
+function normalizeStr(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
+/**
+ * Look up an amenity by id first, then fall back to a normalized name match.
+ * This handles cases where the admin entered Spanish names (e.g. 'piscina')
+ * instead of English IDs (e.g. 'pool').
+ */
+function findAmenity(value: string) {
+  // 1. Exact ID match
+  let match = hotelAmenities.find((a) => a.id === value)
+  if (match) return match
+
+  // 2. Normalized name match (case + accent insensitive)
+  const normalizedValue = normalizeStr(value)
+  match = hotelAmenities.find((a) => normalizeStr(a.name) === normalizedValue)
+  if (match) return match
+
+  // 3. Substring match (e.g. 'piscina' -> 'Piscina')
+  match = hotelAmenities.find((a) => normalizeStr(a.name).includes(normalizedValue))
+  if (match) return match
+
+  return null
+}
+
+/**
+ * Normalize amenities from the hotel data — handles both JSON arrays
+ * and plain comma-separated strings that may come from legacy data.
+ */
+function normalizeAmenities(raw: string[] | string | undefined | null): string[] {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw
+  // Plain string: try JSON parse, fall back to comma split
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed
+  } catch {
+    // not JSON — split by comma
+  }
+  return raw.split(',').map((s) => s.trim()).filter(Boolean)
+}
+
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Wifi,
   Waves,
@@ -280,8 +328,8 @@ export default function HotelDetailContent({
           <div>
             <h2 className="mb-3 text-sm font-semibold text-neutral-900">Servicios y comodidades</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {hotel.amenities.map((amenityId) => {
-                const amenity = hotelAmenities.find((item) => item.id === amenityId)
+              {normalizeAmenities(hotel.amenities).map((amenityId) => {
+                const amenity = findAmenity(amenityId)
                 if (!amenity) return null
 
                 const Icon = iconMap[amenity.icon]
