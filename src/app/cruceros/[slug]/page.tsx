@@ -5,7 +5,6 @@ import CruiseDetailPage from '@/components/portal/CruiseDetailPage'
 import { db } from '@/lib/db'
 import { buildPublicMetadata } from '@/lib/seo'
 import { normalizeCruise } from '@/lib/catalog/public-hydration'
-import { cruises as fallbackCruises } from '@/data/cruises'
 
 interface CruiseDetailRouteProps {
   params: Promise<{
@@ -34,8 +33,7 @@ async function getCruiseData(slug: string) {
   })
 
   if (!cruise) {
-    const staticCruise = fallbackCruises.find(c => c.id === slug || c.slug === slug)
-    return staticCruise || null
+    return null
   }
   return normalizeCruise(cruise as Record<string, unknown>)
 }

@@ -22,7 +22,6 @@ import {
   Minus,
   Plus,
 } from 'lucide-react'
-import { cruises as fallbackCruises } from '@/data/cruises'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -269,40 +268,22 @@ export default function CruisesPage() {
     return () => clearTimeout(timer)
   }, [selectedDestination, priceRange, durationDays, sortBy, page])
 
-  // In-memory filter with support for static fallbackCruises
+  // In-memory search filter — all other filtering (price, destination, duration)
+  // is handled server-side by the API. Only free-text search runs client-side.
   const filteredCruises = useMemo(() => {
-    const sourceList = cruisesList.length > 0 ? cruisesList : fallbackCruises
-    return sourceList.filter((c) => {
-      // Free text search (name, ship, operator)
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase().trim()
-        const matchesSearch =
-          c.name.toLowerCase().includes(query) ||
-          c.shipName.toLowerCase().includes(query) ||
-          c.operator.toLowerCase().includes(query)
-        if (!matchesSearch) return false
-      }
+    if (cruisesList.length === 0) return []
 
-      // If database returns no active cruises (or failed connection), apply options client-side
-      if (cruisesList.length === 0) {
-        if (
-          selectedDestination &&
-          selectedDestination !== 'all' &&
-          c.primaryDestinationId !== selectedDestination
-        ) {
-          return false
-        }
-        if (c.priceFrom < priceRange[0] || c.priceFrom > priceRange[1]) {
-          return false
-        }
-        if (durationDays !== null && c.durationDays !== durationDays) {
-          return false
-        }
-      }
+    if (!searchTerm.trim()) return cruisesList
 
-      return true
+    const query = searchTerm.toLowerCase().trim()
+    return cruisesList.filter((c) => {
+      return (
+        c.name.toLowerCase().includes(query) ||
+        (c.shipName && c.shipName.toLowerCase().includes(query)) ||
+        (c.operator && c.operator.toLowerCase().includes(query))
+      )
     })
-  }, [cruisesList, searchTerm, selectedDestination, priceRange, durationDays])
+  }, [cruisesList, searchTerm])
 
   const clearFilters = useCallback(() => {
     setPriceRange([500000, 6000000])
