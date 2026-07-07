@@ -41,19 +41,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BedDouble,
+  Car,
+  Clock,
+  Coffee,
+  Dumbbell,
   ExternalLink,
+  Eye,
   GripVertical,
   ImagePlus,
   Info,
   Link2,
   Pencil,
+  Plane,
   Plus,
   RefreshCw,
   Save,
+  Sparkles,
+  Thermometer,
   Trash2,
   Upload,
+  UtensilsCrossed,
+  Waves,
+  Wifi,
+  Wine,
   X,
 } from "lucide-react";
+import { hotelAmenities } from "@/data/hotels";
 import {
   Tooltip,
   TooltipTrigger,
@@ -159,6 +172,23 @@ function generateSlug(name: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+// ─── Amenity chip helpers ─────────────────────────────────────
+const amenityIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Wifi, Waves, UtensilsCrossed, Car, Dumbbell, Sparkles, Thermometer, Coffee, Wine, Clock, Plane, Eye,
+};
+
+function normalizeAmenityStr(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
+function isAmenitySelected(amenities: string[], amenityId: string, amenityName: string): boolean {
+  const normName = normalizeAmenityStr(amenityName);
+  return amenities.some((a) => {
+    const na = normalizeAmenityStr(a);
+    return a === amenityId || na === normName;
+  });
 }
 
 function normalizeUploadUrl(payload: Record<string, unknown>): string {
@@ -273,7 +303,7 @@ export default function UniversalHotelModal({
       email?: string;
     }>
   >([]);
-  const [amenitiesStr, setAmenitiesStr] = useState("");
+  const [customAmenityInput, setCustomAmenityInput] = useState("");
   const [tagsStr, setTagsStr] = useState("");
   const [roomTypes, setRoomTypes] = useState<RoomTypeRow[]>([]);
   const [roomTypesLoading, setRoomTypesLoading] = useState(false);
@@ -354,11 +384,9 @@ export default function UniversalHotelModal({
         active: hotel.active ?? true,
         resellerId: hotel.resellerId ?? "",
       });
-      setAmenitiesStr((hotel.amenities ?? []).join(", "));
       setTagsStr((hotel.tags ?? []).join(", "));
     } else {
       setForm(emptyHotelForm);
-      setAmenitiesStr("");
       setTagsStr("");
       setRoomTypes([]);
     }
@@ -1303,25 +1331,122 @@ export default function UniversalHotelModal({
               value="amenities"
               className="space-y-4 mt-4 overflow-y-auto flex-1 min-h-0"
             >
-              <div className="space-y-2">
-                <Label htmlFor="hotel-amenities">
-                  Servicios / Amenidades (separados por coma)
-                </Label>
-                <Input
-                  id="hotel-amenities"
-                  value={amenitiesStr}
-                  onChange={(e) => {
-                    setAmenitiesStr(e.target.value);
-                    updateField(
-                      "amenities",
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter(Boolean),
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Label>Servicios / Amenidades</Label>
+                  <FieldTooltip label="Selecciona los servicios que ofrece este hotel. También puedes agregar servicios personalizados." />
+                </div>
+
+                {/* Predefined amenity chips */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {hotelAmenities.map((amenity) => {
+                    const selected = isAmenitySelected(form.amenities, amenity.id, amenity.name);
+                    const Icon = amenityIconMap[amenity.icon];
+                    return (
+                      <button
+                        key={amenity.id}
+                        type="button"
+                        onClick={() => {
+                          if (selected) {
+                            updateField(
+                              "amenities",
+                              form.amenities.filter((a) => {
+                                const na = normalizeAmenityStr(a);
+                                return a !== amenity.id && na !== normalizeAmenityStr(amenity.name);
+                              }),
+                            );
+                          } else {
+                            updateField("amenities", [...form.amenities, amenity.id]);
+                          }
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all",
+                          selected
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border hover:border-primary/30 text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {Icon && <Icon className="size-4 flex-shrink-0" />}
+                        <span className="truncate">{amenity.name}</span>
+                      </button>
                     );
-                  }}
-                  placeholder="wifi, pool, restaurant, spa, gym, parking"
-                />
+                  })}
+                </div>
+
+                {/* Custom amenity chips */}
+                {(() => {
+                  const customAmenities = form.amenities.filter(
+                    (a) =>
+                      !hotelAmenities.some(
+                        (ha) =>
+                          a === ha.id ||
+                          normalizeAmenityStr(a) === normalizeAmenityStr(ha.name),
+                      ),
+                  );
+                  if (customAmenities.length === 0) return null;
+                  return (
+                    <div className="flex flex-wrap gap-1.5">
+                      {customAmenities.map((a, i) => (
+                        <Badge
+                          key={`${a}-${i}`}
+                          variant="secondary"
+                          className="pl-2.5 pr-1 py-1 gap-1 text-xs border border-border bg-accent text-accent-foreground"
+                        >
+                          {a}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateField(
+                                "amenities",
+                                form.amenities.filter((fa) => fa !== a),
+                              )
+                            }
+                            className="rounded-full hover:bg-foreground/10 p-0.5 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Custom amenity input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={customAmenityInput}
+                    onChange={(e) => setCustomAmenityInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const trimmed = customAmenityInput.trim();
+                        if (trimmed && !form.amenities.some((a) => normalizeAmenityStr(a) === normalizeAmenityStr(trimmed))) {
+                          updateField("amenities", [...form.amenities, trimmed]);
+                          setCustomAmenityInput("");
+                        }
+                      }
+                    }}
+                    placeholder="Agregar servicio personalizado..."
+                    className="flex-1 text-sm h-8"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const trimmed = customAmenityInput.trim();
+                      if (trimmed && !form.amenities.some((a) => normalizeAmenityStr(a) === normalizeAmenityStr(trimmed))) {
+                        updateField("amenities", [...form.amenities, trimmed]);
+                        setCustomAmenityInput("");
+                      }
+                    }}
+                    disabled={!customAmenityInput.trim()}
+                    className="h-8"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Agregar
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="hotel-tags">Tags (separados por coma)</Label>
