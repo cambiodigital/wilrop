@@ -1,3 +1,5 @@
+import { parseStringList } from '@/lib/json'
+
 /**
  * Public hydration helpers — pure, testable normalization for public-facing
  * destination detail, hotel, package, and excursion data loaded through
@@ -122,8 +124,14 @@ export function normalizeHotel(
     isTemplate: Boolean(hotel.isTemplate ?? true),
     address: String(hotel.address ?? ''),
     rooms: parseJsonArray<unknown>(String(hotel.rooms ?? '[]')),
-    amenities: parseJsonArray<string>(String(hotel.amenities ?? '[]')),
-    tags: parseJsonArray<string>(String(hotel.tags ?? '[]')),
+    amenities: parseStringList(
+      Array.isArray(hotel.amenities)
+        ? hotel.amenities
+        : String(hotel.amenities ?? ''),
+    ),
+    tags: parseStringList(
+      Array.isArray(hotel.tags) ? hotel.tags : String(hotel.tags ?? ''),
+    ),
   }
 }
 

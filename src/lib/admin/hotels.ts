@@ -1,4 +1,4 @@
-import { safeJsonParse } from '@/lib/json'
+import { parseStringList, safeJsonParse } from '@/lib/json'
 type JsonArrayValue = string | unknown[] | null | undefined;
 
 export interface AdminHotelRoom {
@@ -75,9 +75,9 @@ export function formatAdminHotel<T extends RawHotel>(hotel: T) {
   return {
     ...hotel,
     images: safeJsonParse<string[]>(hotel.images, []),
-    amenities: safeJsonParse<string[]>(hotel.amenities, []),
+    amenities: parseStringList(hotel.amenities),
     rooms: safeJsonParse<AdminHotelRoom[]>(hotel.rooms, []),
-    tags: safeJsonParse<string[]>(hotel.tags, []),
+    tags: parseStringList(hotel.tags),
   };
 }
 
