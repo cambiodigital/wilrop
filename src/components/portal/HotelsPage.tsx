@@ -68,6 +68,12 @@ function normalizeStr(s: string): string {
     .trim()
 }
 
+function formatCustomAmenityLabel(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+}
+
 function findAmenity(value: string) {
   let match = hotelAmenities.find((a) => a.id === value)
   if (match) return match
@@ -75,7 +81,16 @@ function findAmenity(value: string) {
   match = hotelAmenities.find((a) => normalizeStr(a.name) === normalizedValue)
   if (match) return match
   match = hotelAmenities.find((a) => normalizeStr(a.name).includes(normalizedValue))
-  return match || null
+  if (match) return match
+
+  const label = formatCustomAmenityLabel(value)
+  if (!label) return null
+
+  return {
+    id: `custom-${normalizedValue}`,
+    name: label,
+    icon: 'Check',
+  }
 }
 
 // ─── Icon map ────────────────────────────────────────────────
@@ -92,6 +107,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Clock,
   Plane,
   Eye,
+  Check,
 };
 
 // ─── Animation variants ─────────────────────────────────────

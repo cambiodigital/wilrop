@@ -80,6 +80,12 @@ function normalizeAmenities(raw: string[] | string | undefined | null): string[]
   return raw.split(',').map((s) => s.trim()).filter(Boolean)
 }
 
+function formatCustomAmenityLabel(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+}
+
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Wifi,
   Waves,
@@ -183,6 +189,28 @@ export default function HotelDetailContent({
         : hotel.rating >= 7
           ? 'Muy bueno'
           : 'Bueno'
+
+  const displayAmenities = normalizeAmenities(hotel.amenities)
+    .map((amenityValue, index) => {
+      const amenity = findAmenity(amenityValue)
+      if (amenity) {
+        return {
+          key: `${amenity.id}-${index}`,
+          label: amenity.name,
+          Icon: iconMap[amenity.icon] ?? Check,
+        }
+      }
+
+      const label = formatCustomAmenityLabel(amenityValue)
+      if (!label) return null
+
+      return {
+        key: `${normalizeStr(label)}-${index}`,
+        label,
+        Icon: Check,
+      }
+    })
+    .filter((amenity): amenity is { key: string; label: string; Icon: React.ComponentType<{ className?: string }> } => Boolean(amenity))
 
   return (
     <div className="min-h-screen bg-white pt-0">
@@ -328,23 +356,16 @@ export default function HotelDetailContent({
           <div>
             <h2 className="mb-3 text-sm font-semibold text-neutral-900">Servicios y comodidades</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {normalizeAmenities(hotel.amenities).map((amenityId) => {
-                const amenity = findAmenity(amenityId)
-                if (!amenity) return null
-
-                const Icon = iconMap[amenity.icon]
-
+              {displayAmenities.map(({ key, label, Icon }) => {
                 return (
                   <div
-                    key={amenityId}
+                    key={key}
                     className="flex items-center gap-2.5 rounded-lg bg-neutral-50 px-3 py-2.5"
                   >
-                    {Icon ? (
-                      <div className="flex size-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                        <Icon className="size-3.5" />
-                      </div>
-                    ) : null}
-                    <span className="text-sm text-neutral-700">{amenity.name}</span>
+                    <div className="flex size-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                      <Icon className="size-3.5" />
+                    </div>
+                    <span className="text-sm text-neutral-700">{label}</span>
                   </div>
                 )
               })}
