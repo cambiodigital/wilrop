@@ -88,26 +88,9 @@ export default function CruisesSection() {
     );
   }
 
-  if (cruises.length === 0) {
-    return (
-      <section id="cruises" className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-          <div className="mx-auto flex max-w-md flex-col items-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-12">
-            <div className="flex size-14 items-center justify-center rounded-full bg-sky-100 text-sky-700">
-              <Ship className="size-7" />
-            </div>
-            <h2 className="mt-5 text-2xl font-bold text-neutral-900">
-              No hay cruceros disponibles
-            </h2>
-            <p className="mt-2 text-sm text-neutral-500 sm:text-base">
-              Estamos actualizando el catalogo. Vuelve pronto para ver nuevas
-              salidas activas.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // When there are no cruises, simply don't render the section.
+  // The navigation header and other sections naturally guide the user.
+  if (cruises.length === 0) return null;
 
   return (
     <section id="cruises" className="bg-white">

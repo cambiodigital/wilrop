@@ -355,7 +355,30 @@ export default function ExcursionsPage() {
             >
               <Mountain className="size-12 text-neutral-300 mb-4" />
               <h3 className="text-lg font-semibold text-neutral-700">No hay excursiones disponibles</h3>
-              <p className="mt-1 text-sm text-neutral-500">Prueba con otros filtros</p>
+              <p className="mt-1 text-sm text-neutral-500">Prueba con otros filtros o explora otras experiencias</p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href="/paquetes"
+                  className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                >
+                  Ver paquetes
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  href="/cruceros"
+                  className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100"
+                >
+                  Ver cruceros
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  href="/destinos"
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
+                >
+                  Explorar destinos
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
             </motion.div>
           ) : (
             <motion.div

@@ -1,6 +1,7 @@
 'use client'
 import { formatCurrency } from '@/lib/currency'
 
+import Link from 'next/link'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -558,10 +559,20 @@ export default function CruisesPage() {
               <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-16 text-center shadow-xs">
                 <Ship className="w-16 h-16 mx-auto text-neutral-300 mb-4" />
                 <h3 className="text-lg font-bold text-neutral-800">No encontramos cruceros</h3>
-                <p className="text-sm text-neutral-500 mt-1">Intenta ajustando los filtros o el rango de precios en el menú.</p>
-                <Button onClick={clearFilters} className="mt-6 rounded-xl">
-                  Mostrar todos los cruceros
-                </Button>
+                <p className="text-sm text-neutral-500 mt-1">Intenta ajustando los filtros o explora otras experiencias</p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <Button onClick={clearFilters} variant="outline" className="rounded-xl">
+                    Mostrar todos los cruceros
+                  </Button>
+                  <Link href="/paquetes" className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100">
+                    Ver paquetes
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link href="/excursiones" className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100">
+                    Ver excursiones
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
               </div>
             ) : (
               <motion.div
