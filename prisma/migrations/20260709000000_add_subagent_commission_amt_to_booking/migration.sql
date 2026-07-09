@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "subagentCommissionAmt" INTEGER NOT NULL DEFAULT 0;

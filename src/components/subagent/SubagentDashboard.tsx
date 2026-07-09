@@ -62,6 +62,7 @@ interface Booking {
   totalPrice: number
   netPrice: number
   commissionAmt: number
+  subagentCommissionAmt: number
   checkIn: string
   checkOut: string
   bookedBy: string
@@ -136,7 +137,7 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
     const pending = bookings.filter((b) => b.status === 'pending').length
     const confirmed = bookings.filter((b) => b.status === 'confirmed').length
     const totalRevenue = bookings.reduce((sum, b) => sum + b.totalPrice, 0)
-    const totalCommission = bookings.reduce((sum, b) => sum + b.commissionAmt, 0)
+    const totalCommission = bookings.reduce((sum, b) => sum + (b.subagentCommissionAmt || 0), 0)
     return { total, pending, confirmed, totalRevenue, totalCommission }
   }, [bookings])
 
@@ -301,7 +302,7 @@ export default function SubagentDashboard({ session }: { session?: SubagentDashb
                             <span className="font-semibold text-card-foreground">{formatCurrency(booking.totalPrice)}</span>
                           </td>
                           <td className="px-4 py-3 text-right hidden lg:table-cell">
-                            <span className="font-medium text-amber-600">{formatCurrency(booking.commissionAmt)}</span>
+                            <span className="font-medium text-amber-600">{formatCurrency(booking.subagentCommissionAmt || 0)}</span>
                           </td>
                           <td className="px-4 py-3 hidden lg:table-cell">
                             <span className="text-muted-foreground text-xs flex items-center gap-1">

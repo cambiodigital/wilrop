@@ -29,6 +29,17 @@ interface SaleData {
   status: string;
   saleDate: string;
   notes: string;
+  bookingCode?: string;
+  bookingServiceName?: string;
+  items?: Array<{
+    id: string;
+    itemType: string;
+    serviceName: string;
+    unitPrice: number;
+    quantity: number;
+    totalPrice: number;
+    addons?: Array<{ type: string; price: number }>;
+  }>;
 }
 
 interface ResellerSaleDetailProps {
@@ -192,6 +203,46 @@ export default function ResellerSaleDetail({
               </div>
             </div>
           </div>
+
+          {sale.items && sale.items.length > 0 && (
+            <div className="border-t pt-3">
+              <p className="text-xs text-gray-500 mb-2 font-semibold">Servicios ({sale.items.length})</p>
+              <div className="space-y-2">
+                {sale.items.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg bg-gray-50 border border-gray-100">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{item.serviceName || item.itemType}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
+                        <span className="text-xs text-gray-500">Unit: {formatCurrency(item.unitPrice)}</span>
+                        <span className="text-xs text-gray-500">Cant: {item.quantity}</span>
+                        <span className="text-xs text-gray-500">Total: {formatCurrency(item.totalPrice)}</span>
+                      </div>
+                      {item.addons && item.addons.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {item.addons.map((addon, idx) => (
+                            <Badge key={idx} variant="outline" className="text-[10px] py-0 px-1.5">
+                              {addon.type}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sale.bookingCode && (
+            <div className="border-t pt-3">
+              <p className="text-xs text-gray-500">Booking</p>
+              <p className="text-sm font-mono text-amber-600">{sale.bookingCode}</p>
+              {sale.bookingServiceName && (
+                <p className="text-xs text-gray-500 mt-1">{sale.bookingServiceName}</p>
+              )}
+            </div>
+          )}
 
           {allowedNextStatuses.length > 0 && (
             <div className="border-t pt-3">

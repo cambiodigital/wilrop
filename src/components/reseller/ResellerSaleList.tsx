@@ -44,6 +44,14 @@ export interface SaleData {
   bookingCode: string;
   bookingServiceName: string;
   bookingGuestName: string;
+  items?: Array<{
+    id: string;
+    itemType: string;
+    serviceName: string;
+    unitPrice: number;
+    quantity: number;
+    totalPrice: number;
+  }>;
 }
 
 interface ResellerSaleListProps {
@@ -195,10 +203,11 @@ export default function ResellerSaleList({
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs font-semibold">Cliente</TableHead>
-                  <TableHead className="text-xs font-semibold hidden lg:table-cell">Email</TableHead>
+                  <TableHead className="text-xs font-semibold hidden lg:table-cell">Booking</TableHead>
                   <TableHead className="text-xs font-semibold hidden md:table-cell">Fecha</TableHead>
                   <TableHead className="text-xs font-semibold text-right">Total</TableHead>
                   <TableHead className="text-xs font-semibold text-right hidden sm:table-cell">Comisión</TableHead>
+                  <TableHead className="text-xs font-semibold text-right hidden sm:table-cell">Neto</TableHead>
                   <TableHead className="text-xs font-semibold text-center">Estado</TableHead>
                 </TableRow>
               </TableHeader>
@@ -225,7 +234,14 @@ export default function ResellerSaleList({
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500 hidden lg:table-cell">
-                      {sale.clientEmail || '—'}
+                      {sale.bookingCode ? (
+                        <span
+                          className="text-amber-600 font-mono text-xs cursor-pointer hover:underline"
+                          onClick={(e) => { e.stopPropagation(); onSelectSale(sale); }}
+                        >
+                          {sale.bookingCode}
+                        </span>
+                      ) : '—'}
                     </TableCell>
                     <TableCell className="text-sm text-gray-500 hidden md:table-cell">
                       {formatDateShort(sale.saleDate)}
@@ -236,6 +252,9 @@ export default function ResellerSaleList({
                     <TableCell className="text-sm font-medium text-emerald-600 text-right hidden sm:table-cell">
                       {formatCurrency(sale.commissionAmt)}
                     </TableCell>
+                    <TableCell className="text-sm font-medium text-gray-700 text-right hidden sm:table-cell">
+                      {formatCurrency(sale.netAmount)}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Badge className={`text-[10px] px-2 py-0.5 ${statusBadgeStyles[sale.status] || ''}`}>
                         {statusLabels[sale.status] || sale.status}
@@ -245,7 +264,7 @@ export default function ResellerSaleList({
                 ))}
                 {paginatedSales.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-400">
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-400">
                       {searchTerm || statusFilter !== 'todas'
                         ? 'No se encontraron ventas con los filtros aplicados.'
                         : 'No hay ventas registradas. Registra tu primera venta.'}

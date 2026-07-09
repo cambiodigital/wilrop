@@ -412,9 +412,10 @@ model Booking {
   childrenAges  String    @default("[]") // JSON array
   notes         String    @default("")
   status        String    @default("pending")
-  totalPrice    Int       @default(0)
-  netPrice      Int       @default(0)
-  commissionAmt Int       @default(0)
+  totalPrice            Int       @default(0)
+  netPrice              Int       @default(0)
+  commissionAmt         Int       @default(0)
+  subagentCommissionAmt Int       @default(0)
   checkIn       DateTime?
   checkOut      DateTime?
   bookedBy      String    @default("b2c") // "b2c" | "b2b"

@@ -31,10 +31,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const bookedBy = searchParams.get('bookedBy');
     const status = searchParams.get('status');
+    const resellerId = searchParams.get('resellerId');
 
     const where: Record<string, unknown> = {};
     if (bookedBy) where.bookedBy = bookedBy;
     if (status && status !== 'all') where.status = status;
+    if (resellerId) where.resellerId = resellerId;
 
     const bookings = await db.booking.findMany({
       where,

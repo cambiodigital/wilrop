@@ -2,8 +2,10 @@ import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateBookingInput } from '@/lib/booking-validation'
-import { calculateCommissionAmount } from '@/lib/package-pricing'
-
+import { normalizeBookingItems } from '@/lib/booking-orchestration'
+import { validatePriceIntegrity } from '@/lib/booking-pricing'
+import { bookingEvents, BOOKING_CREATED } from '@/lib/booking-events'
+import { notifyBookingCreated } from '@/lib/booking-notifications'
 
 function formatBookingItem(item: any) {
   return {
@@ -25,11 +27,7 @@ async function generateBookingCode(): Promise<string> {
   const prefix = `WIL-${year}-`
 
   const latestBooking = await db.booking.findFirst({
-    where: {
-      code: {
-        startsWith: prefix,
-      },
-    },
+    where: { code: { startsWith: prefix } },
     orderBy: { code: 'desc' },
     select: { code: true },
   })
@@ -38,9 +36,7 @@ async function generateBookingCode(): Promise<string> {
   if (latestBooking) {
     const lastCode = latestBooking.code
     const lastNumber = parseInt(lastCode.replace(prefix, ''), 10)
-    if (!isNaN(lastNumber)) {
-      nextNumber = lastNumber + 1
-    }
+    if (!isNaN(lastNumber)) nextNumber = lastNumber + 1
   }
 
   return `${prefix}${String(nextNumber).padStart(6, '0')}`
@@ -51,16 +47,11 @@ async function checkAllotmentAvailability(
   dateFrom: string,
   dateTo: string,
 ): Promise<{ available: boolean; message?: string }> {
-  if (!roomTypeId || !dateFrom || !dateTo) {
-    return { available: true }
-  }
+  if (!roomTypeId || !dateFrom || !dateTo) return { available: true }
 
   const from = new Date(dateFrom + 'T00:00:00')
   const to = new Date(dateTo + 'T00:00:00')
-
-  if (isNaN(from.getTime()) || isNaN(to.getTime())) {
-    return { available: true }
-  }
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) return { available: true }
 
   const allotments = await db.allotment.findMany({
     where: {
@@ -69,30 +60,37 @@ async function checkAllotmentAvailability(
       dateFrom: { lte: to },
       dateTo: { gte: from },
     },
-    select: {
-      id: true,
-      totalRooms: true,
-      bookedRooms: true,
-    },
+    select: { id: true, totalRooms: true, bookedRooms: true },
   })
 
   if (allotments.length === 0) {
-    return {
-      available: false,
-      message: 'No hay disponibilidad configurada para estas fechas',
-    }
+    return { available: false, message: 'No hay disponibilidad configurada para estas fechas' }
   }
 
   for (const allotment of allotments) {
-    if (allotment.bookedRooms < allotment.totalRooms) {
-      return { available: true }
-    }
+    if (allotment.bookedRooms < allotment.totalRooms) return { available: true }
   }
 
-  return {
-    available: false,
-    message: 'No hay habitaciones disponibles en el rango de fechas seleccionado',
-  }
+  return { available: false, message: 'No hay habitaciones disponibles en el rango de fechas seleccionado' }
+}
+
+/**
+ * Resolve booking context from request: domain, cookie, query param.
+ * Priority: cookie > domain > query param.
+ */
+function resolveRequestContext(request: NextRequest): {
+  domain: string | null
+  cookieResellerCode: string | null
+  queryResellerCode: string | null
+} {
+  const url = new URL(request.url)
+  const host = request.headers.get('host') || ''
+  const domain = host.split(':')[0] || null
+
+  const cookieResellerCode = request.cookies.get('x-reseller-code')?.value ?? null
+  const queryResellerCode = url.searchParams.get('reseller') ?? null
+
+  return { domain, cookieResellerCode, queryResellerCode }
 }
 
 export async function POST(request: NextRequest) {
@@ -102,11 +100,7 @@ export async function POST(request: NextRequest) {
     const validation = validateBookingInput(body)
     if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: validation.error.flatten().fieldErrors,
-        },
+        { success: false, error: 'Validation failed', details: validation.error.flatten().fieldErrors },
         { status: 400 },
       )
     }
@@ -114,7 +108,6 @@ export async function POST(request: NextRequest) {
     const {
       subagentCode,
       resellerId,
-      bookedBy: requestedBookedBy,
       guestName,
       guestEmail,
       guestPhone,
@@ -126,153 +119,134 @@ export async function POST(request: NextRequest) {
       checkIn,
       checkOut,
       items,
-      // NOTE: totalPrice, netPrice, commissionAmt are IGNORED from client
-      // Server recalculates everything from items + reseller commission
+      totalPrice: clientTotalPrice,
     } = validation.data
 
-    for (const item of items) {
+    // Resolve item type from itemType or serviceType (backward compat)
+    const normalizedInputItems = items.map((item) => ({
+      ...item,
+      itemType: item.itemType || (item as any).serviceType || '',
+    }))
+
+    // Allotment check (hotels only)
+    for (const item of normalizedInputItems) {
       if (item.itemType === 'hotel' && item.roomTypeId && item.dateFrom && item.dateTo) {
         const { available, message } = await checkAllotmentAvailability(
-          item.roomTypeId,
-          item.dateFrom,
-          item.dateTo,
+          item.roomTypeId, item.dateFrom, item.dateTo,
         )
         if (!available) {
-          return NextResponse.json(
-            { success: false, error: message || 'Sin disponibilidad' },
-            { status: 409 },
-          )
+          return NextResponse.json({ success: false, error: message || 'Sin disponibilidad' }, { status: 409 })
         }
       }
     }
 
-    // Resolve subagent
-    let subagentId: string | null = null
-    let bookedBy = requestedBookedBy || 'b2c'
+    // Resolve request context (domain, cookie, query)
+    const reqCtx = resolveRequestContext(request)
 
-    if (subagentCode) {
-      const subagent = await db.subagent.findUnique({
-        where: { code: subagentCode },
-      })
-      if (!subagent || !subagent.active) {
-        return NextResponse.json(
-          { success: false, error: 'Subagent no válido o inactivo' },
-          { status: 403 },
+    // Delegate all pricing to centralized engine
+    const { items: validatedItems, breakdown, actors } = await normalizeBookingItems(
+      normalizedInputItems,
+      {
+        subagentCode,
+        resellerId,
+        domain: reqCtx.domain,
+        cookieResellerCode: reqCtx.cookieResellerCode,
+        resellerCode: reqCtx.queryResellerCode,
+      },
+    )
+
+    // Price integrity check — reject if client total is way off
+    if (clientTotalPrice !== undefined && clientTotalPrice > 0) {
+      const ok = validatePriceIntegrity(clientTotalPrice, breakdown.finalTotal)
+      if (!ok) {
+        console.warn(
+          `[price-integrity] Client total ${clientTotalPrice} vs server ${breakdown.finalTotal} — using server value`,
         )
       }
-      subagentId = subagent.id
-      bookedBy = 'b2b'
     }
-
-    // ── SECURITY: Recalculate total from items — NEVER trust client-sent totalPrice ──
-    const serverCalculatedTotal = items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0)
-
-    // Resolve reseller context — commission comes from DB, NOT from client
-    let resolvedResellerId: string | null = null
-    let resellerCommission = 0
-
-    if (resellerId) {
-      const reseller = await db.reseller.findUnique({
-        where: { id: resellerId },
-        select: { id: true, active: true, approvalStatus: true, commission: true },
-      })
-
-      if (reseller && reseller.active && reseller.approvalStatus === 'approved') {
-        resolvedResellerId = reseller.id
-        resellerCommission = reseller.commission
-        bookedBy = 'custom-package'
-      }
-    }
-
-    // Apply markup if reseller is present — this is the TRUTH, not client price
-    const finalTotalPrice = resolvedResellerId
-      ? Math.round((serverCalculatedTotal * (100 + resellerCommission)) / 100)
-      : serverCalculatedTotal
-
-    const finalCommissionAmt = resolvedResellerId
-      ? calculateCommissionAmount(finalTotalPrice, resellerCommission)
-      : 0
-
-    const finalNetPrice = finalTotalPrice - finalCommissionAmt
 
     const code = await generateBookingCode()
 
-    const booking = await db.booking.create({
-      data: {
-        code,
-        subagentId,
-        resellerId: resolvedResellerId,
-        guestName,
-        guestEmail,
-        guestPhone,
-        guestCountry: guestCountry ?? '',
-        adults: adults ?? 1,
-        children: children ?? 0,
-        childrenAges: JSON.stringify(childrenAges || []),
-        notes: notes ?? '',
-        status: 'pending',
-        totalPrice: finalTotalPrice,
-        netPrice: finalNetPrice,
-        commissionAmt: finalCommissionAmt,
-        checkIn: checkIn ?? '',
-        checkOut: checkOut ?? '',
-        bookedBy,
-        items: {
-          create: items.map((item) => ({
-            itemType: item.itemType,
-            serviceId: item.serviceId,
-            serviceName: item.serviceName ?? '',
-            roomTypeId: item.roomTypeId ?? '',
-            roomName: item.roomName ?? '',
-            dateFrom: item.dateFrom ?? '',
-            dateTo: item.dateTo ?? '',
-            quantity: item.quantity ?? 1,
-            unitPrice: item.unitPrice ?? 0,
-            totalPrice: item.totalPrice ?? 0,
-            addons: JSON.stringify(item.addons || []),
-            status: 'confirmed',
-          })),
-        },
-      },
-      include: {
-        items: {
-          orderBy: { createdAt: 'asc' },
-        },
-        subagent: {
-          select: {
-            id: true,
-            code: true,
-            agencyName: true,
-            contactName: true,
-            email: true,
-            commission: true,
+    // Create Booking + Items + ResellerSale in one transaction
+    const booking = await db.$transaction(async (tx) => {
+      const created = await tx.booking.create({
+        data: {
+          code,
+          subagentId: actors.subagentId,
+          resellerId: actors.resellerId,
+          guestName,
+          guestEmail,
+          guestPhone,
+          guestCountry: guestCountry ?? '',
+          adults: adults ?? 1,
+          children: children ?? 0,
+          childrenAges: JSON.stringify(childrenAges || []),
+          notes: notes ?? '',
+          status: 'pending',
+          totalPrice: breakdown.finalTotal,
+          netPrice: breakdown.netPrice,
+          commissionAmt: breakdown.resellerCommissionAmt,
+          subagentCommissionAmt: breakdown.subagentCommissionAmt,
+          checkIn: checkIn ?? '',
+          checkOut: checkOut ?? '',
+          bookedBy: actors.bookedBy,
+          items: {
+            create: validatedItems.map((item) => ({
+              itemType: item.itemType,
+              serviceId: item.serviceId,
+              serviceName: item.serviceName,
+              roomTypeId: item.roomTypeId ?? '',
+              roomName: item.roomName ?? '',
+              dateFrom: item.dateFrom ?? '',
+              dateTo: item.dateTo ?? '',
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              addons: JSON.stringify(item.addons),
+              status: 'confirmed',
+            })),
           },
         },
-      },
-    })
-
-    // Create ResellerSale record when booking comes from a reseller context
-    if (resolvedResellerId) {
-      await db.resellerSale.create({
-        data: {
-          resellerId: resolvedResellerId,
-          bookingId: booking.id,
-          clientName: guestName,
-          clientEmail: guestEmail,
-          totalAmount: finalTotalPrice,
-          commissionAmt: finalCommissionAmt,
-          netAmount: finalNetPrice,
-          status: 'pending',
-          notes: `Paquete personalizado armado via /paquetes/armar`,
+        include: {
+          items: { orderBy: { createdAt: 'asc' } },
+          subagent: {
+            select: {
+              id: true, code: true, agencyName: true, contactName: true, email: true, commission: true,
+            },
+          },
+          reseller: {
+            select: {
+              id: true, companyName: true, contactName: true, email: true, commission: true,
+            },
+          },
         },
       })
-    }
 
-    for (const item of items) {
+      // Create ResellerSale when reseller context is present
+      if (actors.resellerId) {
+        await tx.resellerSale.create({
+          data: {
+            resellerId: actors.resellerId,
+            bookingId: created.id,
+            clientName: guestName,
+            clientEmail: guestEmail,
+            totalAmount: breakdown.finalTotal,
+            commissionAmt: breakdown.resellerCommissionAmt,
+            netAmount: breakdown.netPrice,
+            status: 'pending',
+            notes: `Reserva ${code}`,
+          },
+        })
+      }
+
+      return created
+    })
+
+    // Allotment update
+    for (const item of normalizedInputItems) {
       if (item.itemType === 'hotel' && item.roomTypeId && item.dateFrom && item.dateTo) {
         const from = new Date(item.dateFrom + 'T00:00:00')
         const to = new Date(item.dateTo + 'T00:00:00')
-
         const matchingAllotments = await db.allotment.findMany({
           where: {
             roomTypeId: item.roomTypeId,
@@ -282,7 +256,6 @@ export async function POST(request: NextRequest) {
           },
           orderBy: { bookedRooms: 'asc' },
         })
-
         for (const allotment of matchingAllotments) {
           if (allotment.bookedRooms < allotment.totalRooms) {
             await db.allotment.update({
@@ -295,6 +268,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Fire-and-forget events
+    bookingEvents.emitAsync(BOOKING_CREATED, {
+      bookingId: booking.id,
+      bookingCode: booking.code,
+      totalPrice: breakdown.finalTotal,
+      netPrice: breakdown.netPrice,
+      commissionAmt: breakdown.resellerCommissionAmt,
+      subagentCommissionAmt: breakdown.subagentCommissionAmt,
+      resellerId: actors.resellerId,
+      subagentId: actors.subagentId,
+    })
+
+    notifyBookingCreated(
+      {
+        code: booking.code,
+        resellerId: actors.resellerId,
+        subagentId: actors.subagentId,
+        totalPrice: breakdown.finalTotal,
+        netPrice: breakdown.netPrice,
+        commissionAmt: breakdown.resellerCommissionAmt,
+        subagentCommissionAmt: breakdown.subagentCommissionAmt,
+      },
+      validatedItems,
+    )
+
     return NextResponse.json(
       { success: true, data: formatBooking(booking) },
       { status: 201 },
@@ -302,8 +300,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating booking:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to create booking' },
-      { status: 500 },
+      { success: false, error: error.message || 'Failed to create booking' },
+      { status: error.message?.includes('not found') || error.message?.includes('Unknown add-on') ? 400 : 500 },
     )
   }
 }

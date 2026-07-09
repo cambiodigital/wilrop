@@ -6,7 +6,8 @@ const addonSchema = z.object({
 })
 
 const bookingItemSchema = z.object({
-  itemType: z.enum(['hotel', 'transport', 'excursion', 'package', 'cruise']),
+  itemType: z.enum(['hotel', 'transport', 'excursion', 'package', 'cruise']).optional(),
+  serviceType: z.enum(['hotel', 'transport', 'excursion', 'package', 'cruise']).optional(),
   serviceId: z.string().min(1),
   serviceName: z.string().optional(),
   roomTypeId: z.string().optional(),
@@ -17,7 +18,10 @@ const bookingItemSchema = z.object({
   unitPrice: z.number().optional(),
   totalPrice: z.number().optional(),
   addons: z.array(addonSchema).optional(),
-})
+}).refine(
+  (data) => data.itemType || data.serviceType,
+  { message: 'itemType or serviceType is required' },
+)
 
 export const createBookingSchema = z.object({
   subagentCode: z.string().optional().nullable(),
@@ -31,7 +35,7 @@ export const createBookingSchema = z.object({
   children: z.number().int().min(0).max(30).optional(),
   childrenAges: z.array(z.number()).optional(),
   notes: z.string().max(2000).optional(),
-  totalPrice: z.number().min(0),
+  totalPrice: z.number().min(0).optional(),
   netPrice: z.number().optional(),
   commissionAmt: z.number().optional(),
   checkIn: z.string().optional(),

@@ -1,6 +1,7 @@
 import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { bookingEvents, BOOKING_STATUS_CHANGED } from '@/lib/booking-events';
 
 
 function formatBookingItem(item: any) {
@@ -36,6 +37,15 @@ export async function GET(
             id: true,
             code: true,
             agencyName: true,
+            contactName: true,
+            email: true,
+            commission: true,
+          },
+        },
+        reseller: {
+          select: {
+            id: true,
+            companyName: true,
             contactName: true,
             email: true,
             commission: true,
@@ -77,6 +87,7 @@ export async function PUT(
       );
     }
 
+    const oldStatus = existing.status;
     const updates: any = {};
 
     if (body.guestName !== undefined) updates.guestName = body.guestName;
@@ -91,6 +102,7 @@ export async function PUT(
     if (body.totalPrice !== undefined) updates.totalPrice = body.totalPrice;
     if (body.netPrice !== undefined) updates.netPrice = body.netPrice;
     if (body.commissionAmt !== undefined) updates.commissionAmt = body.commissionAmt;
+    if (body.subagentCommissionAmt !== undefined) updates.subagentCommissionAmt = body.subagentCommissionAmt;
     if (body.checkIn !== undefined) updates.checkIn = body.checkIn;
     if (body.checkOut !== undefined) updates.checkOut = body.checkOut;
 
@@ -111,8 +123,27 @@ export async function PUT(
             commission: true,
           },
         },
+        reseller: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            email: true,
+            commission: true,
+          },
+        },
       },
     });
+
+    // Emit status change event when status is actually modified
+    if (body.status !== undefined && body.status !== oldStatus) {
+      bookingEvents.emitAsync(BOOKING_STATUS_CHANGED, {
+        bookingId: booking.id,
+        bookingCode: booking.code,
+        oldStatus,
+        newStatus: body.status,
+      });
+    }
 
     return NextResponse.json({ success: true, data: formatBooking(booking) });
   } catch (error: any) {

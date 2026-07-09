@@ -1,6 +1,21 @@
 import { db } from '@/lib/db'
 import type { CreateSaleInput, UpdateSaleInput, SaleFilters } from './sales-validators'
 
+export interface SaleBookingItem {
+  id: string
+  itemType: string
+  serviceId: string
+  serviceName: string
+  roomTypeId: string
+  roomName: string
+  dateFrom: string
+  dateTo: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  addons: Array<{ type: string; price: number }>
+}
+
 export interface ResellerSaleData {
   id: string
   resellerId: string
@@ -19,6 +34,24 @@ export interface ResellerSaleData {
   bookingServiceName: string
   bookingGuestName: string
   clientEmailFromRecord: string
+  items: SaleBookingItem[]
+}
+
+function parseBookingItems(items: any[]): SaleBookingItem[] {
+  return items.map((item) => ({
+    id: item.id,
+    itemType: item.itemType,
+    serviceId: item.serviceId,
+    serviceName: item.serviceName,
+    roomTypeId: item.roomTypeId,
+    roomName: item.roomName,
+    dateFrom: item.dateFrom,
+    dateTo: item.dateTo,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    totalPrice: item.totalPrice,
+    addons: typeof item.addons === 'string' ? JSON.parse(item.addons || '[]') : (item.addons || []),
+  }))
 }
 
 export async function getResellerSales(
@@ -73,11 +106,12 @@ export async function createResellerSale(
   let bookingCode = ''
   let bookingServiceName = ''
   let bookingGuestName = ''
+  let bookingItems: SaleBookingItem[] = []
 
   if (data.bookingId) {
     const booking = await db.booking.findUnique({
       where: { id: data.bookingId },
-      select: { resellerId: true, code: true, guestName: true, items: { take: 1 } },
+      select: { resellerId: true, code: true, guestName: true, items: true },
     })
 
     if (!booking) {
@@ -88,10 +122,12 @@ export async function createResellerSale(
       throw new Error('Este booking no pertenece a este revendedor')
     }
 
-    const serviceName = booking.items.length > 0 ? booking.items[0].serviceName : 'Reserva'
     bookingCode = booking.code
-    bookingServiceName = serviceName
     bookingGuestName = booking.guestName
+    bookingItems = parseBookingItems(booking.items)
+    bookingServiceName = bookingItems.length > 0
+      ? bookingItems.map((i) => i.serviceName).join(', ')
+      : 'Reserva'
 
     await db.booking.update({
       where: { id: data.bookingId },
@@ -116,7 +152,7 @@ export async function createResellerSale(
     },
   })
 
-  return mapSaleData(sale, { code: bookingCode, serviceName: bookingServiceName, guestName: bookingGuestName })
+  return mapSaleData(sale, { code: bookingCode, serviceName: bookingServiceName, guestName: bookingGuestName, items: bookingItems })
 }
 
 export async function updateResellerSale(
@@ -227,22 +263,35 @@ export async function getResellerCommissionPercent(resellerId: string): Promise<
   return reseller?.commission ?? 0
 }
 
-async function getBookingDetails(bookingId: string | null): Promise<{ code: string; serviceName: string; guestName: string }> {
-  if (!bookingId) return { code: '', serviceName: '', guestName: '' }
+async function getBookingDetails(bookingId: string | null): Promise<{
+  code: string
+  serviceName: string
+  guestName: string
+  items: SaleBookingItem[]
+}> {
+  if (!bookingId) return { code: '', serviceName: '', guestName: '', items: [] }
   try {
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
-      select: { code: true, guestName: true, items: { take: 1 } },
+      select: { code: true, guestName: true, items: true },
     })
-    if (!booking) return { code: '', serviceName: '', guestName: '' }
-    const serviceName = booking.items.length > 0 ? booking.items[0].serviceName : 'Reserva'
-    return { code: booking.code, serviceName, guestName: booking.guestName }
+    if (!booking) return { code: '', serviceName: '', guestName: '', items: [] }
+
+    const items = parseBookingItems(booking.items)
+    const serviceName = items.length > 0
+      ? items.map((i) => i.serviceName).join(', ')
+      : 'Reserva'
+
+    return { code: booking.code, serviceName, guestName: booking.guestName, items }
   } catch {
-    return { code: '', serviceName: '', guestName: '' }
+    return { code: '', serviceName: '', guestName: '', items: [] }
   }
 }
 
-function mapSaleData(sale: any, bookingDetails: { code: string; serviceName: string; guestName: string }): ResellerSaleData {
+function mapSaleData(
+  sale: any,
+  bookingDetails: { code: string; serviceName: string; guestName: string; items: SaleBookingItem[] },
+): ResellerSaleData {
   return {
     id: sale.id,
     resellerId: sale.resellerId,
@@ -261,5 +310,6 @@ function mapSaleData(sale: any, bookingDetails: { code: string; serviceName: str
     bookingServiceName: bookingDetails.serviceName,
     bookingGuestName: bookingDetails.guestName,
     clientEmailFromRecord: sale.clientEmail,
+    items: bookingDetails.items,
   }
 }

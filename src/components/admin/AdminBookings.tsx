@@ -76,6 +76,7 @@ interface Booking {
   id: string;
   code: string;
   subagentId: string | null;
+  resellerId: string | null;
   guestName: string;
   guestEmail: string;
   guestPhone: string;
@@ -88,6 +89,7 @@ interface Booking {
   totalPrice: number;
   netPrice: number;
   commissionAmt: number;
+  subagentCommissionAmt: number;
   checkIn: string;
   checkOut: string;
   bookedBy: string;
@@ -101,6 +103,18 @@ interface Booking {
     email: string;
     commission: number;
   };
+  reseller?: {
+    id: string;
+    companyName: string;
+    contactName: string;
+    email: string;
+    commission: number;
+  };
+}
+
+interface ResellerOption {
+  id: string;
+  companyName: string;
 }
 
 // ─── Status config ───────────────────────────────────────────────
@@ -139,6 +153,8 @@ export default function AdminBookings() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [resellerFilter, setResellerFilter] = useState('all');
+  const [resellers, setResellers] = useState<ResellerOption[]>([]);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -146,7 +162,9 @@ export default function AdminBookings() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/bookings');
+      const params = new URLSearchParams();
+      if (resellerFilter !== 'all') params.set('resellerId', resellerFilter);
+      const res = await fetch(`/api/admin/bookings?${params.toString()}`);
       if (!res.ok) throw new Error('Error al cargar reservas');
       const json = await res.json();
       setBookings(json.data || json);
@@ -156,11 +174,24 @@ export default function AdminBookings() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resellerFilter]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  // Fetch reseller list for filter dropdown
+  useEffect(() => {
+    fetch('/api/admin/resellers')
+      .then((r) => r.json())
+      .then((json) => {
+        const data = json.data || json;
+        if (Array.isArray(data)) {
+          setResellers(data.map((r: any) => ({ id: r.id, companyName: r.companyName })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = bookings.filter((b) => {
     const matchesSearch =
@@ -289,6 +320,20 @@ export default function AdminBookings() {
               />
             </div>
             <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Revendedor</Label>
+              <Select value={resellerFilter} onValueChange={setResellerFilter}>
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {resellers.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.companyName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Estado</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-44">
@@ -323,6 +368,7 @@ export default function AdminBookings() {
                   <TableRow>
                     <TableHead>Código</TableHead>
                     <TableHead>Huésped</TableHead>
+                    <TableHead>Revendedor</TableHead>
                     <TableHead>Pax</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Total</TableHead>
@@ -335,8 +381,8 @@ export default function AdminBookings() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                        {search || statusFilter !== 'all'
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                        {search || statusFilter !== 'all' || resellerFilter !== 'all'
                           ? 'No se encontraron resultados'
                           : 'No hay reservas registradas'}
                       </TableCell>
@@ -352,6 +398,9 @@ export default function AdminBookings() {
                             <p className="text-sm font-medium">{b.guestName}</p>
                             <p className="text-xs text-muted-foreground">{b.guestEmail}</p>
                           </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {b.reseller?.companyName || 'B2C'}
                         </TableCell>
                         <TableCell className="text-sm">
                           <span className="font-medium">{b.adults}</span>
@@ -521,6 +570,18 @@ export default function AdminBookings() {
                         </p>
                       </div>
                     )}
+                    {selectedBooking.reseller && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs text-amber-600 font-medium">Revendedor</p>
+                        <p className="text-sm">{selectedBooking.reseller.companyName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Contacto: {selectedBooking.reseller.contactName} ({selectedBooking.reseller.email})
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Comisión: {selectedBooking.reseller.commission}%
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -528,11 +589,11 @@ export default function AdminBookings() {
                 <Card className="border border-border">
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm font-semibold text-card-foreground flex items-center gap-2">
-                      <CreditCard className="w-4 h-4" /> Precios
+                      <CreditCard className="w-4 h-4" /> Precios y Comisiones
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Total</p>
                         <p className="text-lg font-bold text-card-foreground">
@@ -547,6 +608,32 @@ export default function AdminBookings() {
                         <p className="text-xs text-muted-foreground">Margen</p>
                         <p className="text-sm font-medium text-green-600">
                           {formatCurrency(selectedBooking.totalPrice - selectedBooking.netPrice)}
+                        </p>
+                      </div>
+                      {selectedBooking.commissionAmt > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Comisión Revendedor</p>
+                          <p className="text-sm font-medium text-amber-600">
+                            {formatCurrency(selectedBooking.commissionAmt)}
+                          </p>
+                        </div>
+                      )}
+                      {(selectedBooking.subagentCommissionAmt ?? 0) > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Comisión Subagente</p>
+                          <p className="text-sm font-medium text-blue-600">
+                            {formatCurrency(selectedBooking.subagentCommissionAmt ?? 0)}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-muted-foreground">Neto Plataforma</p>
+                        <p className="text-sm font-medium text-card-foreground">
+                          {formatCurrency(
+                            selectedBooking.totalPrice -
+                            selectedBooking.commissionAmt -
+                            (selectedBooking.subagentCommissionAmt ?? 0),
+                          )}
                         </p>
                       </div>
                     </div>
