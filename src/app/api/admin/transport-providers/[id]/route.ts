@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
 
@@ -38,6 +42,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
     const body = await request.json();
@@ -77,9 +84,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
 

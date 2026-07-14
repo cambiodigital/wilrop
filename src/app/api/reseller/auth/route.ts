@@ -3,19 +3,33 @@ import { createPanelSessionToken, getPanelSessionCookie } from '@/lib/panel-auth
 import { db } from '@/lib/db'
 import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access'
 import { verifyPassword } from '@/lib/password.mjs'
+import { loginSchema } from '@/lib/validators/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
-    const password = typeof body.password === 'string' ? body.password : ''
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const { allowed, remaining } = checkRateLimit(`reseller-auth:${ip}`, 5, 15 * 60 * 1000)
 
-    if (!email || !password) {
+    if (!allowed) {
       return NextResponse.json(
-        { success: false, error: 'Correo y contraseña son obligatorios' },
+        { success: false, error: 'Demasiados intentos. Intenta más tarde.' },
+        { status: 429 },
+      )
+    }
+
+    const body = await request.json()
+
+    const parsed = loginSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 },
       )
     }
+
+    const email = parsed.data.email.trim().toLowerCase()
+    const password = parsed.data.password
 
     let reseller = await db.reseller.findUnique({
       where: { email },
@@ -146,7 +160,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set(getPanelSessionCookie('reseller', sessionToken))
     return response
   } catch (error) {
-    console.error('[ResellerAuth] Error:', error)
+    console.error('[ResellerAuth] Error:', error instanceof Error ? error.message : 'Unknown')
     return NextResponse.json(
       { success: false, error: 'No se pudo iniciar sesión' },
       { status: 500 },

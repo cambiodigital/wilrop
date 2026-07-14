@@ -29,7 +29,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { hotelAmenities, type Hotel, type HotelRoom } from '@/data/hotels'
+import { hotelAmenities, type Hotel, type HotelRoom } from '@/lib/hotel-amenities'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 // Normalize a string for fuzzy comparison: lowercase, strip accents, trim

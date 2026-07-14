@@ -1,34 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { safeJsonParse } from "@/lib/json";
 import {
   buildHotelCreateData,
   formatAdminHotel,
   isUniqueConstraintError,
 } from "@/lib/admin/hotels";
 import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
-
-async function syncHotelRoomsCache(hotelId: string) {
-  const roomTypes = await db.roomType.findMany({ where: { hotelId } });
-  const formattedRooms = roomTypes
-    .filter((rt) => rt.active)
-    .map((rt) => ({
-      id: rt.id,
-      name: rt.name,
-      maxGuests: rt.maxGuests,
-      beds: rt.beds,
-      price: rt.basePrice,
-      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
-      includes: safeJsonParse<string[]>(rt.includes, []),
-      available: 1,
-      roomImage: rt.roomImage,
-      roomImages: safeJsonParse<string[]>(rt.roomImages, []),
-    }));
-  await db.hotel.update({
-    where: { id: hotelId },
-    data: { rooms: JSON.stringify(formattedRooms) },
-  });
-}
+import { getAdminSession } from "@/lib/admin/auth-helpers";
+import { createHotelSchema } from "@/lib/validators/hotels";
 
 async function batchCreateRoomTypes(
   hotelId: string,
@@ -54,7 +33,10 @@ async function batchCreateRoomTypes(
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const realCount = await db.hotel.count({
       where: { isTemplate: false },
@@ -64,6 +46,7 @@ export async function GET() {
       where: {
         isTemplate: realCount > 0 ? false : true,
       },
+      include: { roomTypes: true },
     });
 
     const parsed = hotels.map(formatAdminHotel);
@@ -79,62 +62,55 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
+
+    const parsed = createHotelSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      );
+    }
 
     // Use a transaction so hotel + rooms are created atomically.
     // If room creation fails, the hotel is rolled back — no orphaned rows.
     const hotel = await db.$transaction(async (tx) => {
       const created = await tx.hotel.create({
-        data: { ...buildHotelCreateData(body), isTemplate: false },
+        data: { ...buildHotelCreateData(parsed.data), isTemplate: false },
       });
 
-      if (
-        Array.isArray(body._pendingRoomTypes) &&
-        body._pendingRoomTypes.length > 0
-      ) {
-        for (const rt of body._pendingRoomTypes) {
-          const roomImages = Array.isArray(rt.roomImages) ? rt.roomImages : [];
-          const roomImage = (typeof rt.roomImage === "string" && rt.roomImage) || roomImages[0] || "";
+      const pendingRoomTypes = parsed.data._pendingRoomTypes;
+      if (pendingRoomTypes && pendingRoomTypes.length > 0) {
+        for (const rt of pendingRoomTypes) {
+          const roomImage = rt.roomImage || (rt.roomImages && rt.roomImages[0]) || "";
           await tx.roomType.create({
             data: {
               hotelId: created.id,
-              name: (typeof rt.name === "string" && rt.name) || "Habitación Estándar",
-              maxGuests: typeof rt.maxGuests === "number" ? rt.maxGuests : 2,
-              beds: (typeof rt.beds === "string" && rt.beds) || "1 cama doble",
-              basePrice: typeof rt.basePrice === "number" ? rt.basePrice : 0,
-              originalPrice: typeof rt.originalPrice === "number" ? rt.originalPrice : 0,
-              includes: JSON.stringify(Array.isArray(rt.includes) ? rt.includes : []),
+              name: rt.name || "Habitación Estándar",
+              maxGuests: rt.maxGuests ?? 2,
+              beds: rt.beds || "1 cama doble",
+              basePrice: rt.basePrice ?? 0,
+              originalPrice: rt.originalPrice ?? 0,
+              includes: JSON.stringify(rt.includes || []),
               roomImage,
-              roomImages: JSON.stringify(roomImages),
-              active: typeof rt.active === "boolean" ? rt.active : true,
+              roomImages: JSON.stringify(rt.roomImages || []),
+              active: rt.active ?? true,
             },
           });
         }
-
-        // Sync the rooms JSON cache inside the transaction
-        const createdRoomTypes = await tx.roomType.findMany({ where: { hotelId: created.id } });
-        const formattedRooms = createdRoomTypes
-          .filter((rt) => rt.active)
-          .map((rt) => ({
-            id: rt.id,
-            name: rt.name,
-            maxGuests: rt.maxGuests,
-            beds: rt.beds,
-            price: rt.basePrice,
-            originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
-            includes: safeJsonParse<string[]>(rt.includes, []),
-            available: 1,
-            roomImage: rt.roomImage,
-            roomImages: safeJsonParse<string[]>(rt.roomImages, []),
-          }));
-        await tx.hotel.update({
-          where: { id: created.id },
-          data: { rooms: JSON.stringify(formattedRooms) },
-        });
       }
 
       return created;
+    });
+
+    // Fetch the hotel with roomTypes for the response
+    const hotelWithRooms = await db.hotel.findUnique({
+      where: { id: hotel.id },
+      include: { roomTypes: true },
     });
 
     if (hotel.resellerId) {
@@ -142,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, data: formatAdminHotel(hotel) },
+      { success: true, data: formatAdminHotel(hotelWithRooms!) },
       { status: 201 },
     );
   } catch (error: any) {

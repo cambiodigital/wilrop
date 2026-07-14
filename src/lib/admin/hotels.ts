@@ -1,4 +1,5 @@
 import { parseStringList, safeJsonParse } from '@/lib/json'
+import { parseRoomTypeIncludes, getRoomImages } from '@/lib/admin/hotel-roomtypes'
 type JsonArrayValue = string | unknown[] | null | undefined;
 
 export interface AdminHotelRoom {
@@ -25,7 +26,6 @@ export interface AdminHotelPayload {
   description?: string;
   images?: string[];
   amenities?: string[];
-  rooms?: AdminHotelRoom[];
   rating?: number;
   reviewCount?: number;
   priceFrom?: number;
@@ -38,8 +38,19 @@ export interface AdminHotelPayload {
 interface RawHotel {
   images: string;
   amenities: string;
-  rooms: string;
   tags: string;
+  roomTypes?: Array<{
+    id: string;
+    name: string;
+    maxGuests: number;
+    beds: string;
+    basePrice: number;
+    originalPrice: number;
+    includes: string;
+    roomImage: string;
+    roomImages?: string;
+    active: boolean;
+  }>;
   [key: string]: unknown;
 }
 
@@ -72,11 +83,27 @@ export function generateHotelSlug(name: string): string {
 }
 
 export function formatAdminHotel<T extends RawHotel>(hotel: T) {
+  const roomTypes = hotel.roomTypes ?? [];
+  const rooms: AdminHotelRoom[] = roomTypes
+    .filter((rt) => rt.active)
+    .map((rt) => ({
+      id: rt.id,
+      name: rt.name,
+      maxGuests: rt.maxGuests,
+      beds: rt.beds,
+      price: rt.basePrice,
+      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
+      includes: parseRoomTypeIncludes(rt.includes),
+      available: 1,
+      roomImage: rt.roomImage,
+      roomImages: getRoomImages(rt),
+    }));
+
   return {
     ...hotel,
     images: safeJsonParse<string[]>(hotel.images, []),
     amenities: parseStringList(hotel.amenities),
-    rooms: safeJsonParse<AdminHotelRoom[]>(hotel.rooms, []),
+    rooms,
     tags: parseStringList(hotel.tags),
   };
 }
@@ -102,7 +129,6 @@ export function buildHotelCreateData(payload: AdminHotelPayload) {
     description: payload.description ?? '',
     images: toJsonArray(payload.images),
     amenities: toJsonArray(payload.amenities),
-    rooms: toJsonArray(payload.rooms),
     rating: toNumber(payload.rating, 0),
     reviewCount: toNumber(payload.reviewCount, 0),
     priceFrom: toNumber(payload.priceFrom, 0),
@@ -126,7 +152,6 @@ export function buildHotelUpdateData(payload: AdminHotelPayload) {
   if (payload.description !== undefined) updates.description = payload.description;
   if (payload.images !== undefined) updates.images = toJsonArray(payload.images);
   if (payload.amenities !== undefined) updates.amenities = toJsonArray(payload.amenities);
-  if (payload.rooms !== undefined) updates.rooms = toJsonArray(payload.rooms);
   if (payload.rating !== undefined) updates.rating = toNumber(payload.rating, 0);
   if (payload.reviewCount !== undefined) updates.reviewCount = toNumber(payload.reviewCount, 0);
   if (payload.priceFrom !== undefined) updates.priceFrom = toNumber(payload.priceFrom, 0);

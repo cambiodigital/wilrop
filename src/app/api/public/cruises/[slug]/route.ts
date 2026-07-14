@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { normalizeCruise } from '@/lib/catalog/public-hydration';
-import { cruises as fallbackCruises } from '@/data/cruises';
 
 export async function GET(
   _request: NextRequest,
@@ -31,10 +30,6 @@ export async function GET(
     });
 
     if (!cruise) {
-      const staticCruise = fallbackCruises.find(c => c.id === slug || c.slug === slug);
-      if (staticCruise) {
-        return NextResponse.json({ success: true, data: staticCruise });
-      }
       return NextResponse.json(
         { success: false, error: 'Cruise not found' },
         { status: 404 }

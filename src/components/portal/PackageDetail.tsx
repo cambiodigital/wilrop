@@ -2,7 +2,7 @@
 import { formatDateShort } from '@/lib/date'
 
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   MapPin,
@@ -19,7 +19,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { packages, getPackagesByDestination } from '@/data/packages'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
@@ -38,20 +37,40 @@ interface PackageDetailProps {
 export default function PackageDetail({ packageId, pkg: initialPkg, relatedPackages: initialRelatedPackages }: PackageDetailProps) {
   const selectedPackageId = useNavigationStore((state) => state.selectedPackageId)
   const { navigate } = usePortalNavigation()
+  const [fetchedPkg, setFetchedPkg] = useState<any>(null)
+  const [fetchedRelated, setFetchedRelated] = useState<any[]>([])
 
-  const pkg = useMemo(
-    () => initialPkg || packages.find((p) => p.id === (packageId ?? selectedPackageId)),
-    [initialPkg, packageId, selectedPackageId]
-  )
+  const targetId = packageId ?? selectedPackageId
 
-  const relatedPackages = useMemo(
-    () =>
-      initialRelatedPackages ||
-      (pkg
-        ? getPackagesByDestination(pkg.destinationId).filter((p) => p.id !== pkg.id)
-        : []),
-    [initialRelatedPackages, pkg]
-  )
+  // Fetch package from API if not provided as prop
+  useEffect(() => {
+    if (initialPkg || !targetId) return
+    fetch(`/api/public/packages?id=${targetId}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setFetchedPkg(res.data[0])
+        }
+      })
+      .catch((err) => console.error('Error fetching package:', err))
+  }, [initialPkg, targetId])
+
+  const pkg = initialPkg || fetchedPkg
+
+  // Fetch related packages from API
+  useEffect(() => {
+    if (initialRelatedPackages || !pkg?.destinationId) return
+    fetch(`/api/public/packages?destinationId=${pkg.destinationId}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setFetchedRelated(res.data.filter((p: any) => p.id !== pkg.id))
+        }
+      })
+      .catch((err) => console.error('Error fetching related packages:', err))
+  }, [initialRelatedPackages, pkg?.destinationId, pkg?.id])
+
+  const relatedPackages = initialRelatedPackages || fetchedRelated
 
   if (!pkg) {
     return (

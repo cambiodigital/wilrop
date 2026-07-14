@@ -7,8 +7,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Star, ArrowRight, Building2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getFeaturedHotels } from '@/data/hotels'
-import type { Hotel } from '@/data/hotels'
+import type { Hotel } from '@/lib/hotel-amenities'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -96,7 +95,7 @@ export default function HotelPreviewSection() {
     if (hotelsList.length > 0) {
       return hotelsList
     }
-    return loading ? [] : getFeaturedHotels()
+    return loading ? [] : []
   }, [hotelsList, loading])
 
   return (

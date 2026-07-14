@@ -37,7 +37,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { hotels } from '@/data/hotels'
+import { useNavigationStore } from '@/store/useNavigationStore'
+import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 /**
  * Check if the hotel has an amenity, matching by both English ID and
@@ -54,8 +55,6 @@ function hasAmenity(amenities: string[], targetId: string, targetNameEs: string)
     return an === targetNorm || an === nameNorm || an.includes(nameNorm) || nameNorm.includes(an)
   })
 }
-import { useNavigationStore } from '@/store/useNavigationStore'
-import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
 import { getAddon } from '@/lib/extras-pricing'
 
@@ -137,6 +136,7 @@ export default function HotelBookingFlow({
   const [currentStep, setCurrentStep] = useState(1)
   const [bookingRef] = useState(() => 'WIL-HTL-' + Math.random().toString(36).substring(2, 8).toUpperCase())
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [fetchedHotel, setFetchedHotel] = useState<any>(null)
 
   const bookingData = hotelId
     ? {
@@ -157,8 +157,21 @@ export default function HotelBookingFlow({
     childrenAges: bookingData?.childrenAges ?? [],
   })
 
-  const hotel = initialHotel || hotels.find((h) => h.id === bookingData?.hotelId)
-  const room = hotel?.rooms.find((r: any) => r.id === bookingData?.roomId)
+  // Fetch hotel from API if not provided as prop
+  useEffect(() => {
+    if (initialHotel || !bookingData?.hotelId) return
+    fetch(`/api/public/hotels?id=${bookingData.hotelId}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setFetchedHotel(res.data[0])
+        }
+      })
+      .catch((err) => console.error('Error fetching hotel:', err))
+  }, [initialHotel, bookingData?.hotelId])
+
+  const hotel = initialHotel || fetchedHotel
+  const room = hotel?.rooms?.find((r: any) => r.id === bookingData?.roomId)
 
   const checkIn = bookingData?.checkIn ?? ''
   const checkOut = bookingData?.checkOut ?? ''

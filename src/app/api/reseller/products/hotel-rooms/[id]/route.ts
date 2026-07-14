@@ -23,30 +23,6 @@ async function requireResellerSession() {
   return verifyPanelSessionToken(sessionValue, "reseller");
 }
 
-async function syncHotelRoomsCache(hotelId: string) {
-  const roomTypes = await db.roomType.findMany({ where: { hotelId } });
-  const formattedRooms = roomTypes
-    .filter((roomType) => roomType.active)
-    .map((roomType) => ({
-      id: roomType.id,
-      name: roomType.name,
-      maxGuests: roomType.maxGuests,
-      beds: roomType.beds,
-      price: roomType.basePrice,
-      originalPrice:
-        roomType.originalPrice > 0 ? roomType.originalPrice : undefined,
-      includes: safeJsonParse<string[]>(roomType.includes, []),
-      available: 1,
-      roomImage: roomType.roomImage,
-      roomImages: safeJsonParse<string[]>(roomType.roomImages, []),
-    }));
-
-  await db.hotel.update({
-    where: { id: hotelId },
-    data: { rooms: JSON.stringify(formattedRooms) },
-  });
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -100,7 +76,6 @@ export async function POST(
       include: { hotel: { select: { id: true, name: true, cityName: true } } },
     });
 
-    await syncHotelRoomsCache(hotelId);
     return NextResponse.json(
       { success: true, data: formatRoom(room) },
       { status: 201 },
@@ -166,7 +141,6 @@ export async function PUT(
       data: updates,
       include: { hotel: { select: { id: true, name: true, cityName: true } } },
     });
-    await syncHotelRoomsCache(existing.hotelId);
     return NextResponse.json({ success: true, data: formatRoom(room) });
   } catch (error) {
     console.error("Error updating reseller room:", error);
@@ -205,7 +179,6 @@ export async function DELETE(
     }
 
     await db.roomType.delete({ where: { id } });
-    await syncHotelRoomsCache(existing.hotelId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting reseller room:", error);

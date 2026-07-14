@@ -1,4 +1,5 @@
 import { parseStringList } from '@/lib/json'
+import { parseRoomTypeIncludes, getRoomImages } from '@/lib/admin/hotel-roomtypes'
 
 /**
  * Public hydration helpers — pure, testable normalization for public-facing
@@ -107,6 +108,22 @@ export interface NormalizedHotel {
 export function normalizeHotel(
   hotel: Record<string, unknown>,
 ): NormalizedHotel {
+  const roomTypes = Array.isArray(hotel.roomTypes) ? hotel.roomTypes : [];
+  const rooms = roomTypes
+    .filter((rt: Record<string, unknown>) => rt.active !== false)
+    .map((rt: Record<string, unknown>) => ({
+      id: String(rt.id ?? ''),
+      name: String(rt.name ?? ''),
+      maxGuests: Number(rt.maxGuests ?? 2),
+      beds: String(rt.beds ?? ''),
+      price: Number(rt.basePrice ?? 0),
+      originalPrice: Number(rt.originalPrice ?? 0) > 0 ? Number(rt.originalPrice) : undefined,
+      includes: parseRoomTypeIncludes(rt.includes),
+      available: 1,
+      roomImage: String(rt.roomImage ?? ''),
+      roomImages: getRoomImages({ roomImage: String(rt.roomImage ?? ''), roomImages: rt.roomImages }),
+    }));
+
   return {
     id: String(hotel.id ?? ''),
     slug: String(hotel.slug ?? ''),
@@ -123,7 +140,7 @@ export function normalizeHotel(
     active: Boolean(hotel.active ?? true),
     isTemplate: Boolean(hotel.isTemplate ?? true),
     address: String(hotel.address ?? ''),
-    rooms: parseJsonArray<unknown>(String(hotel.rooms ?? '[]')),
+    rooms,
     amenities: parseStringList(
       Array.isArray(hotel.amenities)
         ? hotel.amenities

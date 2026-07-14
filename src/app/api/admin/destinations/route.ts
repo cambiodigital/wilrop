@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
+import { getAdminSession } from "@/lib/admin/auth-helpers";
+import { createDestinationSchema } from "@/lib/validators/destinations";
 
 function parseHighlights(highlights: string): string[] {
   try {
@@ -26,7 +28,10 @@ function generateSlug(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const realCount = await db.destination.count({
       where: { isTemplate: false },
@@ -52,8 +57,19 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
+
+    const parsed = createDestinationSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      );
+    }
 
     const {
       name,
@@ -68,17 +84,7 @@ export async function POST(request: NextRequest) {
       order,
       slug,
       resellerId,
-    } = body;
-
-    if (!name || !region || !description || !image) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Name, region, description, and image are required",
-        },
-        { status: 400 },
-      );
-    }
+    } = parsed.data;
 
     const finalSlug = slug || generateSlug(name);
 

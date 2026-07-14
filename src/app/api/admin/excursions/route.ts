@@ -2,6 +2,8 @@ import { safeJsonParse } from "@/lib/json";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
+import { getAdminSession } from "@/lib/admin/auth-helpers";
+import { createExcursionSchema } from "@/lib/validators/excursions";
 
 function formatExcursion(excursion: any) {
   return {
@@ -22,7 +24,10 @@ function generateSlug(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const realCount = await db.excursion.count({
       where: { isTemplate: false },
@@ -48,8 +53,19 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
+
+    const parsed = createExcursionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      );
+    }
 
     const {
       slug,
@@ -73,14 +89,7 @@ export async function POST(request: NextRequest) {
       featured,
       active,
       resellerId,
-    } = body;
-
-    if (!name) {
-      return NextResponse.json(
-        { success: false, error: "Name is required" },
-        { status: 400 },
-      );
-    }
+    } = parsed.data;
 
     const finalSlug = slug || generateSlug(name);
 

@@ -183,6 +183,7 @@ export async function GET(request: NextRequest) {
     // --- Query hotels ---
     const hotels = await db.hotel.findMany({
       where,
+      include: { roomTypes: true },
       orderBy: [
         ...(sortBy === "price-asc" ? [{ priceFrom: "asc" as const }] : []),
         ...(sortBy === "price-desc" ? [{ priceFrom: "desc" as const }] : []),

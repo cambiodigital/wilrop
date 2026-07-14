@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 
 export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const hotelId = searchParams.get('hotelId');

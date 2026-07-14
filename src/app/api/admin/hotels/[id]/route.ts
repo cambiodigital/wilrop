@@ -6,16 +6,21 @@ import {
   isUniqueConstraintError,
 } from "@/lib/admin/hotels";
 import { handleResellerCatalogSync } from "@/lib/reseller/catalog";
+import { getAdminSession } from "@/lib/admin/auth-helpers";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
 
     const hotel = await db.hotel.findUnique({
       where: { id },
+      include: { roomTypes: true },
     });
 
     if (!hotel) {
@@ -39,6 +44,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
     const body = await request.json();
@@ -54,6 +62,7 @@ export async function PUT(
     const hotel = await db.hotel.update({
       where: { id },
       data: buildHotelUpdateData(body),
+      include: { roomTypes: true },
     });
 
     if (body.resellerId !== undefined) {
@@ -86,9 +95,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
 

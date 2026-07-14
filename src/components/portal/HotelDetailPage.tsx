@@ -1,7 +1,7 @@
 'use client'
 
 import HotelDetailContent from '@/components/portal/HotelDetailContent'
-import type { Hotel } from '@/data/hotels'
+import type { Hotel } from '@/lib/hotel-amenities'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 interface HotelDetailPageProps {

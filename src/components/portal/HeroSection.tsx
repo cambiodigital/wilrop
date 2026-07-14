@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { destinations as staticDestinations } from '@/data/destinations'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 
 interface StatItem {
@@ -38,7 +37,7 @@ export default function HeroSection() {
   const { navigate } = usePortalNavigation()
   const [selectedDest, setSelectedDest] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
-  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+  const [destinationsList, setDestinationsList] = useState<any[]>([])
   const [stats, setStats] = useState<StatItem[]>(() => [
     { label: 'Viajeros Felices', value: '—', icon: Users },
     { label: 'Paquetes', value: '—', icon: Briefcase },

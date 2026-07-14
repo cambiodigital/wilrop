@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -27,8 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWhiteLabelStore } from '@/store/useWhiteLabelStore';
-import { destinations } from '@/data/destinations';
-import { packages, formatPrice } from '@/data/packages';
+import { formatCurrency } from '@/lib/currency';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -47,6 +46,28 @@ const staggerContainer = {
 export default function WhiteLabelPreview() {
   const { config } = useWhiteLabelStore();
   const router = useRouter();
+  const [destinations, setDestinations] = useState<any[]>([]);
+  const [packages, setPackages] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/public/destinations')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setDestinations(res.data);
+        }
+      })
+      .catch((err) => console.error('Error fetching destinations:', err));
+
+    fetch('/api/public/packages')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setPackages(res.data);
+        }
+      })
+      .catch((err) => console.error('Error fetching packages:', err));
+  }, []);
 
   const selectedDestinations = destinations.filter((d) =>
     config.selectedDestinations.includes(d.id)
@@ -298,7 +319,7 @@ export default function WhiteLabelPreview() {
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-muted-foreground">
                     Desde <span className="font-bold text-base" style={{ color: config.secondaryColor }}>
-                      {formatPrice(
+                      {formatCurrency(
                         Math.min(
                           ...packages
                             .filter((p) => p.destinationId === dest.id)
@@ -417,10 +438,10 @@ export default function WhiteLabelPreview() {
                     <div className="flex items-end justify-between pt-3 border-t border-border">
                       <div>
                         <div className="text-xs text-muted-foreground line-through">
-                          {pkg.originalPrice && formatPrice(pkg.originalPrice)}
+                          {pkg.originalPrice && formatCurrency(pkg.originalPrice)}
                         </div>
                         <div className="text-xl font-bold" style={{ color: config.primaryColor }}>
-                          {formatPrice(pkg.price)}
+                          {formatCurrency(pkg.price)}
                         </div>
                         <div className="text-[11px] text-muted-foreground">por persona</div>
                       </div>

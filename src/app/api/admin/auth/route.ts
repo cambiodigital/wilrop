@@ -2,31 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { encodeAdminSession, getAdminSessionCookie } from '@/lib/admin-auth';
 import { hashPassword, shouldUpgradePasswordHash, verifyPassword } from '@/lib/password.mjs';
+import { loginSchema } from '@/lib/validators/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-    const password = typeof body.password === 'string' ? body.password : '';
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const { allowed, remaining } = checkRateLimit(`admin-auth:${ip}`, 5, 15 * 60 * 1000);
 
-    console.log('[AdminAuth] Request body received:', { emailProvided: !!body.email, email, passwordProvided: !!body.password });
-
-    if (!email || !password) {
-      console.log('[AdminAuth] Missing credentials - email:', !!email, 'password:', !!password);
+    if (!allowed) {
       return NextResponse.json(
-        { success: false, error: 'Email y contrasena son obligatorios' },
+        { success: false, error: 'Demasiados intentos. Intenta más tarde.' },
+        { status: 429 }
+      );
+    }
+
+    const body = await request.json();
+
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const email = parsed.data.email.trim().toLowerCase();
+    const password = parsed.data.password;
 
     const admin = await db.admin.findUnique({
       where: { email },
     });
 
-    console.log('[AdminAuth] DB lookup - admin found:', !!admin, 'for email:', email);
-
     if (!admin) {
-      console.log('[AdminAuth] No admin found for email:', email);
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
         { status: 401 }
@@ -34,7 +42,6 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordValid = await verifyPassword(admin.password, password);
-    console.log('[AdminAuth] Password valid:', passwordValid);
 
     if (!passwordValid) {
       return NextResponse.json(
@@ -52,8 +59,6 @@ export async function POST(request: NextRequest) {
         });
       } catch {}
     }
-
-    console.log('[AdminAuth] Login success - creating session for:', admin.name);
 
     const sessionValue = encodeAdminSession({
       id: admin.id,
@@ -74,8 +79,8 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(getAdminSessionCookie(sessionValue));
     return response;
-  } catch (error: any) {
-    console.error('[AdminAuth] Unexpected error:', error);
+  } catch (error) {
+    console.error('[AdminAuth] Unexpected error:', error instanceof Error ? error.message : 'Unknown');
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

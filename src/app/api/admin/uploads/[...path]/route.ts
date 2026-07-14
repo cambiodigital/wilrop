@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stat, readFile } from 'fs/promises';
 import path from 'path';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -15,9 +16,12 @@ const MIME_TYPES: Record<string, string> = {
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const segments = (await params).path;
     if (!segments || segments.length === 0) {

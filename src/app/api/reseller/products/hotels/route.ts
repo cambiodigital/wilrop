@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
-import { safeJsonParse } from "@/lib/json";
 import {
   buildHotelCreateData,
   formatAdminHotel,
@@ -12,28 +11,6 @@ import {
   getPanelSessionCookieName,
   verifyPanelSessionToken,
 } from "@/lib/panel-auth";
-
-async function syncHotelRoomsCache(hotelId: string) {
-  const roomTypes = await db.roomType.findMany({ where: { hotelId } });
-  const formattedRooms = roomTypes
-    .filter((rt) => rt.active)
-    .map((rt) => ({
-      id: rt.id,
-      name: rt.name,
-      maxGuests: rt.maxGuests,
-      beds: rt.beds,
-      price: rt.basePrice,
-      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
-      includes: safeJsonParse<string[]>(rt.includes, []),
-      available: 1,
-      roomImage: rt.roomImage,
-      roomImages: safeJsonParse<string[]>(rt.roomImages, []),
-    }));
-  await db.hotel.update({
-    where: { id: hotelId },
-    data: { rooms: JSON.stringify(formattedRooms) },
-  });
-}
 
 async function batchCreateRoomTypes(
   hotelId: string,
@@ -79,6 +56,7 @@ export async function GET() {
 
     const hotels = await db.hotel.findMany({
       where: { resellerId: session.id },
+      include: { roomTypes: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -190,34 +168,19 @@ export async function POST(request: NextRequest) {
             },
           });
         }
-
-        // Sync the rooms JSON cache inside the transaction
-        const createdRoomTypes = await tx.roomType.findMany({ where: { hotelId: created.id } });
-        const formattedRooms = createdRoomTypes
-          .filter((rt) => rt.active)
-          .map((rt) => ({
-            id: rt.id,
-            name: rt.name,
-            maxGuests: rt.maxGuests,
-            beds: rt.beds,
-            price: rt.basePrice,
-            originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
-            includes: safeJsonParse<string[]>(rt.includes, []),
-            available: 1,
-            roomImage: rt.roomImage,
-            roomImages: safeJsonParse<string[]>(rt.roomImages, []),
-          }));
-        await tx.hotel.update({
-          where: { id: created.id },
-          data: { rooms: JSON.stringify(formattedRooms) },
-        });
       }
 
       return created;
     });
 
+    // Fetch the hotel with roomTypes for the response
+    const hotelWithRooms = await db.hotel.findUnique({
+      where: { id: hotel.id },
+      include: { roomTypes: true },
+    });
+
     return NextResponse.json(
-      { success: true, data: formatAdminHotel(hotel) },
+      { success: true, data: formatAdminHotel(hotelWithRooms!) },
       { status: 201 },
     );
   } catch (error) {

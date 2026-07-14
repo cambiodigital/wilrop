@@ -2,6 +2,8 @@ import { safeJsonParse } from "@/lib/json";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
+import { getAdminSession } from "@/lib/admin/auth-helpers";
+import { createPackageSchema } from "@/lib/validators/packages";
 
 function formatPackage(pkg: any) {
   return {
@@ -20,7 +22,10 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const realCount = await db.travelPackage.count({
       where: { isTemplate: false },
@@ -45,8 +50,19 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
+
+    const parsed = createPackageSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      );
+    }
 
     const {
       slug,
@@ -68,24 +84,7 @@ export async function POST(request: NextRequest) {
       commission,
       active,
       resellerId,
-    } = body;
-
-    if (
-      !destinationId ||
-      !destinationName ||
-      !title ||
-      !duration ||
-      price === undefined
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "destinationId, destinationName, title, duration, and price are required",
-        },
-        { status: 400 },
-      );
-    }
+    } = parsed.data;
 
     const finalSlug = slug || generateSlug(title);
 

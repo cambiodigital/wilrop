@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 import {
   applyTemplateFallback,
   matchesSearch,
@@ -17,6 +18,9 @@ async function resolveHotelFilter(hotelId?: string): Promise<ScopedRelationFilte
 }
 
 export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const filters = parseRelationOptionFilters(new URL(request.url).searchParams);
     const hotelFilter = await resolveHotelFilter(filters.hotelId);

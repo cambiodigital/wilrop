@@ -6,6 +6,7 @@ import { normalizeBookingItems } from '@/lib/booking-orchestration'
 import { validatePriceIntegrity } from '@/lib/booking-pricing'
 import { bookingEvents, BOOKING_CREATED } from '@/lib/booking-events'
 import { notifyBookingCreated } from '@/lib/booking-notifications'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 function formatBookingItem(item: any) {
   return {
@@ -95,6 +96,16 @@ function resolveRequestContext(request: NextRequest): {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const { allowed, remaining } = checkRateLimit(`booking:${ip}`, 10, 15 * 60 * 1000)
+
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Demasiados intentos. Intenta más tarde.' },
+        { status: 429 },
+      )
+    }
+
     const body = await request.json()
 
     const validation = validateBookingInput(body)

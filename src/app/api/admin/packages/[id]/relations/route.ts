@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 import {
   normalizePackageRelationsRequest,
   validateResolvedPackageRelations,
@@ -28,9 +29,12 @@ async function getPackageRelations(packageId: string, client: any = db) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
     const pkg = await db.travelPackage.findUnique({ where: { id }, select: { id: true } });
@@ -50,6 +54,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
     const body = await request.json();

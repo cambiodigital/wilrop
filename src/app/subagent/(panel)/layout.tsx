@@ -20,6 +20,7 @@ export default async function SubagentPanelLayout({ children }: { children: Reac
         name: session.name,
         code: session.code || '',
         commission: session.commission || 0,
+        whiteLabelEnabled: session.whiteLabelEnabled || false,
       }}
     >
       {children}

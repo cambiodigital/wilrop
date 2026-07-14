@@ -51,11 +51,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  hotels as allHotels,
   hotelCities,
   hotelAmenities,
   type Hotel,
-} from "@/data/hotels";
+} from "@/lib/hotel-amenities";
 import { usePortalNavigation } from "@/hooks/use-portal-navigation";
 import { useEffect } from "react";
 

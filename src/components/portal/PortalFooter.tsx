@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { MapPin, Mail, Phone, Instagram, Facebook, Shield } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
-import { destinations as staticDestinations } from '@/data/destinations'
 import { portalPaths } from '@/lib/portal-routes'
 import { brand, socialLinks as brandSocialLinks } from '@/lib/brand'
 import { supportTelUrl, supportWhatsAppUrl } from '@/lib/contact'
@@ -26,7 +25,7 @@ const socialLinks = [
 ]
 
 export default function PortalFooter() {
-  const [destinationsList, setDestinationsList] = useState<any[]>(staticDestinations)
+  const [destinationsList, setDestinationsList] = useState<any[]>([])
 
   useEffect(() => {
     fetch('/api/public/destinations')

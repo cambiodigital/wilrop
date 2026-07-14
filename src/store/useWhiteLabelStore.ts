@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { destinations } from '@/data/destinations';
 
 export interface WhiteLabelConfig {
   storeName: string;
@@ -46,7 +45,7 @@ const defaultConfig: WhiteLabelConfig = {
   primaryColor: '#1F3556',
   secondaryColor: '#C8A96A',
   accentColor: '#2C4770',
-  selectedDestinations: destinations.map(d => d.id),
+  selectedDestinations: [],
   whatsappNumber: '',
   commissionRate: 12,
   subdomain: '',

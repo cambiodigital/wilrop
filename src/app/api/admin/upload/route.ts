@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 
 const ALLOWED_TYPES = [
   'image/jpeg',
@@ -15,6 +16,9 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_FOLDERS = new Set(['hotels', 'rooms', 'destinations', 'packages', 'excursions', 'marketing']);
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

@@ -29,6 +29,7 @@ async function getHotelData(hotelId: string) {
       active: true,
       isTemplate: isTemplateQuery,
     },
+    include: { roomTypes: true },
   })
 
   if (!hotel) return null

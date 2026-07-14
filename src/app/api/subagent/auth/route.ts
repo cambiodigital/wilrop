@@ -3,31 +3,39 @@ import { db } from '@/lib/db';
 import { createPanelSessionToken, getPanelSessionCookie } from '@/lib/panel-auth';
 import { getResellerCapabilities, normalizeResellerLevel } from '@/lib/reseller-access';
 import { hashPassword, shouldUpgradePasswordHash, verifyPassword } from '@/lib/password.mjs';
+import { loginSchema } from '@/lib/validators/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-    const password = typeof body.password === 'string' ? body.password : '';
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const { allowed, remaining } = checkRateLimit(`subagent-auth:${ip}`, 5, 15 * 60 * 1000);
 
-    console.log('[SubagentAuth] Request body received:', { emailProvided: !!body.email, email, passwordProvided: !!body.password });
-
-    if (!email || !password) {
-      console.log('[SubagentAuth] Missing credentials - email:', !!email, 'password:', !!password);
+    if (!allowed) {
       return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
+        { success: false, error: 'Demasiados intentos. Intenta más tarde.' },
+        { status: 429 }
+      );
+    }
+
+    const body = await request.json();
+
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const email = parsed.data.email.trim().toLowerCase();
+    const password = parsed.data.password;
 
     const subagent = await db.subagent.findUnique({
       where: { email },
     });
 
-    console.log('[SubagentAuth] DB lookup - subagent found:', !!subagent, 'for email:', email);
-
     if (!subagent) {
-      console.log('[SubagentAuth] No subagent found for email:', email);
       return NextResponse.json(
         { success: false, error: 'Credenciales inválidas' },
         { status: 401 }
@@ -35,7 +43,6 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordValid = await verifyPassword(subagent.password, password);
-    console.log('[SubagentAuth] Password valid:', passwordValid);
 
     if (!passwordValid) {
       return NextResponse.json(
@@ -55,7 +62,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!subagent.active) {
-      console.log('[SubagentAuth] Subagent inactive:', email);
       return NextResponse.json(
         { success: false, error: 'Tu cuenta está desactivada. Contacta al administrador.' },
         { status: 403 }
@@ -67,8 +73,6 @@ export async function POST(request: NextRequest) {
       sellerLevel,
       whiteLabelEnabled: subagent.whiteLabelEnabled,
     });
-
-    console.log('[SubagentAuth] Login success - creating session for:', subagent.contactName || subagent.agencyName);
 
     const sessionToken = createPanelSessionToken({
       id: subagent.id,
@@ -100,8 +104,8 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(getPanelSessionCookie('subagent', sessionToken));
     return response;
-  } catch (error: any) {
-    console.error('[SubagentAuth] Unexpected error:', error);
+  } catch (error) {
+    console.error('[SubagentAuth] Unexpected error:', error instanceof Error ? error.message : 'Unknown');
     return NextResponse.json(
       { success: false, error: 'Authentication failed' },
       { status: 500 }

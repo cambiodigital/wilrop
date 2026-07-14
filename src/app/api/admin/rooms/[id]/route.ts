@@ -1,6 +1,7 @@
 import { safeJsonParse } from '@/lib/json'
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getAdminSession } from '@/lib/admin/auth-helpers';
 
 
 function formatRoom(room: any) {
@@ -11,40 +12,15 @@ function formatRoom(room: any) {
   };
 }
 
-async function syncHotelRoomsCache(hotelId: string) {
-  const roomTypes = await db.roomType.findMany({
-    where: { hotelId },
-  });
-
-  const formattedRooms = roomTypes
-    .filter((rt) => rt.active)
-    .map((rt) => ({
-      id: rt.id,
-      name: rt.name,
-      maxGuests: rt.maxGuests,
-      beds: rt.beds,
-      price: rt.basePrice,
-      originalPrice: rt.originalPrice > 0 ? rt.originalPrice : undefined,
-      includes: safeJsonParse<string[]>(rt.includes, []),
-      available: 1,
-      roomImage: rt.roomImage,
-      roomImages: safeJsonParse<string[]>(rt.roomImages, []),
-    }));
-
-  await db.hotel.update({
-    where: { id: hotelId },
-    data: {
-      rooms: JSON.stringify(formattedRooms),
-    },
-  });
-}
-
 
 // POST: Create a room for a hotel. The [id] param is the hotelId.
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id: hotelId } = await params;
     const body = await request.json();
@@ -92,8 +68,6 @@ export async function POST(
       },
     });
 
-    await syncHotelRoomsCache(hotelId);
-
     return NextResponse.json(
       { success: true, data: formatRoom(room) },
       { status: 201 }
@@ -112,6 +86,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
     const body = await request.json();
@@ -151,8 +128,6 @@ export async function PUT(
       },
     });
 
-    await syncHotelRoomsCache(existing.hotelId);
-
     return NextResponse.json({ success: true, data: formatRoom(room) });
   } catch (error: any) {
     console.error('Error updating room:', error);
@@ -165,9 +140,12 @@ export async function PUT(
 
 // DELETE: Delete a room by roomId. The [id] param is the room ID.
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const { id } = await params;
 
@@ -180,8 +158,6 @@ export async function DELETE(
     }
 
     await db.roomType.delete({ where: { id } });
-
-    await syncHotelRoomsCache(existing.hotelId);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

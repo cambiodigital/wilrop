@@ -14,6 +14,10 @@ import {
   Menu,
   Package,
   Users,
+  ListFilter,
+  Palette,
+  Settings,
+  BookOpen,
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +38,7 @@ interface SubagentSidebarSession {
   name: string
   code: string
   commission: number
+  whiteLabelEnabled?: boolean
 }
 
 interface MenuItem {
@@ -42,6 +47,7 @@ interface MenuItem {
   icon: React.ReactNode
   href: string
   isExternal?: boolean
+  requiresWhiteLabel?: boolean
 }
 
 const menuItems: MenuItem[] = [
@@ -49,6 +55,11 @@ const menuItems: MenuItem[] = [
   { id: 'sales', label: 'Mis Ventas', icon: <ShoppingCart className="w-5 h-5" />, href: '/subagent/ventas' },
   { id: 'commissions', label: 'Comisiones', icon: <DollarSign className="w-5 h-5" />, href: '/subagent/comisiones' },
   { id: 'clients', label: 'Clientes', icon: <Users className="w-5 h-5" />, href: '/subagent/clientes' },
+  { id: 'products', label: 'Productos', icon: <Package className="w-5 h-5" />, href: '/subagent/productos' },
+  { id: 'catalog', label: 'Mi Catálogo', icon: <ListFilter className="w-5 h-5" />, href: '/subagent/catalog' },
+  { id: 'whitelabel', label: 'Marca Blanca', icon: <Palette className="w-5 h-5" />, href: '/subagent/whitelabel', requiresWhiteLabel: true },
+  { id: 'settings', label: 'Configuración', icon: <Settings className="w-5 h-5" />, href: '/subagent/profile' },
+  { id: 'documentation', label: 'Documentación', icon: <BookOpen className="w-5 h-5" />, href: '/subagent/documentacion' },
 ]
 
 const catalogItems: MenuItem[] = [
@@ -116,7 +127,7 @@ function SidebarNav({ onNavigate, fallbackSession }: { onNavigate?: () => void; 
 
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Panel</p>
-        {menuItems.map((item) => {
+        {menuItems.filter((item) => !item.requiresWhiteLabel || (fallbackSession?.whiteLabelEnabled)).map((item) => {
           const isActive = isItemActive(item.href)
           return (
             <button

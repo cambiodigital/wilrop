@@ -6,7 +6,6 @@ import { MapPin, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { destinations as staticDestinations } from '@/data/destinations'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { useSearchParams } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -87,7 +86,7 @@ export default function DestinationsSection({ limit }: DestinationsSectionProps)
     if (destinationsList.length > 0) {
       return destinationsList
     }
-    return loading ? [] : staticDestinations
+    return loading ? [] : []
   }, [destinationsList, loading])
 
   return (

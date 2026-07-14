@@ -2,6 +2,7 @@ import { safeJsonParse } from "@/lib/json";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { syncResellerCatalogEntry } from "@/lib/reseller/catalog";
+import { getAdminSession } from "@/lib/admin/auth-helpers";
 
 function formatTransportService(service: any) {
   return {
@@ -10,7 +11,10 @@ function formatTransportService(service: any) {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const realCount = await db.transportService.count({
       where: { isTemplate: false },
@@ -41,6 +45,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!getAdminSession(request)) {
+    return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
 

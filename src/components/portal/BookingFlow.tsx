@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { packages } from '@/data/packages'
 import { useNavigationStore } from '@/store/useNavigationStore'
 import { usePortalNavigation } from '@/hooks/use-portal-navigation'
 import { toast } from 'sonner'
@@ -121,11 +120,24 @@ export default function BookingFlow({ packageId, pkg: initialPkg, defaultDate }:
   const [bookingRef] = useState(() => 'WIL-PKG-' + Math.random().toString(36).substring(2, 8).toUpperCase())
   const [form, setForm] = useState<BookingPayload>({ ...initialPayload })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [fetchedPkg, setFetchedPkg] = useState<any>(null)
 
-  const pkg = useMemo(
-    () => initialPkg || packages.find((p) => p.id === (packageId ?? selectedPackageId)),
-    [initialPkg, packageId, selectedPackageId],
-  )
+  const targetId = packageId ?? selectedPackageId
+
+  // Fetch package from API if not provided as prop
+  useEffect(() => {
+    if (initialPkg || !targetId) return
+    fetch(`/api/public/packages?id=${targetId}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setFetchedPkg(res.data[0])
+        }
+      })
+      .catch((err) => console.error('Error fetching package:', err))
+  }, [initialPkg, targetId])
+
+  const pkg = initialPkg || fetchedPkg
   const totalGuests = form.adults + form.children
 
   const isInsuranceIncluded = useMemo(() => {
