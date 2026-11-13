@@ -38,6 +38,10 @@ services:
         condition: service_completed_successfully
     networks:
       - wilrop-net
+      # Attach directly to the proxy network at container start: Traefik only
+      # refreshes container IPs on container events, so a post-start connect
+      # by Coolify can leave the https router dialing an unreachable IP.
+      - coolify
     labels:
       - traefik.enable=true
       # Resolvable backend IP: coolify-proxy only lives on the coolify network.
@@ -73,3 +77,5 @@ volumes:
 networks:
   wilrop-net:
     driver: bridge
+  coolify:
+    external: true
