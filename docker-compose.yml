@@ -42,16 +42,21 @@ services:
       - traefik.enable=true
       # Resolvable backend IP: coolify-proxy only lives on the coolify network.
       - traefik.docker.network=coolify
-      # HTTP: permanent redirect to HTTPS (apex + whitelabel subdomains).
+      # HTTP: canonical www->apex first, then permanent redirect to HTTPS.
       - 'traefik.http.routers.wilrop-http.rule=Host(`wilropgroup.com`) || HostRegexp(`^[a-zA-Z0-9][a-zA-Z0-9-]+[.]wilropgroup[.]com$`)'
       - traefik.http.routers.wilrop-http.entrypoints=http
-      - traefik.http.routers.wilrop-http.middlewares=wilrop-redirect
+      - traefik.http.routers.wilrop-http.middlewares=wilrop-canonical,wilrop-redirect
       - traefik.http.routers.wilrop-http.service=wilrop
       - traefik.http.middlewares.wilrop-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.wilrop-redirect.redirectscheme.permanent=true
+      # www is a reserved slug: 301 to the apex (matches emwil-canonical pattern).
+      - 'traefik.http.middlewares.wilrop-canonical.redirectregex.regex=^https?://www\.wilropgroup\.com/(.*)'
+      - 'traefik.http.middlewares.wilrop-canonical.redirectregex.replacement=https://wilropgroup.com/$${1}'
+      - traefik.http.middlewares.wilrop-canonical.redirectregex.permanent=true
       # HTTPS: single cert (apex + wildcard) requested via the dnsChallenge resolver.
       - 'traefik.http.routers.wilrop-https.rule=Host(`wilropgroup.com`) || HostRegexp(`^[a-zA-Z0-9][a-zA-Z0-9-]+[.]wilropgroup[.]com$`)'
       - traefik.http.routers.wilrop-https.entrypoints=https
+      - traefik.http.routers.wilrop-https.middlewares=wilrop-canonical
       - traefik.http.routers.wilrop-https.tls=true
       - traefik.http.routers.wilrop-https.tls.certresolver=letsencrypt
       - traefik.http.routers.wilrop-https.tls.domains[0].main=wilropgroup.com
