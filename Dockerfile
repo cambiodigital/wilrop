@@ -79,11 +79,9 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
-LABEL traefik.enable=true
-LABEL traefik.http.routers.wilrop.rule="Host(`wilropgroup.com`) || HostRegexp(`^[a-zA-Z0-9][a-zA-Z0-9-]+[.]wilropgroup[.]com$`)"
-LABEL traefik.http.routers.wilrop.tls=true
-LABEL traefik.http.routers.wilrop.tls.certResolver=letsencrypt
-LABEL traefik.http.services.wilrop.loadbalancer.server.port=3000
+# NOTE: Traefik routing labels live ONLY in docker-compose.yaml. Do not bake
+# them into the image: duplicate router definitions shadowed the compose
+# routers on :443 and caused the 2026-11-13 HTTPS 504 incident.
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["web"]
